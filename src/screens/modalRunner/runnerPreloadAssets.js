@@ -15,17 +15,15 @@ import smokeRun2 from '../../assets/ui/lady-sprite/sprite-run/smoke-run/smoke-2.
 import smokeRun3 from '../../assets/ui/lady-sprite/sprite-run/smoke-run/smoke-3.webp';
 import smokeRun4 from '../../assets/ui/lady-sprite/sprite-run/smoke-run/smoke-4.webp';
 import tokyoRun1 from '../../assets/ui/lady-sprite/sprite-run/tokyo-run/tokyo-1.webp';
-import tokyoRun2 from '../../assets/ui/lady-sprite/sprite-run/tokyo-run/tokyo-2.webp';
-import tokyoRun3 from '../../assets/ui/lady-sprite/sprite-run/tokyo-run/tokyo-3.webp';
-import tokyoRun4 from '../../assets/ui/lady-sprite/sprite-run/tokyo-run/tokyo-4.webp';
+import tokyoJump from '../../assets/ui/lady-sprite/sprite-run/tokyo-run/tokyo-2.webp';
 import tukaRun1 from '../../assets/ui/lady-sprite/sprite-run/tuka-run/tuka-1.webp';
 import tukaRun2 from '../../assets/ui/lady-sprite/sprite-run/tuka-run/tuka-2.webp';
 import zeusRun1 from '../../assets/ui/lady-sprite/sprite-run/zeus-run/zeus-1.webp';
-import zeusRun2 from '../../assets/ui/lady-sprite/sprite-run/zeus-run/zeus-2.webp';
-import zeusRun3 from '../../assets/ui/lady-sprite/sprite-run/zeus-run/zeus-3.webp';
-import zeusRun4 from '../../assets/ui/lady-sprite/sprite-run/zeus-run/zeus-4.webp';
+import zeusJump from '../../assets/ui/lady-sprite/sprite-run/zeus-run/zeus-2.webp';
 import druhRun1 from '../../assets/ui/lady-sprite/sprite-run/druh-run/druh-1.webp';
 import druhJump from '../../assets/ui/lady-sprite/sprite-run/druh-run/druh-2.webp';
+import dayoRun1 from '../../assets/ui/lady-sprite/sprite-run/dayo-run/dayo-1.webp';
+import dayoJump from '../../assets/ui/lady-sprite/sprite-run/dayo-run/dayo-2.webp';
 
 import logoLadyRun1 from '../../assets/ui/icons-hud/hud-modals/game-run/logo/logo-lady-run1.webp';
 import logoLadyRun2Loop from '../../assets/ui/icons-hud/hud-modals/game-run/logo/logo-lady-run-2-loop-final2.webp';
@@ -39,6 +37,7 @@ import tokyoIcon   from '../../assets/ui/icons-pets/mineros/tokyo-icon.webp';
 import tukaIcon    from '../../assets/ui/icons-pets/mineros/tuka-icon.webp';
 import zeusIcon    from '../../assets/ui/icons-pets/mineros/zeus-icon.webp';
 import druhIcon    from '../../assets/ui/icons-pets/mineros/druh-icon.webp';
+import dayoIcon    from '../../assets/ui/icons-pets/mineros/dayo-icon.webp';
 
 import obstaculo2 from '../../assets/ui/icons-hud/hud-modals/game-run/obstaculos/terrestres/mina/obstaculo2.webp';
 import obstaculoRata from '../../assets/ui/icons-hud/hud-modals/game-run/obstaculos/terrestres/mina/obstaculo-rata.webp';
@@ -133,11 +132,12 @@ export const RUNNER_CORE_PRELOAD_IMAGES = [
     munaRun1, munaJump,
     nupitoRun1, nupitoJump,
     smokeRun1, smokeRun2, smokeRun3, smokeRun4,
-    tokyoRun1, tokyoRun2, tokyoRun3, tokyoRun4,
+    tokyoRun1, tokyoJump,
     tukaRun1, tukaRun2,
-    zeusRun1, zeusRun2, zeusRun3, zeusRun4,
+    zeusRun1, zeusJump,
     druhRun1, druhJump,
-    ladyIcon, gordoIcon, munaIcon, nupitoIcon, smokeIcon, tokyoIcon, tukaIcon, zeusIcon, druhIcon,
+    dayoRun1, dayoJump,
+    ladyIcon, gordoIcon, munaIcon, nupitoIcon, smokeIcon, tokyoIcon, tukaIcon, zeusIcon, druhIcon, dayoIcon,
     lockIcon, tavernCoinIcon, chapaIcon, huesinIcon, jumpBtnIcon1, jumpBtnIcon2, boneIcon,
     pawFill0, pawFill1, pawFill2, pawFill3, pawFill4, pawFill5,
     lifeHeart0, lifeHeart1, lifeHeart2, lifeHeart3, lifeHeart4, magicHeartIcon, greenHeartIcon,

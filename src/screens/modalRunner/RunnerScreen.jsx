@@ -47,6 +47,9 @@ import munaGameOver from '../../assets/ui/icons-hud/hud-modals/game-run/assets-p
 import druhGameOver from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-druh/druh-run-firme.webp';
 import gordoGameOver from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-gordo/gordo-run-firme.webp';
 import ladyGameOver from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-lady/lady-run-firme.webp';
+import tukaGameOver1 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-tuka/tuka-1.webp';
+import zeusGameOver1 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-zeus/zeus-1.webp';
+import tokyoGameOver1 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-tokyo/tokyo-1.webp';
 import nupitoGameOver from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-nupito/nupito-run-firme.webp';
 import nupitoRun1 from '../../assets/ui/lady-sprite/sprite-run/nupito-run/nupito-1.webp';
 import nupitoJump from '../../assets/ui/lady-sprite/sprite-run/nupito-run/nupito-2.webp';
@@ -55,15 +58,13 @@ import smokeRun2 from '../../assets/ui/lady-sprite/sprite-run/smoke-run/smoke-2.
 import smokeRun3 from '../../assets/ui/lady-sprite/sprite-run/smoke-run/smoke-3.webp';
 import smokeRun4 from '../../assets/ui/lady-sprite/sprite-run/smoke-run/smoke-4.webp';
 import tokyoRun1 from '../../assets/ui/lady-sprite/sprite-run/tokyo-run/tokyo-1.webp';
-import tokyoRun2 from '../../assets/ui/lady-sprite/sprite-run/tokyo-run/tokyo-2.webp';
-import tokyoRun3 from '../../assets/ui/lady-sprite/sprite-run/tokyo-run/tokyo-3.webp';
-import tokyoRun4 from '../../assets/ui/lady-sprite/sprite-run/tokyo-run/tokyo-4.webp';
+import tokyoJump from '../../assets/ui/lady-sprite/sprite-run/tokyo-run/tokyo-2.webp';
 import tukaRun1 from '../../assets/ui/lady-sprite/sprite-run/tuka-run/tuka-1.webp';
 import tukaRun2 from '../../assets/ui/lady-sprite/sprite-run/tuka-run/tuka-2.webp';
 import zeusRun1 from '../../assets/ui/lady-sprite/sprite-run/zeus-run/zeus-1.webp';
-import zeusRun2 from '../../assets/ui/lady-sprite/sprite-run/zeus-run/zeus-2.webp';
-import zeusRun3 from '../../assets/ui/lady-sprite/sprite-run/zeus-run/zeus-3.webp';
-import zeusRun4 from '../../assets/ui/lady-sprite/sprite-run/zeus-run/zeus-4.webp';
+import zeusJump from '../../assets/ui/lady-sprite/sprite-run/zeus-run/zeus-2.webp';
+import dayoRun1 from '../../assets/ui/lady-sprite/sprite-run/dayo-run/dayo-1.webp';
+import dayoJump from '../../assets/ui/lady-sprite/sprite-run/dayo-run/dayo-2.webp';
 import druhRun1 from '../../assets/ui/lady-sprite/sprite-run/druh-run/druh-1.webp';
 import druhJump from '../../assets/ui/lady-sprite/sprite-run/druh-run/druh-2.webp';
 
@@ -76,6 +77,7 @@ import tokyoIcon   from '../../assets/ui/icons-pets/mineros/tokyo-icon.webp';
 import tukaIcon    from '../../assets/ui/icons-pets/mineros/tuka-icon.webp';
 import zeusIcon    from '../../assets/ui/icons-pets/mineros/zeus-icon.webp';
 import druhIcon    from '../../assets/ui/icons-pets/mineros/druh-icon.webp';
+import dayoIcon    from '../../assets/ui/icons-pets/mineros/dayo-icon.webp';
 
 import obstaculo2 from '../../assets/ui/icons-hud/hud-modals/game-run/obstaculos/terrestres/mina/obstaculo2.webp';
 import obstaculoRata from '../../assets/ui/icons-hud/hud-modals/game-run/obstaculos/terrestres/mina/obstaculo-rata.webp';
@@ -155,11 +157,11 @@ const ATTACK_BOSS_BIOME_IMGS = {
     mina: attackBatsBoss,
 };
 
-const DOG_SELECT_ORDER = ['lady', 'gordo', 'muna', 'nupito', 'smoke', 'tokio', 'tuka', 'zeus', 'druh'];
+const DOG_SELECT_ORDER = ['lady', 'gordo', 'muna', 'nupito', 'tokio', 'tuka', 'zeus', 'druh', 'dayo', 'smoke'];
 
-// Bloqueados temporalmente: su ciclo de correr todavia no esta animado (webp autoanimado como el resto),
-// se nota mucho mas tosco al lado de los que ya se pasaron. Se desbloquean cuando se animen.
-const LOCKED_DOG_IDS = ['smoke', 'zeus', 'tokio', 'tuka'];
+// Bloqueados temporalmente ("Proximamente"): Smoke porque su ciclo de correr todavia no esta
+// animado (webp autoanimado como el resto), y Dayo porque su alta es de prueba, pendiente de pulir.
+const LOCKED_DOG_IDS = ['dayo', 'smoke'];
 const UNLOCKED_DOG_IDS = DOG_SELECT_ORDER.filter(id => !LOCKED_DOG_IDS.includes(id));
 // Desbloqueados primero (en su orden habitual), bloqueados al final.
 const DOG_SELECT_DISPLAY_ORDER = [...UNLOCKED_DOG_IDS, ...DOG_SELECT_ORDER.filter(id => LOCKED_DOG_IDS.includes(id))];
@@ -175,10 +177,11 @@ const DOG_RUN_FRAMES = {
     muna:   [munaRun1, munaRun1, munaRun1, munaRun1],
     nupito: [nupitoRun1, nupitoRun1, nupitoRun1, nupitoRun1],
     smoke:  [smokeRun1, smokeRun2, smokeRun3, smokeRun4],
-    tokio:  [tokyoRun1, tokyoRun2, tokyoRun3, tokyoRun4],
+    tokio:  [tokyoRun1, tokyoRun1, tokyoRun1, tokyoRun1],
     tuka:   [tukaRun1, tukaRun1, tukaRun1, tukaRun1],
-    zeus:   [zeusRun1, zeusRun2, zeusRun3, zeusRun4],
+    zeus:   [zeusRun1, zeusRun1, zeusRun1, zeusRun1],
     druh:   [druhRun1, druhRun1, druhRun1, druhRun1],
+    dayo:   [dayoRun1, dayoRun1, dayoRun1, dayoRun1],
 };
 
 // Pose de salto propia para perros con sprite de correr animado (webp autoanimado, no ciclo de 4 frames).
@@ -190,6 +193,9 @@ const DOG_JUMP_FRAME = {
     nupito: nupitoJump,
     lady: ladyJump,
     tuka: tukaRun2,
+    zeus: zeusJump,
+    tokio: tokyoJump,
+    dayo: dayoJump,
 };
 
 // Fila de 3 huecos de vida fijos. Cada tramo de 3 vidas suma una capa nueva encima de los 3 huecos
@@ -213,18 +219,24 @@ const GREEN_HEART_MAX = 3;
 const PAW_FILL_IMAGES = [pawFill0, pawFill1, pawFill2, pawFill3, pawFill4, pawFill5];
 const PAW_FILL_MAX = 5;
 
-// Pose especifica al perder (game over), por ahora solo Muna tiene este asset.
+// Pose especifica al perder (game over). Tuka/Zeus/Tokyo usan el frame 1 de su ciclo de correr como
+// placeholder fijo (sin animar) hasta que tengan su propia pose "run-firme" pulida, como el resto.
 const DOG_GAMEOVER_IMG = {
     muna: munaGameOver,
     druh: druhGameOver,
     gordo: gordoGameOver,
     lady: ladyGameOver,
     nupito: nupitoGameOver,
+    tuka: tukaGameOver1,
+    zeus: zeusGameOver1,
+    tokio: tokyoGameOver1,
+    dayo: dayoRun1,
 };
 
 const DOG_ICONS = {
     lady: ladyIcon, gordo: gordoIcon, muna: munaIcon, nupito: nupitoIcon,
     smoke: smokeIcon, tokio: tokyoIcon, tuka: tukaIcon, zeus: zeusIcon, druh: druhIcon,
+    dayo: dayoIcon,
 };
 
 const BIOMES = {
@@ -385,7 +397,7 @@ const DOG_SIZE = 64;
 // mayor cuanto mas grande es el perro, para compensar tener mas caja que golpear.
 const DOG_SIZE_TIER = {
     nupito: 'small', zeus: 'small',
-    lady: 'medium', druh: 'medium',
+    lady: 'medium', druh: 'medium', dayo: 'medium',
     gordo: 'large', smoke: 'large', tokio: 'large', tuka: 'large', muna: 'large',
 };
 const DOG_TIER_VISUAL_SIZE = { small: 48, medium: 56, large: 64 };
@@ -3407,7 +3419,7 @@ export default function RunnerScreen({
                     </div>
                 )}
 
-                {phase === 'ready' && runMode === 'arcade' && (
+                {phase === 'ready' && runMode === 'arcade' && LOCKED_DOG_IDS.length > 0 && (
                     <div className="runner-dog-select">
                         <span className="runner-dog-select-locked-label">Próximamente</span>
                         {DOG_SELECT_ORDER.filter(id => LOCKED_DOG_IDS.includes(id)).map(id => (

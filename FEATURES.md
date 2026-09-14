@@ -12,7 +12,13 @@ Lista de ideas/features en marcha o por hacer. Se va actualizando según avanzam
 
 ## Auth / Usuarios
 
-- Cuenta anónima de Supabase + ID elegido por el jugador (sin password), ya implementado en local (`useLadyRunProfile`), pendiente de decidir cuándo se integra en el flujo real.
+- [x] Cuenta anónima de Supabase + ID elegido por el jugador (sin password), ya en el flujo real (`useLadyRunProfile` + `LadyRunUsernameScreen`, gatea la entrada a la app).
+- Pendiente: el username tiene unique constraint sensible a mayúsculas ("Yisus" vs "YISUS" cuentan como distintos) - hacerlo case-insensitive en algún momento para evitar duplicados tontos.
+- Pendiente: cada dispositivo/navegador crea su PROPIA cuenta anónima, no hay forma de compartir progreso/ranking entre movil y PC del mismo jugador. Solución pensada (sin perder la sencillez del ID, sin email real): añadir un campo de contraseña opcional para "reclamar" la cuenta anónima (Supabase `updateUser`) y poder iniciar sesión con el mismo ID+contraseña desde otro dispositivo, conservando el mismo historial. Decidido dejarlo aparcado por ahora: el juego está enfocado a móvil, no es prioridad.
+
+## UI / Selector de perro
+
+- Pendiente ajustar: en el selector de perro de Modo Libre, cada card muestra color de borde por rareza y fondo/icono por elemento (`dog-rarity-*`, `runner-dog-select-elembg-*`), pero en Modo Libre ninguno de los dos afecta al juego - son datos que solo tendrán sentido de verdad en Historia (combate, debilidades por elemento, etc.). De momento se deja tal cual porque quitarlo sin más deja las cards sin marco/cuadro visual. Falta decidir un tratamiento visual propio para Modo Libre antes de quitar la rareza/elemento de ahí.
 
 ## Idiomas / itch.io
 
