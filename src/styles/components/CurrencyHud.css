@@ -1,0 +1,42 @@
+.currency-hud {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    box-sizing: border-box;
+    z-index: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 0 12px;
+    background: rgba(0, 0, 0, 0.55);
+    border-bottom: 1px solid rgba(255, 215, 64, 0.25);
+}
+
+.currency-hud-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.currency-hud-item img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.currency-hud-item span {
+    color: #ffd740;
+    font-weight: 800;
+    font-size: 0.8rem;
+}
+
+/* .currency-hud es position:fixed con su propio z-index (600), asi que crea su propio contexto de
+   apilamiento: el z-index alto de .lady-run-tut-highlight en un hijo no basta para superar el
+   oscurecido del tutorial si la barra entera se queda por debajo. Se sube la barra completa mientras
+   dura un paso del tutorial que apunte a alguna de sus monedas. */
+.currency-hud.lady-run-tut-active {
+    z-index: 751 !important;
+}

@@ -1,0 +1,76 @@
+.lady-run-shop-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 20;
+}
+
+.lady-run-shop-panel {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../../assets/backgrounds/bg-modal-raids/bg-raids-passive/raids-passive-bg.png') center / cover no-repeat;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.lady-run-shop-content {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: start;
+    justify-items: center;
+    gap: 12px;
+}
+
+.lady-run-shop-heart-card {
+    position: relative;
+    width: 100%;
+    max-width: 160px;
+    min-height: 190px;
+    background: url('../../assets/ui/icons-hud/hud-modals/modal-comerciante/icons-comerciante/diamond.webp') center / 100% 100% no-repeat;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.lady-run-shop-heart-card-icon {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.7));
+}
+
+.lady-run-shop-heart-card-name {
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.lady-run-shop-heart-card-desc {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.lady-run-shop-heart-card-buy-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.runner-start-btn.lady-run-shop-soon-btn {
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+    text-transform: none;
+    padding: 0.5rem 1.2rem;
+    white-space: nowrap;
+}

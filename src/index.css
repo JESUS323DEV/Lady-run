@@ -1,0 +1,98 @@
+/* RESET BÁSICO Y SANO */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Quitar márgenes raros del navegador */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #0d0d0d;
+}
+
+/* Textos: fuera márgenes por defecto */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+    margin: 0;
+    padding: 0;
+    font-weight: normal;
+    font-family: "Cinzel", serif;
+}
+
+/* Listas sin basura */
+ul,
+ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* Enlaces limpios */
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Imágenes bien comportadas */
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/* Botones sin estilos raros */
+button {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    font-family: "Cinzel", serif;
+}
+
+/* Inputs coherentes */
+input,
+textarea,
+select {
+    font: inherit;
+    color: inherit;
+    border: none;
+    outline: none;
+}
+
+/* Textarea sin resize loco */
+textarea {
+    resize: none;
+}
+
+/* Evitar zoom raro en mobile */
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Mejor scroll (opcional pero agradable) */
+body {
+    scroll-behavior: smooth;
+}
+
+summary {
+    list-style: none;
+}
+
+
+summary::-webkit-details-marker {
+    display: none;
+}

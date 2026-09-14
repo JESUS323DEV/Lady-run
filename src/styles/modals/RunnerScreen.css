@@ -1,0 +1,1644 @@
+/* ========== RUNNER (prototipo) ========== */
+
+.runner-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+}
+
+.runner-backdrop-below-hud {
+    top: 40px;
+    z-index: 650;
+}
+
+.lady-run-close-btn {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    z-index: 6;
+}
+
+.lady-run-close-btn:hover {
+    color: white;
+}
+
+.runner-screen {
+    position: relative;
+    width: 100%;
+    max-width: 430px;
+    height: 100%;
+    background: #14100c;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.runner-screen-centered {
+    justify-content: center;
+}
+
+.runner-hud {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+}
+
+.runner-hud-score {
+    color: #ffd740;
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+
+.runner-track-player-lives {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+/* Eleva el CONTENEDOR (sin el brillo pulsante) por encima del oscurecido cuando el tutorial resalta
+   uno de los 2 grupos de dentro (vidas rojas o corazones verdes) - mismo motivo que .currency-hud.
+   El brillo en si va en el grupo interno via .lady-run-tut-highlight, no aqui. */
+.runner-track-player-lives.lady-run-tut-active {
+    position: absolute;
+    z-index: 751 !important;
+}
+
+.runner-lives-group {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.runner-track-bone-counter.lady-run-tut-highlight {
+    position: absolute;
+}
+
+.runner-track-bone-counter {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: #ffd740;
+    font-weight: 800;
+    font-size: 0.8rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.9);
+}
+
+.runner-track-bone-counter img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+
+.runner-life-heart-img {
+    display: block;
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+
+.runner-life-heart-img-green {
+    width: 20px;
+    height: 20px;
+}
+
+.runner-life-heart-img-empty {
+    filter: grayscale(80%) brightness(0.5) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+
+.runner-hud-tier {
+    color: #8fd3ff;
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+.runner-hud-rivals {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: #ff8f6b;
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+.runner-scores-btn {
+    border: none;
+    background: none;
+    color: #ffd740;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.runner-track-scores-btn {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    z-index: 5;
+    border: none;
+    background: none;
+    color: #ffd740;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.runner-tracks {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.runner-tracks-solo {
+    height: auto;
+}
+
+.runner-tracks-blank {
+    position: static;
+    flex: none;
+}
+
+.runner-mode-cards-extra {
+    display: flex;
+    gap: 8px;
+}
+
+.runner-mode-card-locked {
+    position: relative;
+    flex: 1;
+    height: 90px;
+    border-radius: 10px;
+    border: 1px solid #3a2c18;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.runner-mode-card-locked::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.runner-mode-card-locked .runner-mode-btn {
+    padding: 6px 10px;
+}
+
+.runner-mode-card-locked .runner-mode-btn-title {
+    font-size: 0.75rem;
+}
+
+.runner-mode-card-tag {
+    position: relative;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.runner-mode-card-shop {
+    position: relative;
+    width: 99%;
+    height: 90px;
+    border-radius: 10px;
+    border: 1px solid #3a2c18;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.runner-mode-card-shop::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.runner-mode-card-shop .runner-mode-btn {
+    position: relative;
+    z-index: 1;
+}
+
+/* La card tiene overflow:hidden, que recortaria el halo del brillo; se resalta la CARD entera (no el
+   boton) para que se vea completo, ver LadyRunTutorialCallout.css */
+.runner-mode-card-shop.lady-run-tut-highlight {
+    overflow: visible;
+}
+
+.runner-progress-bar {
+    display: flex;
+    align-items: flex-start;
+    height: 70px;
+    padding-top: 22px;
+}
+
+.runner-progress-line {
+    position: relative;
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 2px;
+}
+
+.runner-progress-mark-group {
+    position: absolute;
+    top: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transform: translate(-50%, -50%);
+}
+
+.runner-progress-mark-reward {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 1px;
+    color: #ffd740;
+    font-weight: 800;
+    font-size: 0.65rem;
+    white-space: nowrap;
+    margin-top: 6px;
+}
+
+.runner-progress-mark-reward-icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.runner-progress-mark-reward-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.runner-progress-mark-reward-icon-huesin {
+    width: 30px;
+    height: 30px;
+}
+
+.runner-progress-mark-reward-claimed {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.runner-progress-mark-reward-claimed img {
+    filter: grayscale(100%) brightness(0.7);
+}
+
+.runner-progress-flag {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+
+/* Solo durante la micro-demo del Tutorial 3 (paso 'pata'): la carrera real mueve la pata con
+   actualizaciones continuas de posicion (no necesita transicion), pero la demo la mueve a saltos de
+   marca en marca cada 1.4s, y sin esto se teletransportaria en vez de deslizarse. */
+.runner-progress-flag-tut-demo {
+    transition: left 0.6s ease;
+}
+
+.runner-roulette-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.88);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 50;
+    padding: 0 16px;
+}
+
+.runner-roulette-label {
+    color: #ffd740;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.runner-roulette-label-visible {
+    opacity: 1;
+}
+
+.runner-roulette-viewport {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 1px solid #3a2c18;
+    transform: scale(1);
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.runner-roulette-viewport-settled {
+    transform: scale(1.05);
+    border-color: #ffd740;
+    box-shadow: 0 0 12px 2px rgba(255, 215, 64, 0.55);
+}
+
+.runner-countdown-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+    pointer-events: none;
+}
+
+.runner-countdown-value {
+    color: #ffd740;
+    font-size: 4rem;
+    font-weight: 900;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+    animation: runner-countdown-pop 0.7s ease-out;
+}
+
+@keyframes runner-countdown-pop {
+    0%   { transform: scale(1.6); opacity: 0; }
+    30%  { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.runner-roulette-track {
+    display: flex;
+    height: 100%;
+}
+
+.runner-roulette-frame {
+    height: 100%;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.runner-track {
+    position: relative;
+    width: 99%;
+    overflow: hidden;
+    background: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/libre-bosque.webp') center / cover no-repeat;
+    border-radius: 10px;
+    border: 1px solid #3a2c18;
+}
+
+.runner-track-scene-libre-bosque {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/libre-bosque.webp');
+}
+
+.runner-track-scene-custom-bosque1 {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/capitulo-1-bosque-escenarios/bosque1.webp');
+}
+
+.runner-track-scene-custom-bosque2 {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/capitulo-1-bosque-escenarios/bosque2.webp');
+}
+
+.runner-track-scene-libre-ciudad {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/libre-ciudad.webp');
+}
+
+.runner-track-scene-libre-desierto {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/libre-desierto.webp');
+}
+
+.runner-mode-card-static-ciudad {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/img-fija/libre-ciudad-estatica.webp');
+}
+
+.runner-mode-card-static-desierto {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/img-fija/libre-desierto-estatica.webp');
+}
+
+.runner-mode-card-static-pradera {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/img-fija/libre-pradera-estatica.webp');
+}
+
+.runner-mode-card-static-hielo {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/img-fija/libre-hielo-estatica.webp');
+}
+
+.runner-mode-card-static-bosque {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/img-fija/libre-bosque-estatica.webp');
+}
+
+.runner-mode-card-half {
+    flex: 0 1 calc(50% - 4px);
+}
+
+.runner-track-scene-libre-minas {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/libre-minas.webp');
+}
+
+.runner-track-scene-libre-pradera {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/libre-pradera.webp');
+}
+
+.runner-track-scene-libre-hielo {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/libre-hielo.webp');
+}
+
+.runner-track-scene-mina-1 {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run/card-1/escenario-mina-1.webp');
+}
+
+.runner-track-scene-mina-2 {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run/card-1/escenario-mina-2.webp');
+}
+
+.runner-track-scene-mina-3 {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run/card-1/escenario-mina-3.webp');
+}
+
+.runner-track-scene-ciudad-1 {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run/card-2/escenario-ciudad-1.webp');
+}
+
+.runner-track-scene-ciudad-2 {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run/card-2/escenario-ciudad-2.webp');
+}
+
+.runner-track-scene-ciudad-3 {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run/card-2/escenario-ciudad-3.webp');
+}
+
+.runner-track-scene-ciudad-4 {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/libre-ciudad.webp');
+}
+
+.runner-track-static {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/fondo-1.webp');
+}
+
+.runner-track-cpu {
+    height: 220px;
+}
+
+.runner-track-player {
+    height: 220px;
+}
+
+.runner-track-player.runner-track-blank {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    background: none;
+    border: none;
+    border-radius: 0;
+}
+
+.lady-run-historia-menu-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.runner-track-boss {
+    filter: grayscale(100%) brightness(0.55);
+}
+
+.lady-run-historia-menu-row {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 24px;
+    z-index: 21;
+    display: flex;
+    gap: 10px;
+}
+
+.lady-run-historia-menu-row .runner-mode-btn {
+    flex: 0 1 calc(50% - 5px);
+    text-align: center;
+}
+
+.lady-run-historia-menu-row .runner-mode-btn-title {
+    font-size: 0.85rem;
+}
+
+.lady-run-chapter-select-list {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 21;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.lady-run-chapter-select-list .runner-mode-btn {
+    text-align: center;
+}
+
+.lady-run-chapter-select-list .runner-mode-btn-title {
+    display: block;
+    width: 100px;
+    font-size: 0.85rem;
+}
+
+.runner-boss {
+    position: absolute;
+    bottom: 20px;
+    width: 125px;
+    height: 125px;
+    object-fit: contain;
+    z-index: 2;
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6));
+}
+
+.runner-boss-hit {
+    animation: runner-boss-hit 0.2s ease;
+}
+
+@keyframes runner-boss-hit {
+    0% {
+        filter: brightness(0) saturate(100%) invert(14%) sepia(94%) saturate(7151%) hue-rotate(2deg) brightness(97%) contrast(119%) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6));
+        transform: scale(0.85);
+    }
+    100% {
+        filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6));
+        transform: scale(1);
+    }
+}
+
+.runner-boss-windup {
+    animation: runner-boss-windup 0.35s ease;
+}
+
+@keyframes runner-boss-windup {
+    0% { transform: scale(1); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+.runner-boss-label {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+}
+
+.runner-track-power-pending {
+    animation: runner-track-power-glow 0.9s ease-in-out infinite;
+}
+
+@keyframes runner-track-power-glow {
+    0%, 100% { box-shadow: inset 0 0 12px 2px rgba(255, 215, 64, 0.35); border-color: rgba(255, 215, 64, 0.5); }
+    50%      { box-shadow: inset 0 0 22px 6px rgba(255, 215, 64, 0.85); border-color: #ffd740; }
+}
+
+.runner-track-cpu-label {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+}
+
+.runner-track-cpu-lives {
+    color: #ff5c5c;
+    letter-spacing: 2px;
+    font-size: 0.7rem;
+}
+
+.runner-ground {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: #5a4326;
+}
+
+.runner-sky-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 86.9%;
+    background: rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+}
+
+.runner-sky-overlay-interior {
+    background: rgba(0, 0, 0, 0.50);
+}
+
+.runner-dog {
+    position: absolute;
+    left: 10px;
+    bottom: 12px;
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    object-position: bottom;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6));
+}
+
+.runner-dog-hit {
+    animation: runner-blink 0.1s steps(1) infinite;
+}
+
+@keyframes runner-blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.15; }
+}
+
+.runner-obstacle {
+    position: absolute;
+    bottom: 12px;
+    left: 100%;
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    object-position: bottom;
+    box-sizing: border-box;
+    filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.85));
+    transform-origin: bottom center;
+    animation: runner-obstacle-wobble 1.1s ease-in-out infinite;
+}
+
+@keyframes runner-obstacle-wobble {
+    0%, 100% { transform: rotate(-3deg); }
+    50%      { transform: rotate(3deg); }
+}
+
+.runner-attack {
+    position: absolute;
+    bottom: 12px;
+    left: 100%;
+    width: 28px;
+    height: 28px;
+    box-sizing: border-box;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.7));
+}
+
+.runner-attack-boss {
+    bottom: 35px;
+}
+
+.runner-attack-boss.runner-attack-aerial {
+    bottom: 100px;
+}
+
+.runner-attack-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.runner-attack-boss .runner-attack-img,
+.runner-attack-player .runner-attack-img {
+    animation: runner-attack-boss-blink 0.4s ease-in-out infinite;
+}
+
+@keyframes runner-attack-boss-blink {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.8); }
+}
+
+.runner-obstacle-warn-blink {
+    animation: runner-obstacle-wobble 1.1s ease-in-out infinite, runner-attack-boss-blink 0.8s ease-in-out infinite;
+}
+
+.runner-obstacle-heart,
+.runner-obstacle-coin,
+.runner-obstacle-chapa,
+.runner-obstacle-bone,
+.runner-obstacle-magic-heart {
+    width: 38px;
+    height: 38px;
+}
+
+.runner-obstacle-bone {
+    width: 28px;
+    height: 28px;
+}
+
+.runner-obstacle-heart {
+    width: 42px;
+    height: 42px;
+    padding: 6px;
+    animation: runner-heart-pulse 0.7s ease-in-out infinite;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
+}
+
+.runner-obstacle-magic-heart {
+    animation: runner-heart-pulse 0.7s ease-in-out infinite;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 6px rgba(180, 120, 255, 0.8));
+}
+
+@keyframes runner-heart-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.18); }
+}
+
+.runner-obstacle-coin,
+.runner-obstacle-chapa,
+.runner-obstacle-bone {
+    animation: runner-coin-pulse 0.7s ease-in-out infinite;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 6px rgba(255, 215, 64, 0.7));
+}
+
+@keyframes runner-coin-pulse {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50%      { transform: scale(1.15) rotate(0deg); }
+}
+
+.runner-obstacle-aerial {
+    animation: none;
+    bottom: 92px;
+}
+
+.runner-obstacle-heart.runner-obstacle-aerial {
+    animation: runner-heart-pulse 0.7s ease-in-out infinite;
+    bottom: 110px;
+}
+
+.runner-obstacle-coin.runner-obstacle-aerial {
+    animation: runner-coin-pulse 0.7s ease-in-out infinite;
+}
+
+.runner-obstacle-chapa.runner-obstacle-aerial {
+    animation: runner-coin-pulse 0.7s ease-in-out infinite;
+    bottom: 120px;
+}
+
+.runner-obstacle-bone.runner-obstacle-aerial {
+    animation: runner-coin-pulse 0.7s ease-in-out infinite;
+    bottom: 100px;
+}
+
+.runner-obstacle-magic-heart.runner-obstacle-aerial {
+    animation: runner-heart-pulse 0.7s ease-in-out infinite;
+    bottom: 110px;
+}
+
+.runner-obstacle-collected {
+    animation: runner-pickup-collect 0.35s ease-out forwards !important;
+}
+
+@keyframes runner-pickup-collect {
+    0%   { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0.15); opacity: 0; }
+}
+
+.runner-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.runner-overlay-blank {
+    background: none;
+}
+
+.lady-run-prologo-test {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    background: #000;
+}
+
+.lady-run-prologo-test-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lady-run-chapter-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.runner-start-btn.lady-run-prologo-test-btn {
+    position: absolute;
+    left: 50%;
+    bottom: 32px;
+    transform: translateX(-50%);
+    z-index: 21;
+}
+
+.lady-run-prologo-lore {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 100px;
+    z-index: 21;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.95);
+    text-align: center;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+}
+
+.lady-run-prologo-test .runner-overlay-title {
+    position: absolute;
+    left: 16px;
+    width: 140px;
+    top: 16px;
+    z-index: 21;
+    text-align: left;
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+
+.lady-run-path-node {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    transform: translate(-50%, -50%);
+    z-index: 21;
+    border-radius: 50%;
+    border: 2px solid #ffd740;
+    background: rgba(20, 16, 12, 0.85);
+    color: #ffd740;
+    font-size: 1.1rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(255, 215, 64, 0.6);
+}
+
+.lady-run-path-node-locked {
+    border-color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(20, 16, 12, 0.7);
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.lady-run-path-node-lock {
+    width: 18px;
+    height: 18px;
+}
+
+.runner-overlay-gameover {
+    gap: 4px;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.92) 0%,
+        rgba(0, 0, 0, 0.5) 50%,
+        rgba(0, 0, 0, 1) 100%
+    );
+}
+
+.runner-overlay-title {
+    color: #ffd740;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.runner-overlay-dog-img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+
+.runner-overlay-dog-img-solo {
+    width: 90px;
+    height: 90px;
+    margin-top: 5px;
+}
+
+.runner-dog-hidden {
+    visibility: hidden;
+}
+
+.runner-run-dog-summary-name {
+    color: #ffd740;
+    font-weight: 800;
+    font-size: 1rem;
+    margin-top: 2px;
+}
+
+.runner-overlay-score {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.8rem;
+}
+
+.runner-run-rewards {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 4px;
+}
+
+.runner-run-reward {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #ffd740;
+    font-weight: 800;
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+    animation: runner-reward-pop-in 0.25s ease;
+}
+
+.runner-run-reward img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    transition: width 0.2s ease, height 0.2s ease;
+}
+
+/* Tamano del hueso en game over segun el total cruza cada centena (+5px cada una, tope +15px).
+   Selector con las 2 clases del padre+tier para ganar siempre a ".runner-run-reward img" (mas
+   especifico por el descendiente), mismo criterio que los pasos de relleno de la pata. */
+.runner-run-reward .runner-run-reward-bone-tier-0 { width: 22px; height: 22px; }
+.runner-run-reward .runner-run-reward-bone-tier-1 { width: 27px; height: 27px; }
+.runner-run-reward .runner-run-reward-bone-tier-2 { width: 32px; height: 32px; }
+.runner-run-reward .runner-run-reward-bone-tier-3 { width: 37px; height: 37px; }
+
+@keyframes runner-reward-pop-in {
+    from { opacity: 0; transform: scale(0.4); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.runner-run-reward-grow {
+    transform: scale(1.35);
+}
+
+.runner-run-reward-spin {
+    transform: scale(1.15);
+}
+
+.runner-run-reward-spin img {
+    animation: runner-reward-spin 0.5s linear infinite;
+}
+
+@keyframes runner-reward-spin {
+    from { transform: rotateY(0deg); }
+    to { transform: rotateY(360deg); }
+}
+
+.runner-run-reward-paw {
+    position: relative;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease;
+    animation: runner-reward-pop-in 0.25s ease;
+}
+
+.runner-run-reward-paw img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    transition: width 0.2s ease, height 0.2s ease;
+}
+
+/* Pasos de relleno de la pata: +2px por paso. Selector con las 2 clases del padre+paso para ganar
+   siempre a ".runner-run-reward-paw img" (mas especifico por el descendiente), sin usar !important. */
+.runner-run-reward-paw .runner-run-reward-paw-step-0 { width: 24px; height: 24px; }
+.runner-run-reward-paw .runner-run-reward-paw-step-1 { width: 26px; height: 26px; }
+.runner-run-reward-paw .runner-run-reward-paw-step-2 { width: 28px; height: 28px; }
+.runner-run-reward-paw .runner-run-reward-paw-step-3 { width: 30px; height: 30px; }
+.runner-run-reward-paw .runner-run-reward-paw-step-4 { width: 32px; height: 32px; }
+.runner-run-reward-paw .runner-run-reward-paw-step-5 { width: 34px; height: 34px; }
+
+.runner-run-reward-paw-mult {
+    position: absolute;
+    bottom: -3px;
+    right: -3px;
+    color: #ffd740;
+    font-weight: 800;
+    font-size: 0.62rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95), 0 0 3px rgba(0, 0, 0, 0.95);
+}
+
+.runner-start-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: #ffd740;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0.6rem 2.5rem;
+    cursor: pointer;
+    z-index: 1;
+    transition: filter 0.2s;
+}
+
+.runner-start-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('../../assets/ui/icons-hud/hud-modals/modal-invocacion/vacio.webp') center / 100% 100% no-repeat;
+    filter: grayscale(35%) brightness(0.8);
+    z-index: -1;
+}
+
+.runner-start-btn:hover {
+    filter: brightness(1.15);
+}
+
+.runner-start-btn:disabled {
+    color: rgba(255, 255, 255, 0.5);
+    cursor: not-allowed;
+}
+
+.runner-start-btn:disabled::before {
+    filter: grayscale(60%) brightness(0.5);
+}
+
+.runner-start-btn:disabled:hover {
+    filter: none;
+}
+
+.runner-start-btn-secondary {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.runner-start-btn-secondary::before {
+    filter: grayscale(60%) brightness(0.5);
+}
+
+.runner-start-btn-compact {
+    padding: 0.5rem 1.2rem;
+}
+
+.runner-mode-select {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.runner-mode-select-centered {
+    align-items: center;
+}
+
+.runner-mode-select-centered .runner-mode-btn {
+    text-align: center;
+}
+
+.runner-mode-btn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    z-index: 1;
+    transition: filter 0.2s;
+}
+
+.runner-mode-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('../../assets/ui/icons-hud/hud-modals/modal-invocacion/vacio.webp') center / 100% 100% no-repeat;
+    filter: grayscale(35%) brightness(0.8);
+    z-index: -1;
+}
+
+.runner-mode-btn:hover {
+    filter: brightness(1.15);
+}
+
+.runner-mode-btn-glow,
+.runner-start-btn-glow {
+    animation: runner-btn-glow 1.4s ease-in-out infinite;
+}
+
+@keyframes runner-btn-glow {
+    0%, 100% { filter: drop-shadow(0 0 0 rgba(255, 215, 64, 0)); }
+    50%      { filter: drop-shadow(0 0 8px rgba(255, 215, 64, 0.9)); }
+}
+
+.runner-mode-btn-title {
+    color: #ffd740;
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.runner-mode-btn-desc {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.75rem;
+}
+
+.runner-mode-btn-locked {
+    cursor: not-allowed;
+}
+
+.runner-mode-btn-locked::before {
+    filter: grayscale(100%) brightness(0.5);
+}
+
+.runner-mode-btn-locked .runner-mode-btn-title {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.runner-mode-btn-locked:hover {
+    filter: none;
+}
+
+.runner-mode-btn-lock {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.7));
+}
+
+.lady-run-back-btn {
+    position: fixed;
+    top: 20px;
+    left: 10px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.35);
+    color: #ffd740;
+    cursor: pointer;
+    z-index: 601;
+}
+
+/* .lady-run-tut-highlight pone position:relative por defecto (para las cards de la Tienda, que no
+   tienen position propia) - aqui hay que forzar que se quede fixed, si no pierde su sitio en pantalla. */
+.lady-run-back-btn.lady-run-tut-highlight {
+    position: fixed;
+}
+
+.runner-action-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+}
+
+.runner-loot-limit-text {
+    margin-top: 6px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.7rem;
+    text-align: center;
+}
+
+.runner-jump-hub {
+    position: relative;
+}
+
+.runner-jump-hub .runner-magic-heart-sat {
+    position: absolute;
+    top: -14px;
+    right: -22px;
+    width: 46px;
+    height: 46px;
+    border: none;
+    background: none;
+}
+
+.runner-jump-hub .runner-magic-heart-sat .runner-power-btn-img {
+    width: 32px;
+    height: 32px;
+}
+
+.runner-jump-hub .runner-magic-heart-sat .runner-power-btn-charges {
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: none;
+    color: #ffd740;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.9);
+}
+
+.runner-jump-btn {
+    width: 108px;
+    height: 108px;
+    border-radius: 50%;
+    border: none;
+    background: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.runner-jump-btn-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.runner-jump-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.runner-power-btn {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 800;
+    font-size: 0.62rem;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.runner-power-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.runner-power-btn-img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.runner-power-btn:disabled .runner-power-btn-img {
+    filter: grayscale(100%);
+}
+
+.runner-power-btn-charges {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffd740;
+    color: #14100c;
+    font-size: 0.65rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.runner-dog-select {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+    padding-top: 4px;
+}
+
+.runner-dog-select-locked-label {
+    flex-basis: 100%;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.runner-dog-select-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.runner-dog-select-btn {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 0;
+}
+
+.runner-dog-select-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: grayscale(35%) brightness(0.8);
+    z-index: -1;
+}
+
+.runner-dog-select-btn.dog-rarity-legendary::before { background-image: url('../../assets/ui/icons-enemy/marco-slot-combat/combat-legend.webp'); }
+.runner-dog-select-btn.dog-rarity-epic::before      { background-image: url('../../assets/ui/icons-enemy/marco-slot-combat/combat-epic.webp'); }
+.runner-dog-select-btn.dog-rarity-rare::before       { background-image: url('../../assets/ui/icons-enemy/marco-slot-combat/combat-rare.webp'); }
+
+.runner-dog-select-active::before {
+    filter: none;
+}
+
+/* Tinte sutil del elemento cuando el perro esta seleccionado: de fondo, detras del icono (mismo nivel
+   que el marco de rareza, ::after pintado encima de el pero siempre detras del <img> del perro). */
+.runner-dog-select-active.runner-dog-select-elembg-fuego::after,
+.runner-dog-select-active.runner-dog-select-elembg-electrico::after,
+.runner-dog-select-active.runner-dog-select-elembg-agua::after,
+.runner-dog-select-active.runner-dog-select-elembg-tierra::after,
+.runner-dog-select-active.runner-dog-select-elembg-oscuro::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+}
+
+.runner-dog-select-active.runner-dog-select-elembg-fuego::after     { background-color: rgba(255, 107, 53, 0.18); }
+.runner-dog-select-active.runner-dog-select-elembg-electrico::after { background-color: rgba(255, 215, 0, 0.18); }
+.runner-dog-select-active.runner-dog-select-elembg-agua::after      { background-color: rgba(79, 195, 247, 0.18); }
+.runner-dog-select-active.runner-dog-select-elembg-tierra::after    { background-color: rgba(139, 105, 20, 0.18); }
+.runner-dog-select-active.runner-dog-select-elembg-oscuro::after    { background-color: rgba(180, 92, 255, 0.18); }
+
+.runner-dog-select-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+.runner-dog-select-element {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #14100c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.runner-dog-select-element-fuego     { background-color: #ff6b35; }
+.runner-dog-select-element-electrico { background-color: #FFD700; }
+.runner-dog-select-element-agua      { background-color: #4fc3f7; }
+.runner-dog-select-element-tierra    { background-color: #8b6914; }
+.runner-dog-select-element-oscuro    { background-color: #b45cff; }
+
+.runner-dog-select-locked {
+    cursor: not-allowed;
+}
+
+.runner-dog-select-locked .runner-dog-select-icon {
+    filter: grayscale(100%) brightness(0.45);
+}
+
+.runner-dog-select-lock {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.7));
+    z-index: 1;
+}
+
+.runner-dog-select-name {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.75);
+    text-align: center;
+}
+
+.runner-dog-select-price {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: #ffd740;
+    font-weight: 700;
+    font-size: 0.6rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.9);
+    z-index: 1;
+}
+
+.runner-dog-select-price img {
+    width: 12px;
+    height: 12px;
+    object-fit: contain;
+}
+
+.runner-dog-select-price-short {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.runner-difficulty-select {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.runner-difficulty-btn {
+    position: relative;
+    padding: 6px 16px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    z-index: 1;
+    transition: filter 0.2s, color 0.2s;
+}
+
+.runner-difficulty-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('../../assets/ui/icons-hud/hud-modals/modal-invocacion/vacio.webp') center / 100% 100% no-repeat;
+    filter: grayscale(60%) brightness(0.55);
+    z-index: -1;
+}
+
+.runner-difficulty-active {
+    color: #ffd740;
+}
+
+.runner-difficulty-active::before {
+    filter: grayscale(35%) brightness(0.9);
+}
+
+.runner-difficulty-bonus-glow {
+    animation: runner-difficulty-bonus-glow 1.4s ease-in-out infinite;
+}
+
+@keyframes runner-difficulty-bonus-glow {
+    0%, 100% { filter: drop-shadow(0 0 0 rgba(255, 215, 64, 0)); }
+    50%      { filter: drop-shadow(0 0 8px rgba(255, 215, 64, 0.9)); }
+}
+
+.runner-scores-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+}
+
+.runner-scores-panel {
+    width: 280px;
+    max-width: 85vw;
+    max-height: 70vh;
+    background: #1a140d;
+    border: 2px solid #5a4326;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.runner-scores-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+}
+
+.runner-scores-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+}
+
+.runner-scores-rank {
+    width: 18px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.runner-scores-dog-icon {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+.runner-scores-value {
+    margin-left: auto;
+    color: #ffd740;
+    font-weight: 800;
+}

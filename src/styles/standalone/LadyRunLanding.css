@@ -1,0 +1,49 @@
+.lady-run-landing {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    background: #14100c;
+}
+
+.lady-run-landing-logo {
+    width: min(320px, 80vw);
+    height: auto;
+    object-fit: contain;
+}
+
+/* Mismo boton "vacio.webp" que el resto de Lady Run (ver .runner-start-btn en RunnerScreen.css),
+   replicado aqui con clase propia para no depender de que ese archivo este cargado. */
+.lady-run-landing-play-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: #ffd740;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0.8rem 3rem;
+    cursor: pointer;
+    z-index: 1;
+    transition: filter 0.2s;
+}
+
+.lady-run-landing-play-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('../../assets/ui/icons-hud/hud-modals/modal-invocacion/vacio.webp') center / 100% 100% no-repeat;
+    z-index: -1;
+}
+
+.lady-run-landing-play-btn:hover {
+    filter: brightness(1.15);
+}
