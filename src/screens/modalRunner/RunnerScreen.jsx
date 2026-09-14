@@ -35,6 +35,7 @@ import { useLadyRunMusic } from '../../game/hooks/useLadyRunMusic.js';
 import { LIBRE_SCENE_MUSIC, MINAS_MUSIC_TRACKS, BG_PRINCIPAL_TRACK } from './runnerMusic.js';
 import LadyRunShopModal from './LadyRunShopModal.jsx';
 import LadyRunRankingModal from './LadyRunRankingModal.jsx';
+import LadyRunAvatarModal from './LadyRunAvatarModal.jsx';
 import LadyRunTutorialCallout from '../../components/LadyRunTutorialCallout.jsx';
 
 import ladyRun1 from '../../assets/ui/lady-sprite/sprite-run/lady-run/lady-1.webp';
@@ -78,6 +79,8 @@ import tukaIcon    from '../../assets/ui/icons-pets/mineros/tuka-icon.webp';
 import zeusIcon    from '../../assets/ui/icons-pets/mineros/zeus-icon.webp';
 import druhIcon    from '../../assets/ui/icons-pets/mineros/druh-icon.webp';
 import dayoIcon    from '../../assets/ui/icons-pets/mineros/dayo-icon.webp';
+import katrinaIcon from '../../assets/ui/icons-pets/mineros/katrina-icon.webp';
+import princeIcon  from '../../assets/ui/icons-pets/mineros/prince-icon.webp';
 
 import obstaculo2 from '../../assets/ui/icons-hud/hud-modals/game-run/obstaculos/terrestres/mina/obstaculo2.webp';
 import obstaculoRata from '../../assets/ui/icons-hud/hud-modals/game-run/obstaculos/terrestres/mina/obstaculo-rata.webp';
@@ -157,11 +160,11 @@ const ATTACK_BOSS_BIOME_IMGS = {
     mina: attackBatsBoss,
 };
 
-const DOG_SELECT_ORDER = ['lady', 'gordo', 'muna', 'nupito', 'tokio', 'tuka', 'zeus', 'druh', 'dayo', 'smoke'];
+const DOG_SELECT_ORDER = ['lady', 'gordo', 'muna', 'nupito', 'tokio', 'tuka', 'zeus', 'druh', 'dayo', 'smoke', 'katrina', 'prince'];
 
-// Bloqueados temporalmente ("Proximamente"): Smoke porque su ciclo de correr todavia no esta
-// animado (webp autoanimado como el resto), y Dayo porque su alta es de prueba, pendiente de pulir.
-const LOCKED_DOG_IDS = ['dayo', 'smoke'];
+// Bloqueados temporalmente ("Proximamente"): Smoke y Dayo porque su ciclo de correr todavia no esta
+// pulido/animado como el resto, y Katrina/Prince porque solo tienen icono, sin sprites de carrera aun.
+const LOCKED_DOG_IDS = ['dayo', 'smoke', 'katrina', 'prince'];
 const UNLOCKED_DOG_IDS = DOG_SELECT_ORDER.filter(id => !LOCKED_DOG_IDS.includes(id));
 // Desbloqueados primero (en su orden habitual), bloqueados al final.
 const DOG_SELECT_DISPLAY_ORDER = [...UNLOCKED_DOG_IDS, ...DOG_SELECT_ORDER.filter(id => LOCKED_DOG_IDS.includes(id))];
@@ -183,6 +186,10 @@ const DOG_RUN_FRAMES = {
     druh:   [druhRun1, druhRun1, druhRun1, druhRun1],
     dayo:   [dayoRun1, dayoRun1, dayoRun1, dayoRun1],
 };
+
+// Sprite de correr (frame 1, el mismo que se ve en pista) por perro, para mostrar "el ultimo perro
+// usado" en el Ranking - no es el icono de avatar, es el asset de correr de verdad.
+const DOG_RUN_SPRITE = Object.fromEntries(Object.entries(DOG_RUN_FRAMES).map(([id, frames]) => [id, frames[0]]));
 
 // Pose de salto propia para perros con sprite de correr animado (webp autoanimado, no ciclo de 4 frames).
 // El resto de perros sigue usando runFrames[1] como pose de salto (ver dogImg/cpuDogImg).
@@ -236,8 +243,12 @@ const DOG_GAMEOVER_IMG = {
 const DOG_ICONS = {
     lady: ladyIcon, gordo: gordoIcon, muna: munaIcon, nupito: nupitoIcon,
     smoke: smokeIcon, tokio: tokyoIcon, tuka: tukaIcon, zeus: zeusIcon, druh: druhIcon,
-    dayo: dayoIcon,
+    dayo: dayoIcon, katrina: katrinaIcon, prince: princeIcon,
 };
+
+// Opciones de avatar (pantalla de usuario): solo los perros ya desbloqueados (UNLOCKED_DOG_IDS,
+// no los de "Proximamente"). Mismo icono que se ve en el Ranking una vez equipado.
+const AVATAR_OPTIONS = UNLOCKED_DOG_IDS.map(id => ({ id, name: DogsConfig[id]?.name ?? id, icon: DOG_ICONS[id] }));
 
 const BIOMES = {
     mina: { title: 'Mina', desc: '3-4 escenarios encadenados', scenes: [escenarioMina1, escenarioMina2, escenarioMina3], interior: true },
@@ -629,6 +640,8 @@ export default function RunnerScreen({
     onNewDistanceRecord,
     unlockedDogIds = [],
     onUnlockDog,
+    avatarDogId = null,
+    onEquipAvatar,
     magicHearts = 0,
     onUseMagicHeart,
     greenHearts = 0,
@@ -756,6 +769,7 @@ export default function RunnerScreen({
     const [scoresOpen, setScoresOpen] = useState(false);
     const [shopOpen, setShopOpen] = useState(false);
     const [rankingOpen, setRankingOpen] = useState(false);
+    const [avatarOpen, setAvatarOpen] = useState(false);
     // Tutorial 2 (Modo Libre, pantalla de elegir perro): null | 'vidas' | 'botin' | 'perros' | 'dificultad' | 'empezar'.
     // Local del todo (no necesita coordinarse con CurrencyHud como el Tutorial 1), ver useLadyRunTutorial.js.
     const [libreTutStep, setLibreTutStep] = useState(null);
@@ -2904,6 +2918,13 @@ export default function RunnerScreen({
 
                         {(phase === 'ready' || phase === 'gameover') && (
                         <div className={`runner-overlay${phase === 'gameover' ? ' runner-overlay-gameover' : ''}${historiaMenuBlank ? ' runner-overlay-blank' : ''}`}>
+                            {phase === 'ready' && !runMode && !shopOpen && !rankingOpen && !avatarOpen && (
+                                <button className="lady-run-avatar-trigger" onClick={() => setAvatarOpen(true)}>
+                                    {avatarDogId && DOG_ICONS[avatarDogId] && (
+                                        <img src={DOG_ICONS[avatarDogId]} alt="" />
+                                    )}
+                                </button>
+                            )}
                             {phase === 'ready' && !runMode && (
                                 <div className="runner-mode-select">
                                     <button className="runner-mode-btn runner-mode-btn-glow" onClick={() => setRunMode('arcade')}>
@@ -3469,7 +3490,16 @@ export default function RunnerScreen({
                 )}
 
                 {rankingOpen && (
-                    <LadyRunRankingModal onClose={() => setRankingOpen(false)} />
+                    <LadyRunRankingModal onClose={() => setRankingOpen(false)} dogIcons={DOG_ICONS} dogRunSprites={DOG_RUN_SPRITE} />
+                )}
+
+                {avatarOpen && (
+                    <LadyRunAvatarModal
+                        onClose={() => setAvatarOpen(false)}
+                        currentAvatarDogId={avatarDogId}
+                        avatarOptions={AVATAR_OPTIONS}
+                        onEquip={(dogId) => { onEquipAvatar?.(dogId); setAvatarOpen(false); }}
+                    />
                 )}
 
                 {historiaStep === 0 && (

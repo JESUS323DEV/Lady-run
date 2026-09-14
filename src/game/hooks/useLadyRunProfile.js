@@ -30,14 +30,20 @@ export const useLadyRunProfile = () => {
             if (cancelled) return;
             setSession(currentSession);
 
-            const { data: profileRow } = await supabase
+            const { data: profileRow, error: profileError } = await supabase
                 .from('profiles')
-                .select('id, username')
+                .select('id, username, avatar_dog_id')
                 .eq('id', currentSession.user.id)
                 .maybeSingle();
 
             if (!cancelled) {
-                setProfile(profileRow ?? null);
+                if (profileError) {
+                    // Fallo real de conexion/consulta: nunca tratarlo como "no tienes perfil todavia",
+                    // o mandaria a un jugador YA registrado a la pantalla de elegir ID otra vez.
+                    setInitError(profileError.message);
+                } else {
+                    setProfile(profileRow ?? null);
+                }
                 setLoading(false);
             }
         };
@@ -53,7 +59,7 @@ export const useLadyRunProfile = () => {
         const { data, error } = await supabase
             .from('profiles')
             .insert({ id: session.user.id, username })
-            .select('id, username')
+            .select('id, username, avatar_dog_id')
             .single();
         setClaiming(false);
 
@@ -65,5 +71,19 @@ export const useLadyRunProfile = () => {
         return true;
     }, [session]);
 
-    return { loading, initError, profile, claiming, claimError, claimUsername };
+    const equipAvatar = useCallback(async (dogId) => {
+        if (!session) return false;
+        const { data, error } = await supabase
+            .from('profiles')
+            .update({ avatar_dog_id: dogId })
+            .eq('id', session.user.id)
+            .select('id, username, avatar_dog_id')
+            .single();
+
+        if (error) return false;
+        setProfile(data);
+        return true;
+    }, [session]);
+
+    return { loading, initError, profile, claiming, claimError, claimUsername, equipAvatar };
 };

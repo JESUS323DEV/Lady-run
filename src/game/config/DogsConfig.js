@@ -15,4 +15,6 @@ export const DogsConfig = {
     gordo:     { id: 'gordo',     name: 'Gordo',     rarity: 'rare', element: 'tierra' },
     zeus:      { id: 'zeus',      name: 'Zeus',      rarity: 'rare', element: 'oscuro' },
     dayo:      { id: 'dayo',      name: 'Dayo',      rarity: 'rare', element: 'electrico' },
+    katrina:   { id: 'katrina',   name: 'Katrina',   rarity: 'epic', element: 'agua' },
+    prince:    { id: 'prince',    name: 'Prince',    rarity: 'epic', element: 'oscuro' },
 };

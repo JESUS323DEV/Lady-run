@@ -1245,7 +1245,10 @@
 .lady-run-back-btn {
     position: fixed;
     top: 20px;
-    left: 10px;
+    /* left:10px de toda la vida en movil (donde la columna del juego ocupa el 100% del ancho); en
+       desktop la columna esta centrada con max-width:430px (ver .runner-screen), asi que a partir de
+       ahi el boton se pega al borde IZQUIERDO de esa columna en vez de al del navegador entero. */
+    left: max(10px, calc(50vw - 205px));
     transform: translateY(-50%);
     display: flex;
     align-items: center;
@@ -1258,6 +1261,33 @@
     color: #ffd740;
     cursor: pointer;
     z-index: 601;
+}
+
+/* Mismo hueco/logica de posicion que .lady-run-back-btn (arriba), solo que aqui es al reves: 10px en
+   movil, pegado al borde izquierdo de la columna en desktop. Nunca coinciden en pantalla a la vez
+   (este boton solo sale en la pantalla principal, sin runMode; la flecha sale en el resto). */
+.lady-run-avatar-trigger {
+    position: fixed;
+    top: 20px;
+    left: max(10px, calc(50vw - 205px));
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 215, 64, 0.5);
+    background: rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    z-index: 601;
+    overflow: hidden;
+}
+
+.lady-run-avatar-trigger img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 /* .lady-run-tut-highlight pone position:relative por defecto (para las cards de la Tienda, que no

@@ -1,3 +1,9 @@
+.lady-run-ranking-difficulty {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
 .lady-run-ranking-list {
     width: 100%;
     max-width: 360px;
@@ -16,7 +22,7 @@
 
 .lady-run-ranking-row {
     display: grid;
-    grid-template-columns: 20px 36px 1fr auto;
+    grid-template-columns: 20px 36px 1fr 40px auto;
     align-items: center;
     gap: 10px;
     background: rgba(0, 0, 0, 0.4);
@@ -38,6 +44,13 @@
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+}
+
+.lady-run-ranking-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .lady-run-ranking-username {
@@ -47,6 +60,20 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.lady-run-ranking-last-dog {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lady-run-ranking-last-dog img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .lady-run-ranking-distance {
