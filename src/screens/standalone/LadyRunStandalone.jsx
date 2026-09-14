@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import RunnerScreen from '../modalRunner/RunnerScreen.jsx';
 import LadyRunLanding from './LadyRunLanding.jsx';
+import LadyRunUsernameScreen from './LadyRunUsernameScreen.jsx';
 import { getDailyRotationKey } from '../../game/utils/dateRotation.js';
 import CurrencyHud from '../../components/CurrencyHud.jsx';
 import { useLadyRunTutorial } from '../../game/hooks/useLadyRunTutorial.js';
+import { useLadyRunProfile } from '../../game/hooks/useLadyRunProfile.js';
 import { usePreloadImages, prefetchImages } from '../../game/hooks/usePreloadImages.js';
 import { RUNNER_CORE_PRELOAD_IMAGES, RUNNER_HISTORIA_PRELOAD_IMAGES } from '../modalRunner/runnerPreloadAssets.js';
 import '../../styles/standalone/LadyRunStandalone.css';
@@ -32,6 +34,7 @@ const LadyRunStandalone = () => {
     const [gameState, setGameState] = useState(loadSavedState);
     const [showLanding, setShowLanding] = useState(true);
     const loaded = usePreloadImages(RUNNER_CORE_PRELOAD_IMAGES);
+    const { loading: profileLoading, initError: profileInitError, profile, claiming, claimError, claimUsername } = useLadyRunProfile();
     const { tutStep: ladyRunTutStep, setTutStep: setLadyRunTutStep, advanceTutorial: advanceLadyRunTutorial } = useLadyRunTutorial(
         gameState.ladyRunTutorial?.completed ?? false,
         () => setGameState(prev => ({ ...prev, ladyRunTutorial: { completed: true } })),
@@ -49,12 +52,26 @@ const LadyRunStandalone = () => {
         prefetchImages(RUNNER_HISTORIA_PRELOAD_IMAGES);
     }, [loaded]);
 
-    if (!loaded) {
+    if (!loaded || profileLoading) {
         return (
             <div className="lady-run-loading-screen">
                 <div className="lady-run-loading-spinner" />
             </div>
         );
+    }
+
+    if (profileInitError) {
+        return (
+            <div className="lady-run-loading-screen">
+                <p className="lady-run-loading-error">
+                    No se pudo conectar con el servidor ({profileInitError}). Comprueba tu conexión y recarga.
+                </p>
+            </div>
+        );
+    }
+
+    if (!profile) {
+        return <LadyRunUsernameScreen onSubmit={claimUsername} submitting={claiming} errorMsg={claimError} />;
     }
 
     if (showLanding) {

@@ -30,9 +30,11 @@ import pawFill5 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/ic
 import huesinIcon from '../../assets/ui/icons-hud/hud-principal/huesin-coin.webp';
 import { DogsConfig } from '../../game/config/DogsConfig.js';
 import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
+import { saveLadyRunOnlineRun } from '../../game/utils/ladyRunOnlineRuns.js';
 import { useLadyRunMusic } from '../../game/hooks/useLadyRunMusic.js';
 import { LIBRE_SCENE_MUSIC, MINAS_MUSIC_TRACKS, BG_PRINCIPAL_TRACK } from './runnerMusic.js';
 import LadyRunShopModal from './LadyRunShopModal.jsx';
+import LadyRunRankingModal from './LadyRunRankingModal.jsx';
 import LadyRunTutorialCallout from '../../components/LadyRunTutorialCallout.jsx';
 
 import ladyRun1 from '../../assets/ui/lady-sprite/sprite-run/lady-run/lady-1.webp';
@@ -741,6 +743,7 @@ export default function RunnerScreen({
     const [bossWindupDurationMs, setBossWindupDurationMs] = useState(BOSS_WINDUP_MS);
     const [scoresOpen, setScoresOpen] = useState(false);
     const [shopOpen, setShopOpen] = useState(false);
+    const [rankingOpen, setRankingOpen] = useState(false);
     // Tutorial 2 (Modo Libre, pantalla de elegir perro): null | 'vidas' | 'botin' | 'perros' | 'dificultad' | 'empezar'.
     // Local del todo (no necesita coordinarse con CurrencyHud como el Tutorial 1), ver useLadyRunTutorial.js.
     const [libreTutStep, setLibreTutStep] = useState(null);
@@ -1498,7 +1501,10 @@ export default function RunnerScreen({
     useEffect(() => {
         if (phase !== 'gameover') return;
         setHighScores(saveHighScore(score, selectedDogId));
-        if (arcadeSubMode === 'libre') onGameOverRun?.(difficulty);
+        if (arcadeSubMode === 'libre') {
+            onGameOverRun?.(difficulty);
+            saveLadyRunOnlineRun({ dogId: selectedDogId, biome: libreSceneKey, difficulty, distance: runMetersEarned });
+        }
         clearInProgressRun();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [phase]);
@@ -3160,6 +3166,9 @@ export default function RunnerScreen({
                         >
                             <span className="runner-mode-btn-title">Tienda</span>
                         </button>
+                        <button className="runner-mode-btn" onClick={() => setRankingOpen(true)}>
+                            <span className="runner-mode-btn-title">Ranking</span>
+                        </button>
                     </div>
                 )}
 
@@ -3445,6 +3454,10 @@ export default function RunnerScreen({
                         tutStep={ladyRunTutStep}
                         onTutAdvance={advanceLadyRunTutorial}
                     />
+                )}
+
+                {rankingOpen && (
+                    <LadyRunRankingModal onClose={() => setRankingOpen(false)} />
                 )}
 
                 {historiaStep === 0 && (

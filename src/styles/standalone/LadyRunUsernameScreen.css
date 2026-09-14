@@ -1,0 +1,102 @@
+.lady-run-username-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px;
+    background: #14100c;
+    text-align: center;
+}
+
+.lady-run-username-logo {
+    width: min(220px, 60vw);
+    height: auto;
+    object-fit: contain;
+    margin-bottom: 8px;
+}
+
+.lady-run-username-title {
+    color: #ffd740;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.lady-run-username-subtitle {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+}
+
+.lady-run-username-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: min(280px, 80vw);
+}
+
+.lady-run-username-form input {
+    width: 100%;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 215, 64, 0.35);
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    color: #fff;
+    font-size: 1rem;
+    letter-spacing: 1px;
+}
+
+.lady-run-username-form input:focus {
+    border-color: #ffd740;
+}
+
+.lady-run-username-error {
+    color: #ff6b6b;
+    font-size: 0.8rem;
+    margin-top: -6px;
+}
+
+.lady-run-username-submit-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: #ffd740;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0.8rem 3rem;
+    cursor: pointer;
+    z-index: 1;
+    transition: filter 0.2s;
+}
+
+.lady-run-username-submit-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('../../assets/ui/icons-hud/hud-modals/modal-invocacion/vacio.webp') center / 100% 100% no-repeat;
+    z-index: -1;
+}
+
+.lady-run-username-submit-btn:hover {
+    filter: brightness(1.15);
+}
+
+.lady-run-username-submit-btn:disabled {
+    color: rgba(255, 255, 255, 0.5);
+    cursor: not-allowed;
+}
+
+.lady-run-username-submit-btn:disabled::before {
+    filter: grayscale(60%) brightness(0.5);
+}

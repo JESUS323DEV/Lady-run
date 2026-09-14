@@ -8,6 +8,13 @@
     z-index: 9999;
 }
 
+.lady-run-loading-error {
+    color: #ff6b6b;
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 0 24px;
+}
+
 .lady-run-loading-spinner {
     width: 48px;
     height: 48px;
