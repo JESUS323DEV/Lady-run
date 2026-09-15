@@ -32,7 +32,7 @@ export const useLadyRunProfile = () => {
 
             const { data: profileRow, error: profileError } = await supabase
                 .from('profiles')
-                .select('id, username, avatar_dog_id')
+                .select('id, username, avatar_dog_id, chapas, tavern_coins, huesin')
                 .eq('id', currentSession.user.id)
                 .maybeSingle();
 
@@ -59,7 +59,7 @@ export const useLadyRunProfile = () => {
         const { data, error } = await supabase
             .from('profiles')
             .insert({ id: session.user.id, username })
-            .select('id, username, avatar_dog_id')
+            .select('id, username, avatar_dog_id, chapas, tavern_coins, huesin')
             .single();
         setClaiming(false);
 
@@ -85,5 +85,29 @@ export const useLadyRunProfile = () => {
         return true;
     }, [session]);
 
-    return { loading, initError, profile, claiming, claimError, claimUsername, equipAvatar };
+    // Suma moneda (recogida jugando) llamando a la funcion de Supabase, nunca escribiendo el
+    // numero directamente - ver supabase/sql/008_profiles_currency.sql.
+    const earnCurrency = useCallback(async ({ chapas = 0, tavernCoins = 0, huesin = 0 } = {}) => {
+        if (!session) return false;
+        const { data, error } = await supabase
+            .rpc('earn_currency', { p_chapas: chapas, p_tavern_coins: tavernCoins, p_huesin: huesin })
+            .single();
+        if (error) return false;
+        setProfile(prev => (prev ? { ...prev, ...data } : prev));
+        return true;
+    }, [session]);
+
+    // Gasta moneda en un item del catalogo (precio fijo en el servidor). Devuelve false si no hay
+    // saldo suficiente, sin tocar nada.
+    const spendCurrency = useCallback(async (itemId) => {
+        if (!session) return false;
+        const { data, error } = await supabase
+            .rpc('spend_currency', { p_item_id: itemId })
+            .single();
+        if (error) return false;
+        setProfile(prev => (prev ? { ...prev, ...data } : prev));
+        return true;
+    }, [session]);
+
+    return { loading, initError, profile, claiming, claimError, claimUsername, equipAvatar, earnCurrency, spendCurrency };
 };

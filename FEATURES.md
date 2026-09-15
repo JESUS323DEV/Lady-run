@@ -27,6 +27,10 @@ Lista de ideas/features en marcha o por hacer. Se va actualizando según avanzam
 
 - Pendiente ajustar: en el selector de perro de Modo Libre, cada card muestra color de borde por rareza y fondo/icono por elemento (`dog-rarity-*`, `runner-dog-select-elembg-*`), pero en Modo Libre ninguno de los dos afecta al juego - son datos que solo tendrán sentido de verdad en Historia (combate, debilidades por elemento, etc.). De momento se deja tal cual porque quitarlo sin más deja las cards sin marco/cuadro visual. Falta decidir un tratamiento visual propio para Modo Libre antes de quitar la rareza/elemento de ahí.
 
+## Gameplay / Balance
+
+- Pendiente ajustar: `DOG_SIZE_TIER` en `RunnerScreen.jsx` (linea ~407) - cada perro tiene un porte (small/medium/large) que define su tamaño visual real (48/56/64px) y un margen extra de colision en Modo Libre (0/3/6px, mayor cuanto mas grande el perro). Sigue activo, se usa en la colision de verdad (linea ~2337), pero nunca se ha repasado si esos valores estan bien equilibrados entre perros.
+
 ## Idiomas / itch.io
 
 - Idea: publicar en itch.io, donde el público en inglés juega más. Ahora mismo el traductor automático del navegador (Brave/Chrome) traduce bien la UI porque los botones no tienen ancho fijo (se adaptan al texto vía padding, no algo buscado a propósito), pero NO es una solución real: no todos los visitantes lo tienen activo (sobre todo en móvil), y traduciría mal cosas que son nombre propio/lore y no deberían tocarse (Chapas, Huesín, nombres de los perros).
@@ -43,5 +47,5 @@ Divagaciones sin decidir, no hay compromiso de hacerlas, solo quedan apuntadas p
 
 ## Seguridad
 
-- Ahora mismo TODO el progreso (chapas, tavernCoins, huesín, perros desbloqueados, corazones...) vive en localStorage, editable a mano desde la consola del navegador. Cuando se mueva a Supabase, hacerlo bien: RLS bloqueando el UPDATE directo de esos valores desde el cliente, y que las subidas de moneda pasen por una función RPC de Postgres con la lógica del juego (no un UPDATE libre a la fila propia), si no el mismo problema solo cambia de sitio (se podría hacer desde la consola con la sesión de Supabase en vez de con localStorage).
-- Decidido por ahora: no es prioridad, se deja para más adelante. Riesgo bajo mientras esto no tenga tráfico real.
+- [x] (2026-09-15) Las 3 monedas (chapas, tavernCoins, huesín) ya NO viven en localStorage editable. Ahora viven en `profiles` en Supabase, sin permiso de UPDATE directo desde el cliente - solo se pueden tocar via `earn_currency`/`spend_currency` (funciones RPC con el precio fijo dentro, ver `supabase/sql/008_profiles_currency.sql`). Perros desbloqueados y corazones en inventario siguen en local por ahora, sin cambiar.
+- Pendiente: el ranking (tabla `runs`) sí va directo a Supabase desde el principio (nunca vivió en local, no tiene el mismo problema), pero el INSERT de una partida acepta cualquier `distance` que mande el cliente sin comprobar si es creíble. Arreglo mínimo pensado: una función `submit_run(...)` con un tope de distancia máxima razonable (ej. 50.000m) que rechace valores absurdos tipo 999999. No evita hacer trampa con un número "creíble", solo corta los casos tontos. Aparcado por ahora, decidido dejarlo tal cual.

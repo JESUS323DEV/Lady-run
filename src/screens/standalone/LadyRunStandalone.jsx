@@ -12,18 +12,17 @@ import '../../styles/standalone/LadyRunStandalone.css';
 
 const SAVE_KEY = 'ladyRunGame';
 
-// Guardado propio de Lady Run: economia (chapas/tavernCoins/huesin) y progreso 100% independientes
-// de Pata y Pico desde la separacion de repos, ver project_plan_separar_lady_run.
+// Guardado propio de Lady Run, 100% independiente de Pata y Pico desde la separacion de repos (ver
+// project_plan_separar_lady_run). Las 3 monedas ya NO viven aqui, viven en Supabase (profiles.chapas/
+// tavern_coins/huesin, ver supabase/sql/008_profiles_currency.sql) para que no se puedan editar a
+// mano desde el navegador - esto solo guarda el resto del progreso (perros desbloqueados, corazones
+// en inventario, tutoriales, records...).
 const loadSavedState = () => {
     try {
         const raw = localStorage.getItem(SAVE_KEY);
         if (raw) return JSON.parse(raw);
     } catch { /* save corrupto o inexistente: se empieza de cero */ }
-    return {
-        chapas: 0,
-        tavernCoins: 0,
-        huesin: 0,
-    };
+    return {};
 };
 
 /**
@@ -34,7 +33,7 @@ const LadyRunStandalone = () => {
     const [gameState, setGameState] = useState(loadSavedState);
     const [showLanding, setShowLanding] = useState(true);
     const loaded = usePreloadImages(RUNNER_CORE_PRELOAD_IMAGES);
-    const { loading: profileLoading, initError: profileInitError, profile, claiming, claimError, claimUsername, equipAvatar } = useLadyRunProfile();
+    const { loading: profileLoading, initError: profileInitError, profile, claiming, claimError, claimUsername, equipAvatar, earnCurrency, spendCurrency } = useLadyRunProfile();
     const { tutStep: ladyRunTutStep, setTutStep: setLadyRunTutStep, advanceTutorial: advanceLadyRunTutorial } = useLadyRunTutorial(
         gameState.ladyRunTutorial?.completed ?? false,
         () => setGameState(prev => ({ ...prev, ladyRunTutorial: { completed: true } })),
@@ -81,9 +80,9 @@ const LadyRunStandalone = () => {
     return (
         <>
             <CurrencyHud
-                chapas={gameState.chapas}
-                tavernCoins={gameState.tavernCoins}
-                huesin={gameState.huesin}
+                chapas={profile.chapas ?? 0}
+                tavernCoins={profile.tavern_coins ?? 0}
+                huesin={profile.huesin ?? 0}
                 tutStep={ladyRunTutStep}
                 onTutAdvance={advanceLadyRunTutorial}
             />
@@ -91,24 +90,25 @@ const LadyRunStandalone = () => {
                 belowHud
                 avatarDogId={profile.avatar_dog_id}
                 onEquipAvatar={equipAvatar}
-                onEarnTavernCoins={(amount) => setGameState(prev => ({ ...prev, tavernCoins: (prev.tavernCoins ?? 0) + amount }))}
-                onEarnChapas={(amount) => setGameState(prev => ({ ...prev, chapas: (prev.chapas ?? 0) + amount }))}
-                onEarnHuesin={(amount) => setGameState(prev => ({ ...prev, huesin: (prev.huesin ?? 0) + amount }))}
-                chapas={gameState.chapas ?? 0}
-                tavernCoins={gameState.tavernCoins ?? 0}
-                huesin={gameState.huesin ?? 0}
+                onEarnTavernCoins={(amount) => earnCurrency({ tavernCoins: amount })}
+                onEarnChapas={(amount) => earnCurrency({ chapas: amount })}
+                onEarnHuesin={(amount) => earnCurrency({ huesin: amount })}
+                chapas={profile.chapas ?? 0}
+                tavernCoins={profile.tavern_coins ?? 0}
+                huesin={profile.huesin ?? 0}
                 unlockedDogIds={gameState.ladyRunUnlockedDogs ?? []}
-                onUnlockDog={(dogId) => setGameState(prev => {
-                    if ((prev.huesin ?? 0) < 10 || (prev.tavernCoins ?? 0) < 5) return prev;
-                    const current = prev.ladyRunUnlockedDogs ?? [];
-                    if (current.includes(dogId)) return prev;
-                    return {
-                        ...prev,
-                        huesin: prev.huesin - 10,
-                        tavernCoins: prev.tavernCoins - 5,
-                        ladyRunUnlockedDogs: [...current, dogId],
-                    };
-                })}
+                onUnlockDog={(dogId) => {
+                    const current = gameState.ladyRunUnlockedDogs ?? [];
+                    if (current.includes(dogId)) return;
+                    spendCurrency('unlock_dog').then(ok => {
+                        if (!ok) return;
+                        setGameState(prev => {
+                            const cur = prev.ladyRunUnlockedDogs ?? [];
+                            if (cur.includes(dogId)) return prev;
+                            return { ...prev, ladyRunUnlockedDogs: [...cur, dogId] };
+                        });
+                    });
+                }}
                 pendingHeartsBonus={gameState.ladyRunPendingHearts ?? 0}
                 onConsumePendingHearts={() => setGameState(prev => ({ ...prev, ladyRunPendingHearts: 0 }))}
                 magicHearts={gameState.ladyRunMagicHearts ?? 0}
@@ -127,21 +127,28 @@ const LadyRunStandalone = () => {
                 onCompleteLadyRunLibreTutorial={() => setGameState(prev => ({ ...prev, ladyRunLibreTutorial: { completed: true } }))}
                 ladyRunRunTutorialCompleted={gameState.ladyRunRunTutorial?.completed ?? false}
                 onCompleteLadyRunRunTutorial={() => setGameState(prev => ({ ...prev, ladyRunRunTutorial: { completed: true } }))}
-                onBuyItem={(itemId, price) => setGameState(prev => {
-                    if (itemId === 'corazon_extra') {
-                        if ((prev.chapas ?? 0) < price) return prev;
-                        return { ...prev, chapas: prev.chapas - price, ladyRunPendingHearts: (prev.ladyRunPendingHearts ?? 0) + 1 };
+                onBuyItem={async (itemId, price) => {
+                    if (itemId === 'corazon_magico' && (gameState.ladyRunMagicHearts ?? 0) >= 2) return;
+                    if (itemId === 'corazon_verde' && (gameState.ladyRunGreenHearts ?? 0) >= 5) return;
+                    if (price > 0) {
+                        const ok = await spendCurrency(itemId);
+                        if (!ok) return;
                     }
-                    if (itemId === 'corazon_magico') {
-                        if ((prev.ladyRunMagicHearts ?? 0) >= 2 || (prev.tavernCoins ?? 0) < price) return prev;
-                        return { ...prev, tavernCoins: prev.tavernCoins - price, ladyRunMagicHearts: (prev.ladyRunMagicHearts ?? 0) + 1 };
-                    }
-                    if (itemId === 'corazon_verde') {
-                        if ((prev.ladyRunGreenHearts ?? 0) >= 5 || (prev.chapas ?? 0) < price) return prev;
-                        return { ...prev, chapas: prev.chapas - price, ladyRunGreenHearts: (prev.ladyRunGreenHearts ?? 0) + 1 };
-                    }
-                    return prev;
-                })}
+                    setGameState(prev => {
+                        if (itemId === 'corazon_extra') {
+                            return { ...prev, ladyRunPendingHearts: (prev.ladyRunPendingHearts ?? 0) + 1 };
+                        }
+                        if (itemId === 'corazon_magico') {
+                            if ((prev.ladyRunMagicHearts ?? 0) >= 2) return prev;
+                            return { ...prev, ladyRunMagicHearts: (prev.ladyRunMagicHearts ?? 0) + 1 };
+                        }
+                        if (itemId === 'corazon_verde') {
+                            if ((prev.ladyRunGreenHearts ?? 0) >= 5) return prev;
+                            return { ...prev, ladyRunGreenHearts: (prev.ladyRunGreenHearts ?? 0) + 1 };
+                        }
+                        return prev;
+                    });
+                }}
                 fullLootRunsByDifficulty={(() => {
                     const key = getDailyRotationKey(gameState.debugDayOffset ?? 0);
                     const byDiff = gameState.ladyRunDailyRuns ?? {};
