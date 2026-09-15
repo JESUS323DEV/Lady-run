@@ -7,7 +7,7 @@ Lista de ideas/features en marcha o por hacer. Se va actualizando según avanzam
 - [x] Botón "Ranking" junto a "Tienda", abre `LadyRunRankingModal`.
 - [x] Pantalla de Ranking (v1): un único ranking global por mayor recorrido de Modo Libre, sin separar por escenario. Cada fila: icono circular vacío (hueco reservado para avatar futuro) + ID del jugador + mejor recorrido, ordenado de mayor a menor.
 - [x] Tabla `runs` en Supabase (1 fila por partida de Modo Libre terminada: `dog_id`, `biome`, `difficulty`, `distance`) + vista `leaderboard` (MAX por jugador) que alimenta el ranking.
-- Card "Online" (en la fila junto a "Skins"): sigue bloqueada/"Próximamente", sin uso decidido todavía.
+- Card "Online" (en la fila donde estaba "Skins", ver sección Skins más abajo): sigue bloqueada/"Próximamente", sin uso decidido todavía.
 - Más adelante: avatar de jugador de verdad, rankings por escenario (la tabla `runs` ya lo soporta, solo falta la query+UI), torneos.
 
 ## Auth / Usuarios
@@ -30,6 +30,13 @@ Lista de ideas/features en marcha o por hacer. Se va actualizando según avanzam
 ## Gameplay / Balance
 
 - Pendiente ajustar: `DOG_SIZE_TIER` en `RunnerScreen.jsx` (linea ~407) - cada perro tiene un porte (small/medium/large) que define su tamaño visual real (48/56/64px) y un margen extra de colision en Modo Libre (0/3/6px, mayor cuanto mas grande el perro). Sigue activo, se usa en la colision de verdad (linea ~2337), pero nunca se ha repasado si esos valores estan bien equilibrados entre perros.
+
+## Skins
+
+- [x] (2026-09-15) Tienda de Skins desbloqueada (card que antes estaba en "Próximamente"), catálogo generado solo leyendo `src/assets/ui/dog-skins` (`ladyRunSkinsCatalog.js`) - meter un archivo nuevo ahí ya aparece en la tienda, no hace falta tocar código. Preview grande al tocar una skin con marco por rareza, partículas y animación de compra (fundido + giro), inspirado en la tienda de Pata y Pico. Sin la fase de "el perro corriendo" del original (de momento).
+- [x] Comprar una skin cuesta huesín de verdad (protegido, `spend_currency`), pero **ahora mismo a precio 0/gratis (temporal)** mientras se prueban las primeras skins con sprite real - ver `supabase/sql/010_skins_gratis_temporal.sql` y `SKIN_PRICES` en `LadyRunSkinsModal.jsx`. Pendiente: volver a poner precio real (15 normal / 40 ultimate era el plan) cuando se decida.
+- [x] Equipar NO se hace desde la tienda: se hace tocando tu perro YA seleccionado en la rejilla de Modo Libre, que abre el inventario de skins de ese perro (`LadyRunSkinEquipModal.jsx`, solo muestra lo que ya tienes). La primera skin que compras para un perro se equipa sola automáticamente.
+- [x] La mayoría de skins siguen siendo solo icono (sin efecto en partida). Las 3 primeras de Lady (gafas/pirata/reina) ya traen sprite de correr+salto real y sí cambian el aspecto en pista al equiparlas (carpeta `dog-skins/<perro>/skins/<perro>-<skin>/`, campos `runImg`/`jumpImg` en el catálogo). Según lleguen más animadas, solo hace falta poner los archivos con ese mismo patrón de carpetas.
 
 ## Idiomas / itch.io
 

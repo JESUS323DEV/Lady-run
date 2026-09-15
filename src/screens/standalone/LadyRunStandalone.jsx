@@ -183,6 +183,31 @@ const LadyRunStandalone = () => {
                     ...prev,
                     ladyRunBestDistance: { ...(prev.ladyRunBestDistance ?? {}), [dogId]: meters },
                 }))}
+                ownedSkins={gameState.ladyRunOwnedSkins ?? {}}
+                onBuySkin={async (dogId, skinId, tier) => {
+                    const owned = gameState.ladyRunOwnedSkins?.[dogId] ?? [];
+                    if (owned.includes(skinId)) return true;
+                    const ok = await spendCurrency(tier === 'ultimate' ? 'skin_ultimate' : 'skin_normal');
+                    if (!ok) return false;
+                    const wasFirstSkin = owned.length === 0;
+                    setGameState(prev => {
+                        const cur = prev.ladyRunOwnedSkins?.[dogId] ?? [];
+                        if (cur.includes(skinId)) return prev;
+                        return {
+                            ...prev,
+                            ladyRunOwnedSkins: { ...(prev.ladyRunOwnedSkins ?? {}), [dogId]: [...cur, skinId] },
+                            ladyRunEquippedSkinByDog: wasFirstSkin
+                                ? { ...(prev.ladyRunEquippedSkinByDog ?? {}), [dogId]: skinId }
+                                : prev.ladyRunEquippedSkinByDog,
+                        };
+                    });
+                    return true;
+                }}
+                equippedSkinByDog={gameState.ladyRunEquippedSkinByDog ?? {}}
+                onEquipSkin={(dogId, skinId) => setGameState(prev => ({
+                    ...prev,
+                    ladyRunEquippedSkinByDog: { ...(prev.ladyRunEquippedSkinByDog ?? {}), [dogId]: skinId },
+                }))}
             />
         </>
     );

@@ -36,6 +36,9 @@ import { LIBRE_SCENE_MUSIC, MINAS_MUSIC_TRACKS, BG_PRINCIPAL_TRACK } from './run
 import LadyRunShopModal from './LadyRunShopModal.jsx';
 import LadyRunRankingModal from './LadyRunRankingModal.jsx';
 import LadyRunAvatarModal from './LadyRunAvatarModal.jsx';
+import LadyRunSkinsModal from './LadyRunSkinsModal.jsx';
+import LadyRunSkinEquipModal from './LadyRunSkinEquipModal.jsx';
+import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
 import LadyRunTutorialCallout from '../../components/LadyRunTutorialCallout.jsx';
 
 import ladyRun1 from '../../assets/ui/lady-sprite/sprite-run/lady-run/lady-1.webp';
@@ -249,6 +252,11 @@ const DOG_ICONS = {
 // Opciones de avatar (pantalla de usuario): solo los perros ya desbloqueados (UNLOCKED_DOG_IDS,
 // no los de "Proximamente"). Mismo icono que se ve en el Ranking una vez equipado.
 const AVATAR_OPTIONS = UNLOCKED_DOG_IDS.map(id => ({ id, name: DogsConfig[id]?.name ?? id, icon: DOG_ICONS[id] }));
+
+// Nombre/rareza legibles por perro, para la tienda de Skins (ver LadyRunSkinsModal.jsx). La rareza
+// decide el marco de color del preview (dog-rarity-*, mismo marco que el selector de perro).
+const DOG_NAMES = Object.fromEntries(DOG_SELECT_ORDER.map(id => [id, DogsConfig[id]?.name ?? id]));
+const DOG_RARITIES = Object.fromEntries(DOG_SELECT_ORDER.map(id => [id, DogsConfig[id]?.rarity ?? 'rare']));
 
 const BIOMES = {
     mina: { title: 'Mina', desc: '3-4 escenarios encadenados', scenes: [escenarioMina1, escenarioMina2, escenarioMina3], interior: true },
@@ -631,6 +639,10 @@ export default function RunnerScreen({
     huesin = 0,
     pendingHeartsBonus = 0,
     onBuyItem,
+    ownedSkins = {},
+    onBuySkin,
+    equippedSkinByDog = {},
+    onEquipSkin,
     onConsumePendingHearts,
     fullLootRunsByDifficulty,
     onGameOverRun,
@@ -770,6 +782,8 @@ export default function RunnerScreen({
     const [shopOpen, setShopOpen] = useState(false);
     const [rankingOpen, setRankingOpen] = useState(false);
     const [avatarOpen, setAvatarOpen] = useState(false);
+    const [skinsOpen, setSkinsOpen] = useState(false);
+    const [skinEquipOpenDogId, setSkinEquipOpenDogId] = useState(null);
     // Tutorial 2 (Modo Libre, pantalla de elegir perro): null | 'vidas' | 'botin' | 'perros' | 'dificultad' | 'empezar'.
     // Local del todo (no necesita coordinarse con CurrencyHud como el Tutorial 1), ver useLadyRunTutorial.js.
     const [libreTutStep, setLibreTutStep] = useState(null);
@@ -961,7 +975,13 @@ export default function RunnerScreen({
     const bossAttackStreakRef = useRef(0);
     const bossLastAttackAtRef = useRef(0);
 
-    const runFrames = DOG_RUN_FRAMES[selectedDogId];
+    // Skin equipada (si tiene sprite de correr/salto de verdad, ver ladyRunSkinsCatalog.js): solo
+    // afecta al perro del jugador, nunca al rival CPU.
+    const equippedSkinId = equippedSkinByDog[selectedDogId] ?? null;
+    const equippedSkin = equippedSkinId
+        ? [SKIN_CATALOG[selectedDogId]?.ultimate, ...(SKIN_CATALOG[selectedDogId]?.normal ?? [])].find(s => s?.id === equippedSkinId)
+        : null;
+    const runFrames = equippedSkin?.runImg ? [equippedSkin.runImg, equippedSkin.runImg, equippedSkin.runImg, equippedSkin.runImg] : DOG_RUN_FRAMES[selectedDogId];
     const cpuRunFrames = DOG_RUN_FRAMES[cpuDogId];
 
     const setObstacleEl = useCallback((id, el) => {
@@ -2569,7 +2589,7 @@ export default function RunnerScreen({
         return () => cancelAnimationFrame(rafId);
     }, [phase, paused, difficulty, selectedDogId, cpuDogId, stage, runMode, checkpointOpen, arcadeSubMode, selectedBiomeId, sceneIndex, claimRunMilestoneRewards, bestMetersForDog, prologoRunScene, advancePrologoToCiudad, historiaCustomScene]);
 
-    const dogImg = airborne ? (DOG_JUMP_FRAME[selectedDogId] ?? runFrames[1]) : runFrames[frameIdx];
+    const dogImg = airborne ? (equippedSkin?.jumpImg ?? DOG_JUMP_FRAME[selectedDogId] ?? runFrames[1]) : runFrames[frameIdx];
     const cpuDogImg = cpuAirborne ? (DOG_JUMP_FRAME[cpuDogId] ?? cpuRunFrames[1]) : cpuRunFrames[frameIdx];
     const playerPowerObstacleImg = stage === 'boss'
         ? (ATTACK_PLAYER_ELEMENT_IMGS[DogsConfig[selectedDogId]?.element] ?? ELEMENT_POWER_OBSTACLE_IMGS[DogsConfig[selectedDogId]?.element])
@@ -2918,7 +2938,7 @@ export default function RunnerScreen({
 
                         {(phase === 'ready' || phase === 'gameover') && (
                         <div className={`runner-overlay${phase === 'gameover' ? ' runner-overlay-gameover' : ''}${historiaMenuBlank ? ' runner-overlay-blank' : ''}`}>
-                            {phase === 'ready' && !runMode && !shopOpen && !rankingOpen && !avatarOpen && (
+                            {phase === 'ready' && !runMode && !shopOpen && !rankingOpen && !avatarOpen && !skinsOpen && (
                                 <button className="lady-run-avatar-trigger" onClick={() => setAvatarOpen(true)}>
                                     {avatarDogId && DOG_ICONS[avatarDogId] && (
                                         <img src={DOG_ICONS[avatarDogId]} alt="" />
@@ -3234,12 +3254,10 @@ export default function RunnerScreen({
 
                 {phase === 'ready' && !runMode && (
                     <div className="runner-mode-cards-extra">
-                        <div className="runner-mode-card-locked runner-mode-card-static-hielo">
-                            <button className="runner-mode-btn runner-mode-btn-locked" disabled>
+                        <div className="runner-mode-card-active runner-mode-card-static-hielo">
+                            <button className="runner-mode-btn" onClick={() => setSkinsOpen(true)}>
                                 <span className="runner-mode-btn-title">Skins</span>
-                                <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
                             </button>
-                            <span className="runner-mode-card-tag">Próximamente</span>
                         </div>
                         <div className="runner-mode-card-locked runner-mode-card-static-bosque">
                             <button className="runner-mode-btn runner-mode-btn-locked" disabled>
@@ -3385,18 +3403,27 @@ export default function RunnerScreen({
                             // Mientras el Tutorial 2 esta en el paso 'perros' y todavia no has elegido ninguno
                             // de verdad, se oculta la marca de "activo" aunque ya haya uno random por dentro.
                             const hideActiveForTutorial = libreTutStep === 'perros' && !libreTutDogPicked;
+                            // Si este perro tiene una skin equipada, se ve su icono en vez del icono base.
+                            const equippedSkinIdForCard = equippedSkinByDog[id];
+                            const equippedSkinForCard = equippedSkinIdForCard
+                                ? [SKIN_CATALOG[id]?.ultimate, ...(SKIN_CATALOG[id]?.normal ?? [])].find(s => s?.id === equippedSkinIdForCard)
+                                : null;
                             return (
                                 <div key={id} className="runner-dog-select-col">
                                     <button
                                         className={`runner-dog-select-btn dog-rarity-${DogsConfig[id]?.rarity} runner-dog-select-elembg-${DogsConfig[id]?.element}${selectedDogId === id && !hideActiveForTutorial ? ' runner-dog-select-active' : ''}${needsUnlock ? ' runner-dog-select-locked' : ''}`}
                                         onClick={() => {
                                             if (needsUnlock) { if (canAfford) onUnlockDog?.(id); return; }
+                                            if (!prologoDogPick && selectedDogId === id && SKIN_CATALOG[id]) {
+                                                setSkinEquipOpenDogId(id);
+                                                return;
+                                            }
                                             setSelectedDogId(id);
                                             if (libreTutStep === 'perros') setLibreTutDogPicked(true);
                                         }}
                                         disabled={needsUnlock && (prologoDogPick || !canAfford)}
                                     >
-                                        <img src={DOG_ICONS[id]} alt={DogsConfig[id]?.name ?? id} className="runner-dog-select-icon" />
+                                        <img src={equippedSkinForCard?.img ?? DOG_ICONS[id]} alt={DogsConfig[id]?.name ?? id} className="runner-dog-select-icon" />
                                         {needsUnlock && !prologoDogPick && (
                                             <span className="runner-dog-select-price">
                                                 <img src={huesinIcon} alt="" />
@@ -3499,6 +3526,29 @@ export default function RunnerScreen({
                         currentAvatarDogId={avatarDogId}
                         avatarOptions={AVATAR_OPTIONS}
                         onEquip={(dogId) => { onEquipAvatar?.(dogId); setAvatarOpen(false); }}
+                    />
+                )}
+
+                {skinsOpen && (
+                    <LadyRunSkinsModal
+                        onClose={() => setSkinsOpen(false)}
+                        dogIcons={DOG_ICONS}
+                        dogNames={DOG_NAMES}
+                        dogRarities={DOG_RARITIES}
+                        ownedSkins={ownedSkins}
+                        onBuySkin={onBuySkin}
+                    />
+                )}
+
+                {skinEquipOpenDogId && (
+                    <LadyRunSkinEquipModal
+                        onClose={() => setSkinEquipOpenDogId(null)}
+                        dogId={skinEquipOpenDogId}
+                        dogName={DOG_NAMES[skinEquipOpenDogId] ?? skinEquipOpenDogId}
+                        dogIcon={DOG_ICONS[skinEquipOpenDogId]}
+                        ownedSkinIds={ownedSkins[skinEquipOpenDogId] ?? []}
+                        equippedSkinId={equippedSkinByDog[skinEquipOpenDogId] ?? null}
+                        onEquip={(skinId) => onEquipSkin?.(skinEquipOpenDogId, skinId)}
                     />
                 )}
 

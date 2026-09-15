@@ -1,0 +1,460 @@
+.lady-run-skin-equip-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lady-run-skin-equip-popover {
+    width: min(80vw, 260px);
+    max-height: 70vh;
+    overflow-y: auto;
+    background: rgba(20, 14, 8, 0.97);
+    border: 1px solid rgba(255, 215, 64, 0.4);
+    border-radius: 14px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lady-run-skin-equip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.lady-run-skin-equip-title {
+    color: #ffd740;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.lady-run-skin-equip-close {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+}
+
+.lady-run-skin-equip-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.lady-run-skin-equip-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 4px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+}
+
+.lady-run-skin-equip-item-active {
+    border-color: #ffd740;
+}
+
+.lady-run-skin-equip-img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+
+.lady-run-skin-equip-name {
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.lady-run-skin-equip-empty {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.65rem;
+    text-align: center;
+}
+
+.lady-run-skins-dogs {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.lady-run-skins-dog-btn {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.35);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.lady-run-skins-dog-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lady-run-skins-dog-btn-active {
+    border-color: #ffd740;
+}
+
+.lady-run-skins-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.lady-run-skin-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+}
+
+.lady-run-skin-card-ultimate {
+    border-color: rgba(120, 200, 255, 0.5);
+}
+
+.lady-run-skin-card-equipped {
+    border-color: #ffd740;
+}
+
+.lady-run-skin-card-locked {
+    position: relative;
+    cursor: default;
+}
+
+.lady-run-skin-card-locked .lady-run-skin-card-img {
+    filter: grayscale(70%) brightness(0.6);
+}
+
+.lady-run-skin-card-lock {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 16px;
+    height: 16px;
+}
+
+.lady-run-skin-card-img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+}
+
+.lady-run-skin-card-loop {
+    position: relative;
+    width: 56px;
+    height: 56px;
+}
+
+.lady-run-skin-card-loop .lady-run-skin-card-img {
+    position: absolute;
+    inset: 0;
+}
+
+.lady-run-skin-card-name {
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.lady-run-skin-card-owned {
+    color: #ffd740;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.lady-run-skin-card-price {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: #ffd740;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.lady-run-skin-card-fase1,
+.lady-run-skin-preview-fase1 { animation: ladyRunSkinFase1 6s ease-in-out infinite; }
+.lady-run-skin-card-fase2,
+.lady-run-skin-preview-fase2 { animation: ladyRunSkinFase2 6s ease-in-out infinite; }
+
+@keyframes ladyRunSkinFase1 {
+    0%, 40%  { opacity: 1; }
+    50%, 90% { opacity: 0; }
+    100%     { opacity: 1; }
+}
+
+@keyframes ladyRunSkinFase2 {
+    0%, 40%  { opacity: 0; }
+    50%, 90% { opacity: 1; }
+    100%     { opacity: 0; }
+}
+
+/* Preview grande al tocar una skin, inspirado en Pata y Pico (skin-preview-*) */
+
+.lady-run-skin-preview-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: safe center;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 24px 0;
+    z-index: 200;
+}
+
+.lady-run-skin-preview-frame {
+    position: relative;
+    width: min(80vw, 340px);
+    aspect-ratio: 3 / 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 28px;
+    gap: 6px;
+    overflow: hidden;
+    border-radius: 24px;
+}
+
+.lady-run-skin-preview-frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: -1;
+}
+
+.lady-run-skin-preview-frame.dog-rarity-legendary::before { background-image: url('../../assets/ui/icons-enemy/marco-slot-combat/combat-legend.webp'); }
+.lady-run-skin-preview-frame.dog-rarity-epic::before      { background-image: url('../../assets/ui/icons-enemy/marco-slot-combat/combat-epic.webp'); }
+.lady-run-skin-preview-frame.dog-rarity-rare::before      { background-image: url('../../assets/ui/icons-enemy/marco-slot-combat/combat-rare.webp'); }
+.lady-run-skin-preview-frame-ultimate::before             { background-image: url('../../assets/ui/dog-skins/ui-skins/marco-skin-ultimate.webp'); }
+
+.lady-run-skin-preview-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    z-index: 6;
+}
+
+.lady-run-skin-preview-darken {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    z-index: -2;
+}
+
+.lady-run-skin-preview-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 55%, rgba(120, 200, 255, 0.45) 0%, rgba(120, 200, 255, 0.15) 35%, transparent 65%);
+    animation: ladyRunSkinGlowPulse 3s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+
+@keyframes ladyRunSkinGlowPulse {
+    0%, 100% { opacity: 0.6; transform: scale(0.95); }
+    50%      { opacity: 1; transform: scale(1.05); }
+}
+
+.lady-run-skin-preview-particles {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.lady-run-skin-preview-particles span {
+    position: absolute;
+    bottom: -10%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #ffd740;
+    box-shadow: 0 0 6px 2px rgba(255, 215, 64, 0.8);
+    opacity: 0;
+    animation: ladyRunSkinParticleRise 5s ease-in infinite;
+}
+
+.lady-run-skin-preview-frame-ultimate .lady-run-skin-preview-particles span { background: #bfe6ff; box-shadow: 0 0 6px 2px rgba(120, 200, 255, 0.8); }
+
+.lady-run-skin-preview-particles span:nth-child(1) { left: 15%; animation-delay: -0.5s; }
+.lady-run-skin-preview-particles span:nth-child(2) { left: 30%; animation-delay: -1.3s; }
+.lady-run-skin-preview-particles span:nth-child(3) { left: 48%; animation-delay: -2.1s; }
+.lady-run-skin-preview-particles span:nth-child(4) { left: 62%; animation-delay: -2.9s; }
+.lady-run-skin-preview-particles span:nth-child(5) { left: 78%; animation-delay: -3.7s; }
+.lady-run-skin-preview-particles span:nth-child(6) { left: 88%; animation-delay: -4.5s; }
+
+@keyframes ladyRunSkinParticleRise {
+    0%   { transform: translateY(0); opacity: 0; }
+    15%  { opacity: 1; }
+    85%  { opacity: 0.6; }
+    100% { transform: translateY(-260px); opacity: 0; }
+}
+
+.lady-run-skin-preview-title {
+    margin: 0;
+    padding: 0 10px;
+    font-size: 1.1rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-align: center;
+    background: linear-gradient(100deg, #ffb300 0%, #ffffff 25%, #ffe9a8 50%, #ffffff 75%, #ffb300 100%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 16px rgba(255, 215, 64, 0.5);
+    animation: ladyRunSkinTitlePulse 2.4s ease-in-out infinite, ladyRunSkinTitleShimmer 3.5s linear infinite;
+}
+
+@keyframes ladyRunSkinTitlePulse {
+    0%, 100% { filter: drop-shadow(0 0 5px rgba(255, 215, 64, 0.45)); }
+    50%      { filter: drop-shadow(0 0 14px rgba(255, 215, 64, 0.95)); }
+}
+
+@keyframes ladyRunSkinTitleShimmer {
+    0%   { background-position: 220% 0; }
+    100% { background-position: -220% 0; }
+}
+
+.lady-run-skin-preview-rarity {
+    position: relative;
+    z-index: 1;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.lady-run-skin-preview-frame.dog-rarity-legendary .lady-run-skin-preview-rarity { color: #f5c842; }
+.lady-run-skin-preview-frame.dog-rarity-epic .lady-run-skin-preview-rarity      { color: #b45cff; }
+.lady-run-skin-preview-frame.dog-rarity-rare .lady-run-skin-preview-rarity      { color: #4ca8ff; }
+.lady-run-skin-preview-frame-ultimate .lady-run-skin-preview-rarity            { color: #78c8ff; }
+
+.lady-run-skin-preview-img-slot {
+    position: relative;
+    z-index: 2;
+    width: 70%;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.4s ease-out;
+}
+
+.lady-run-skin-preview-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 7px rgba(255, 215, 64, 0.7));
+}
+
+.lady-run-skin-preview-frame-ultimate .lady-run-skin-preview-img { filter: drop-shadow(0 0 7px rgba(120, 200, 255, 0.8)); }
+
+.lady-run-skin-preview-fade-out {
+    animation: ladyRunSkinFadeOut 0.25s ease-in forwards;
+}
+
+@keyframes ladyRunSkinFadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+.lady-run-skin-preview-reveal-spin {
+    animation: ladyRunSkinRevealSpin 0.9s ease-out;
+}
+
+@keyframes ladyRunSkinRevealSpin {
+    0%   { transform: rotateY(0deg) scale(0.3); opacity: 0; }
+    60%  { opacity: 1; }
+    100% { transform: rotateY(360deg) scale(1); opacity: 1; }
+}
+
+.lady-run-skin-preview-shockwave {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(255, 215, 64, 0.9);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 3;
+    animation: ladyRunSkinShockwaveExpand 0.6s ease-out forwards;
+}
+
+@keyframes ladyRunSkinShockwaveExpand {
+    0%   { width: 10px; height: 10px; opacity: 1; }
+    100% { width: 150px; height: 150px; opacity: 0; }
+}
+
+.lady-run-skin-preview-buy-btn {
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+    margin-bottom: 6px;
+}
+
+.lady-run-skin-preview-error {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 16px;
+    color: #ff8080;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.lady-run-skin-preview-owned {
+    opacity: 0.7;
+}

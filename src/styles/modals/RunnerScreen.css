@@ -228,6 +228,37 @@
     letter-spacing: 0.5px;
 }
 
+.runner-mode-card-active {
+    position: relative;
+    flex: 1;
+    height: 90px;
+    border-radius: 10px;
+    border: 1px solid #3a2c18;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.runner-mode-card-active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.runner-mode-card-active .runner-mode-btn {
+    position: relative;
+    z-index: 1;
+    padding: 6px 10px;
+}
+
+.runner-mode-card-active .runner-mode-btn-title {
+    font-size: 0.75rem;
+}
+
 .runner-mode-card-shop {
     position: relative;
     width: 99%;
