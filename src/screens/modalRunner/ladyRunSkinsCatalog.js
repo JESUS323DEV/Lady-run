@@ -8,6 +8,11 @@ const normalModules = import.meta.glob('../../assets/ui/dog-skins/*/*.webp', { e
 const ultimateFase1Modules = import.meta.glob('../../assets/ui/dog-skins/*/ultimate-skin/*-fase-1.webp', { eager: true, import: 'default' });
 const ultimateFase2Modules = import.meta.glob('../../assets/ui/dog-skins/*/ultimate-skin/*-fase-2.webp', { eager: true, import: 'default' });
 const runOverrideModules = import.meta.glob('../../assets/ui/dog-skins/*/skins/*/*.webp', { eager: true, import: 'default' });
+// Pose "corriendo" para la animacion de comprar en la tienda (fundido -> corriendo -> revelado, ver
+// LadyRunSkinsModal.jsx). Nada que ver con runOverrideModules de arriba: esto NUNCA se usa en pista,
+// solo en el momento de comprar. 4 frames base por perro (dog-N.webp) + una pose propia por skin
+// cuando existe (dog-run-skin.webp), si no hay pose propia se usan los 4 frames base como relleno.
+const purchaseAnimModules = import.meta.glob('../../assets/ui/dog-skins-run-card/*-run-skin/*.webp', { eager: true, import: 'default' });
 
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -54,6 +59,35 @@ for (const [path, img] of Object.entries(runOverrideModules)) {
     if (!skin) continue;
     if (isJump) skin.jumpImg = img;
     else skin.runImg = img;
+}
+
+export const PURCHASE_BASE_FRAMES = {};
+const purchaseSkinOverrides = {}; // { [dogId]: { [skinId]: img } }
+
+for (const [path, img] of Object.entries(purchaseAnimModules)) {
+    const match = path.match(/dog-skins-run-card\/([^/]+)-run-skin\/([^/]+)\.webp$/);
+    if (!match) continue;
+    const [, rawDogId, fileName] = match;
+    const dogId = toDogId(rawDogId);
+    const frameMatch = fileName.match(/^[^-]+-(\d)$/);
+    if (frameMatch) {
+        PURCHASE_BASE_FRAMES[dogId] ??= [];
+        PURCHASE_BASE_FRAMES[dogId][Number(frameMatch[1]) - 1] = img;
+        continue;
+    }
+    const skinId = fileName.replace(`${rawDogId}-run-`, '');
+    purchaseSkinOverrides[dogId] ??= {};
+    purchaseSkinOverrides[dogId][skinId] = img;
+}
+
+for (const dogId of Object.keys(catalog)) {
+    const overrides = purchaseSkinOverrides[dogId] ?? {};
+    if (catalog[dogId].ultimate && overrides[catalog[dogId].ultimate.id]) {
+        catalog[dogId].ultimate.purchaseRunImg = overrides[catalog[dogId].ultimate.id];
+    }
+    for (const skin of catalog[dogId].normal) {
+        if (overrides[skin.id]) skin.purchaseRunImg = overrides[skin.id];
+    }
 }
 
 export const SKIN_CATALOG = catalog;

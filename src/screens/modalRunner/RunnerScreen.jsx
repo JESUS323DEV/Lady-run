@@ -71,6 +71,8 @@ import dayoRun1 from '../../assets/ui/lady-sprite/sprite-run/dayo-run/dayo-1.web
 import dayoJump from '../../assets/ui/lady-sprite/sprite-run/dayo-run/dayo-2.webp';
 import druhRun1 from '../../assets/ui/lady-sprite/sprite-run/druh-run/druh-1.webp';
 import druhJump from '../../assets/ui/lady-sprite/sprite-run/druh-run/druh-2.webp';
+import princeRun1 from '../../assets/ui/lady-sprite/sprite-run/prince-run/prince-1.webp';
+import princeJump from '../../assets/ui/lady-sprite/sprite-run/prince-run/prince-2.webp';
 
 import ladyIcon    from '../../assets/ui/icons-pets/mineros/lady-icon.webp';
 import gordoIcon   from '../../assets/ui/icons-pets/mineros/gordo-icon.webp';
@@ -165,8 +167,8 @@ const ATTACK_BOSS_BIOME_IMGS = {
 
 const DOG_SELECT_ORDER = ['lady', 'gordo', 'muna', 'nupito', 'tokio', 'tuka', 'zeus', 'druh', 'dayo', 'smoke', 'katrina', 'prince'];
 
-// Bloqueados temporalmente ("Proximamente"): Smoke y Dayo porque su ciclo de correr todavia no esta
-// pulido/animado como el resto, y Katrina/Prince porque solo tienen icono, sin sprites de carrera aun.
+// Bloqueados temporalmente ("Proximamente"): Smoke, Dayo y Prince porque su ciclo de correr todavia
+// no esta pulido/animado como el resto, y Katrina porque solo tiene icono, sin sprites de carrera aun.
 const LOCKED_DOG_IDS = ['dayo', 'smoke', 'katrina', 'prince'];
 const UNLOCKED_DOG_IDS = DOG_SELECT_ORDER.filter(id => !LOCKED_DOG_IDS.includes(id));
 // Desbloqueados primero (en su orden habitual), bloqueados al final.
@@ -188,6 +190,7 @@ const DOG_RUN_FRAMES = {
     zeus:   [zeusRun1, zeusRun1, zeusRun1, zeusRun1],
     druh:   [druhRun1, druhRun1, druhRun1, druhRun1],
     dayo:   [dayoRun1, dayoRun1, dayoRun1, dayoRun1],
+    prince: [princeRun1, princeRun1, princeRun1, princeRun1],
 };
 
 // Sprite de correr (frame 1, el mismo que se ve en pista) por perro, para mostrar "el ultimo perro
@@ -206,6 +209,7 @@ const DOG_JUMP_FRAME = {
     zeus: zeusJump,
     tokio: tokyoJump,
     dayo: dayoJump,
+    prince: princeJump,
 };
 
 // Fila de 3 huecos de vida fijos. Cada tramo de 3 vidas suma una capa nueva encima de los 3 huecos
@@ -241,6 +245,7 @@ const DOG_GAMEOVER_IMG = {
     zeus: zeusGameOver1,
     tokio: tokyoGameOver1,
     dayo: dayoRun1,
+    prince: princeRun1,
 };
 
 const DOG_ICONS = {
@@ -3525,7 +3530,7 @@ export default function RunnerScreen({
                         onClose={() => setAvatarOpen(false)}
                         currentAvatarDogId={avatarDogId}
                         avatarOptions={AVATAR_OPTIONS}
-                        onEquip={(dogId) => { onEquipAvatar?.(dogId); setAvatarOpen(false); }}
+                        onEquip={(dogId) => onEquipAvatar?.(dogId)}
                     />
                 )}
 

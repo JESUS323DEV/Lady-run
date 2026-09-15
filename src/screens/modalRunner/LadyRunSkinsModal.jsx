@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft, X } from 'lucide-react';
 import huesinIcon from '../../assets/ui/icons-hud/hud-principal/huesin-coin.webp';
 import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
-import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
+import { SKIN_CATALOG, PURCHASE_BASE_FRAMES } from './ladyRunSkinsCatalog.js';
 import '../../styles/modals/LadyRunSkinsModal.css';
 
 // TEMPORAL (ver FEATURES.md): a 0 mientras se prueban las primeras skins con sprite de correr de
@@ -12,24 +12,29 @@ const SKIN_PRICES = { normal: 0, ultimate: 0 };
 const RARITY_LABEL = { legendary: 'Legendaria', epic: 'Épica', rare: 'Rara' };
 
 // Tienda de skins de Lady Run, inspirada en la de Pata y Pico (SkinShopModal.jsx): tocar una skin
-// abre un preview grande con marco de rareza/particulas, comprar hace un fundido + giro de revelado.
-// Sin la fase de "el perro corriendo" del original (necesitaria mapear ~40 assets con nombres poco
-// consistentes) y sin animaciones en pista todavia - esto solo guarda que la tienes.
+// abre un preview grande con marco de rareza/particulas, comprar hace fundido -> el perro corriendo
+// (pose propia de la skin si existe, si no los 4 frames base del perro) -> revelado con giro.
 export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {}, dogRarities = {}, ownedSkins = {}, onBuySkin }) {
     const dogIds = Object.keys(SKIN_CATALOG);
     const [selectedDog, setSelectedDog] = useState(dogIds[0] ?? null);
     const [preview, setPreview] = useState(null); // { dogId, skin, tier } | null
-    const [purchaseAnim, setPurchaseAnim] = useState(null); // null | 'fading' | 'reveal'
+    const [purchaseAnim, setPurchaseAnim] = useState(null); // null | 'fading' | 'running' | 'reveal'
     const [justBought, setJustBought] = useState(false);
     const [buyError, setBuyError] = useState(false);
     const [tilt, setTilt] = useState({ x: 0, y: 0 });
     const [shockwave, setShockwave] = useState(null);
+    const [frameIndex, setFrameIndex] = useState(0);
 
     useEffect(() => {
         setJustBought(false);
         setBuyError(false);
         setPurchaseAnim(null);
     }, [preview]);
+
+    useEffect(() => {
+        const t = setInterval(() => setFrameIndex(prev => (prev + 1) % 4), 150);
+        return () => clearInterval(t);
+    }, []);
 
     const dogCatalog = selectedDog ? SKIN_CATALOG[selectedDog] : null;
     const ownedForDog = ownedSkins[selectedDog] ?? [];
@@ -53,8 +58,9 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
             setBuyError(true);
             return;
         }
-        setTimeout(() => setPurchaseAnim('reveal'), 250);
-        setTimeout(() => { setPurchaseAnim(null); setJustBought(true); }, 1150);
+        setTimeout(() => setPurchaseAnim('running'), 250);
+        setTimeout(() => setPurchaseAnim('reveal'), 3050);
+        setTimeout(() => { setPurchaseAnim(null); setJustBought(true); }, 3950);
     };
 
     return (
@@ -75,28 +81,49 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
                     ))}
                 </div>
 
-                {dogCatalog && (
-                    <div className="lady-run-skins-grid">
-                        {dogCatalog.ultimate && (
-                            <SkinCard
-                                skin={dogCatalog.ultimate}
-                                owned={ownedForDog.includes(dogCatalog.ultimate.id)}
-                                locked={!dogCatalog.ultimate.runImg}
-                                ultimate
-                                onOpen={() => setPreview({ dogId: selectedDog, skin: dogCatalog.ultimate, tier: 'ultimate' })}
-                            />
-                        )}
-                        {dogCatalog.normal.map(skin => (
-                            <SkinCard
-                                key={skin.id}
-                                skin={skin}
-                                owned={ownedForDog.includes(skin.id)}
-                                locked={!skin.runImg}
-                                onOpen={() => setPreview({ dogId: selectedDog, skin, tier: 'normal' })}
-                            />
-                        ))}
-                    </div>
-                )}
+                {dogCatalog && (() => {
+                    const allSkins = [
+                        ...(dogCatalog.ultimate ? [{ ...dogCatalog.ultimate, isUltimate: true }] : []),
+                        ...dogCatalog.normal,
+                    ];
+                    const unlockedSkins = allSkins.filter(skin => skin.runImg);
+                    const lockedSkins = allSkins.filter(skin => !skin.runImg);
+
+                    return (
+                        <>
+                            {unlockedSkins.length > 0 && (
+                                <div className="lady-run-skins-grid">
+                                    {unlockedSkins.map(skin => (
+                                        <SkinCard
+                                            key={skin.id}
+                                            skin={skin}
+                                            owned={ownedForDog.includes(skin.id)}
+                                            ultimate={skin.isUltimate}
+                                            onOpen={() => setPreview({ dogId: selectedDog, skin, tier: skin.isUltimate ? 'ultimate' : 'normal' })}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                            {lockedSkins.length > 0 && (
+                                <>
+                                    <span className="lady-run-skins-section-title">Próximamente</span>
+                                    <div className="lady-run-skins-grid">
+                                        {lockedSkins.map(skin => (
+                                            <SkinCard
+                                                key={skin.id}
+                                                skin={skin}
+                                                owned={false}
+                                                ultimate={skin.isUltimate}
+                                                locked
+                                                onOpen={() => setPreview({ dogId: selectedDog, skin, tier: skin.isUltimate ? 'ultimate' : 'normal' })}
+                                            />
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </>
+                    );
+                })()}
 
                 {preview && (() => {
                     const owned = ownedSkins[preview.dogId] ?? [];
@@ -125,7 +152,13 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
                                 </span>
 
                                 <div className="lady-run-skin-preview-img-slot" onClick={handlePreviewTap} style={{ transform: `perspective(700px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}>
-                                    {purchaseAnim === 'reveal' ? (
+                                    {purchaseAnim === 'running' ? (
+                                        <img
+                                            src={preview.skin.purchaseRunImg ?? PURCHASE_BASE_FRAMES[preview.dogId]?.[frameIndex]}
+                                            alt=""
+                                            className="lady-run-skin-preview-run-sprite"
+                                        />
+                                    ) : purchaseAnim === 'reveal' ? (
                                         <img src={preview.skin.img} alt="" className="lady-run-skin-preview-img lady-run-skin-preview-reveal-spin" />
                                     ) : isUltimate ? (
                                         <>
@@ -187,9 +220,7 @@ function SkinCard({ skin, owned, ultimate, locked, onOpen }) {
             )}
             {locked && <img src={lockIcon} alt="Bloqueada" className="lady-run-skin-card-lock" />}
             <span className="lady-run-skin-card-name">{skin.name}</span>
-            {locked ? (
-                <span className="lady-run-skin-card-price">Próximamente</span>
-            ) : owned ? (
+            {locked ? null : owned ? (
                 <span className="lady-run-skin-card-owned">Adquirida</span>
             ) : price === 0 ? (
                 <span className="lady-run-skin-card-price">Gratis</span>

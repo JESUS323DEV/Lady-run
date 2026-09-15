@@ -92,14 +92,13 @@
 
 .lady-run-skins-dogs {
     width: 100%;
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    justify-items: center;
     gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 4px;
 }
 
 .lady-run-skins-dog-btn {
-    flex-shrink: 0;
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -117,6 +116,15 @@
 
 .lady-run-skins-dog-btn-active {
     border-color: #ffd740;
+}
+
+.lady-run-skins-section-title {
+    align-self: flex-start;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .lady-run-skins-grid {
@@ -260,7 +268,13 @@
 .lady-run-skin-preview-frame.dog-rarity-legendary::before { background-image: url('../../assets/ui/icons-enemy/marco-slot-combat/combat-legend.webp'); }
 .lady-run-skin-preview-frame.dog-rarity-epic::before      { background-image: url('../../assets/ui/icons-enemy/marco-slot-combat/combat-epic.webp'); }
 .lady-run-skin-preview-frame.dog-rarity-rare::before      { background-image: url('../../assets/ui/icons-enemy/marco-slot-combat/combat-rare.webp'); }
-.lady-run-skin-preview-frame-ultimate::before             { background-image: url('../../assets/ui/dog-skins/ui-skins/marco-skin-ultimate.webp'); }
+
+/* Sin imagen propia (marco-skin-ultimate.webp NO es para esto, ver FEATURES.md): fondo plano +
+   borde a tono, igual que ya hace la card pequena de la rejilla (lady-run-skin-card-ultimate). */
+.lady-run-skin-preview-frame-ultimate {
+    background: rgba(20, 14, 8, 0.97);
+    border: 2px solid rgba(120, 200, 255, 0.5);
+}
 
 .lady-run-skin-preview-close {
     position: absolute;
@@ -407,6 +421,21 @@
 @keyframes ladyRunSkinFadeOut {
     from { opacity: 1; }
     to   { opacity: 0; }
+}
+
+.lady-run-skin-preview-run-sprite {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%) scale(0.4);
+    height: 45%;
+    object-fit: contain;
+    animation: ladyRunSkinRunApproach 2.8s ease-in forwards;
+}
+
+@keyframes ladyRunSkinRunApproach {
+    0%   { transform: translateX(-50%) scale(0.4); opacity: 0.6; }
+    100% { transform: translateX(-50%) scale(1.4); opacity: 1; }
 }
 
 .lady-run-skin-preview-reveal-spin {

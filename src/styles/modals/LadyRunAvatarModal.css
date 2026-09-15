@@ -1,19 +1,27 @@
 .lady-run-avatar-preview {
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 215, 64, 0.4);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
+    width: 110px;
+    aspect-ratio: 350 / 400;
+}
+
+.lady-run-avatar-preview::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('../../assets/ui/dog-skins/ui-skins/marco-skin-ultimate.webp') center / 100% 100% no-repeat;
+    z-index: 0;
+    pointer-events: none;
 }
 
 .lady-run-avatar-preview img {
-    width: 100%;
-    height: 100%;
+    position: absolute;
+    top: 15%;
+    left: 17%;
+    z-index: 1;
+    width: 66%;
+    height: 70%;
     object-fit: cover;
+    border-radius: 6px;
 }
 
 .lady-run-avatar-grid {
