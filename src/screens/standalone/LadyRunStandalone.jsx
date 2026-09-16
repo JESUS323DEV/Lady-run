@@ -33,7 +33,7 @@ const LadyRunStandalone = () => {
     const [gameState, setGameState] = useState(loadSavedState);
     const [showLanding, setShowLanding] = useState(true);
     const loaded = usePreloadImages(RUNNER_CORE_PRELOAD_IMAGES);
-    const { loading: profileLoading, initError: profileInitError, profile, claiming, claimError, claimUsername, equipAvatar, equipAvatarFrame, earnCurrency, spendCurrency } = useLadyRunProfile();
+    const { loading: profileLoading, initError: profileInitError, profile, claiming, claimError, claimUsername, equipAvatar, equipAvatarFrame, equipAvatarSkin, earnCurrency, spendCurrency } = useLadyRunProfile();
     const { tutStep: ladyRunTutStep, setTutStep: setLadyRunTutStep, advanceTutorial: advanceLadyRunTutorial } = useLadyRunTutorial(
         gameState.ladyRunTutorial?.completed ?? false,
         () => setGameState(prev => ({ ...prev, ladyRunTutorial: { completed: true } })),
@@ -89,7 +89,11 @@ const LadyRunStandalone = () => {
             <RunnerScreen
                 belowHud
                 avatarDogId={profile.avatar_dog_id}
-                onEquipAvatar={equipAvatar}
+                onEquipAvatar={async (dogId) => {
+                    const ok = await equipAvatar(dogId);
+                    if (ok) equipAvatarSkin(gameState.ladyRunEquippedSkinByDog?.[dogId] ?? null);
+                    return ok;
+                }}
                 avatarFrameId={profile.avatar_frame_id}
                 onEquipFrame={equipAvatarFrame}
                 onEarnTavernCoins={(amount) => earnCurrency({ tavernCoins: amount })}
@@ -203,13 +207,17 @@ const LadyRunStandalone = () => {
                                 : prev.ladyRunEquippedSkinByDog,
                         };
                     });
+                    if (wasFirstSkin && dogId === profile.avatar_dog_id) equipAvatarSkin(skinId);
                     return true;
                 }}
                 equippedSkinByDog={gameState.ladyRunEquippedSkinByDog ?? {}}
-                onEquipSkin={(dogId, skinId) => setGameState(prev => ({
-                    ...prev,
-                    ladyRunEquippedSkinByDog: { ...(prev.ladyRunEquippedSkinByDog ?? {}), [dogId]: skinId },
-                }))}
+                onEquipSkin={(dogId, skinId) => {
+                    setGameState(prev => ({
+                        ...prev,
+                        ladyRunEquippedSkinByDog: { ...(prev.ladyRunEquippedSkinByDog ?? {}), [dogId]: skinId },
+                    }));
+                    if (dogId === profile.avatar_dog_id) equipAvatarSkin(skinId);
+                }}
             />
         </>
     );

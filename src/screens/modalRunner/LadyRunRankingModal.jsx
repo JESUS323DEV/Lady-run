@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase.js';
 import { AVATAR_FRAMES } from './ladyRunAvatarFramesCatalog.js';
+import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
 import '../../styles/modals/LadyRunRankingModal.css';
 
 const LEADERBOARD_LIMIT = 20;
@@ -27,7 +28,7 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, dogRunSpri
             setLoading(true);
             const { data, error } = await supabase
                 .from('leaderboard')
-                .select('profile_id, username, avatar_dog_id, avatar_frame_id, last_dog_id, best_distance')
+                .select('profile_id, username, avatar_dog_id, avatar_frame_id, avatar_skin_id, last_dog_id, best_distance')
                 .eq('difficulty', difficulty)
                 .order('best_distance', { ascending: false })
                 .limit(LEADERBOARD_LIMIT);
@@ -72,9 +73,13 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, dogRunSpri
                                     const frame = AVATAR_FRAMES.find(f => f.id === row.avatar_frame_id) ?? AVATAR_FRAMES[0];
                                     return frame && <img src={frame.img} alt="" className="lady-run-ranking-avatar-frame" />;
                                 })()}
-                                {row.avatar_dog_id && dogIcons[row.avatar_dog_id] && (
-                                    <img src={dogIcons[row.avatar_dog_id]} alt="" className="lady-run-ranking-avatar-photo" />
-                                )}
+                                {row.avatar_dog_id && dogIcons[row.avatar_dog_id] && (() => {
+                                    const catalog = SKIN_CATALOG[row.avatar_dog_id];
+                                    const equippedSkin = row.avatar_skin_id
+                                        ? [catalog?.ultimate, ...(catalog?.normal ?? [])].find(s => s?.id === row.avatar_skin_id)
+                                        : null;
+                                    return <img src={equippedSkin?.img ?? dogIcons[row.avatar_dog_id]} alt="" className="lady-run-ranking-avatar-photo" />;
+                                })()}
                             </span>
                             <span className="lady-run-ranking-username">{row.username}</span>
                             <span className="lady-run-ranking-last-dog">

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { ArrowLeft, X } from 'lucide-react';
 import { AVATAR_FRAMES } from './ladyRunAvatarFramesCatalog.js';
+import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
+import LadyRunSkinEquipModal from './LadyRunSkinEquipModal.jsx';
 import '../../styles/modals/LadyRunAvatarModal.css';
 import '../../styles/modals/LadyRunSkinsModal.css';
 
@@ -9,10 +11,26 @@ import '../../styles/modals/LadyRunSkinsModal.css';
 // supabase/sql/004_profiles_avatar.sql). Mismo avatar que luego se ve en el Ranking.
 // El marco (AVATAR_FRAMES) es aparte: de momento todos disponibles sin bloqueo, solo para probar
 // como quedan visualmente, no se persiste en Supabase todavia (ver FEATURES.md).
-export default function LadyRunAvatarModal({ onClose, currentAvatarDogId, avatarOptions, onEquip, frameId, onEquipFrame }) {
+export default function LadyRunAvatarModal({
+    onClose, currentAvatarDogId, avatarOptions, onEquip, frameId, onEquipFrame,
+    ownedSkins = {}, equippedSkinByDog = {}, onEquipSkin,
+}) {
     const currentDog = avatarOptions.find(dog => dog.id === currentAvatarDogId);
     const currentFrame = AVATAR_FRAMES.find(frame => frame.id === frameId) ?? AVATAR_FRAMES[0];
     const [framePickerOpen, setFramePickerOpen] = useState(false);
+    const [variantsDogId, setVariantsDogId] = useState(null);
+
+    // Foto a usar para un perro: la skin equipada (misma que se ve corriendo en pista, ver
+    // ladyRunSkinsCatalog.js) si tiene una, si no el icono base del perro.
+    const dogPhoto = (dogId, baseIcon) => {
+        const skinId = equippedSkinByDog[dogId];
+        if (!skinId) return baseIcon;
+        const catalog = SKIN_CATALOG[dogId];
+        const skin = catalog?.ultimate?.id === skinId ? catalog.ultimate : catalog?.normal.find(s => s.id === skinId);
+        return skin?.img ?? baseIcon;
+    };
+
+    const variantsDog = avatarOptions.find(dog => dog.id === variantsDogId);
 
     return (
         <div className="lady-run-shop-backdrop" onClick={onClose}>
@@ -22,7 +40,9 @@ export default function LadyRunAvatarModal({ onClose, currentAvatarDogId, avatar
 
                 <div className="lady-run-avatar-preview">
                     {currentFrame && <img src={currentFrame.img} alt="" className="lady-run-avatar-preview-frame" />}
-                    {currentDog ? <img src={currentDog.icon} alt={currentDog.name} className="lady-run-avatar-preview-photo" /> : null}
+                    {currentDog ? (
+                        <img src={dogPhoto(currentDog.id, currentDog.icon)} alt={currentDog.name} className="lady-run-avatar-preview-photo" />
+                    ) : null}
                 </div>
 
                 <button className="runner-start-btn runner-start-btn-compact lady-run-avatar-frame-btn" onClick={() => setFramePickerOpen(true)}>
@@ -31,14 +51,22 @@ export default function LadyRunAvatarModal({ onClose, currentAvatarDogId, avatar
 
                 <div className="lady-run-avatar-grid">
                     {avatarOptions.map(dog => (
-                        <button
+                        <div
                             key={dog.id}
                             className={`lady-run-avatar-option${dog.id === currentAvatarDogId ? ' lady-run-avatar-option-active' : ''}`}
-                            onClick={() => onEquip(dog.id)}
                         >
-                            <img src={dog.icon} alt={dog.name} className="lady-run-avatar-option-icon" />
-                            <span className="lady-run-avatar-option-name">{dog.name}</span>
-                        </button>
+                            <button className="lady-run-avatar-option-select" onClick={() => onEquip(dog.id)}>
+                                <img src={dogPhoto(dog.id, dog.icon)} alt={dog.name} className="lady-run-avatar-option-icon" />
+                                <span className="lady-run-avatar-option-name">{dog.name}</span>
+                            </button>
+                            <button
+                                className="lady-run-avatar-option-variants"
+                                disabled={(ownedSkins[dog.id] ?? []).length === 0}
+                                onClick={() => setVariantsDogId(dog.id)}
+                            >
+                                Variantes
+                            </button>
+                        </div>
                     ))}
                 </div>
 
@@ -63,6 +91,18 @@ export default function LadyRunAvatarModal({ onClose, currentAvatarDogId, avatar
                             </div>
                         </div>
                     </div>
+                )}
+
+                {variantsDog && (
+                    <LadyRunSkinEquipModal
+                        onClose={() => setVariantsDogId(null)}
+                        dogId={variantsDog.id}
+                        dogName={variantsDog.name}
+                        dogIcon={variantsDog.icon}
+                        ownedSkinIds={ownedSkins[variantsDog.id] ?? []}
+                        equippedSkinId={equippedSkinByDog[variantsDog.id] ?? null}
+                        onEquip={(skinId) => onEquipSkin?.(variantsDog.id, skinId)}
+                    />
                 )}
             </div>
         </div>

@@ -32,7 +32,7 @@ export const useLadyRunProfile = () => {
 
             const { data: profileRow, error: profileError } = await supabase
                 .from('profiles')
-                .select('id, username, avatar_dog_id, avatar_frame_id, chapas, tavern_coins, huesin')
+                .select('id, username, avatar_dog_id, avatar_frame_id, avatar_skin_id, chapas, tavern_coins, huesin')
                 .eq('id', currentSession.user.id)
                 .maybeSingle();
 
@@ -59,7 +59,7 @@ export const useLadyRunProfile = () => {
         const { data, error } = await supabase
             .from('profiles')
             .insert({ id: session.user.id, username })
-            .select('id, username, avatar_dog_id, avatar_frame_id, chapas, tavern_coins, huesin')
+            .select('id, username, avatar_dog_id, avatar_frame_id, avatar_skin_id, chapas, tavern_coins, huesin')
             .single();
         setClaiming(false);
 
@@ -77,11 +77,11 @@ export const useLadyRunProfile = () => {
             .from('profiles')
             .update({ avatar_dog_id: dogId })
             .eq('id', session.user.id)
-            .select('id, username, avatar_dog_id')
+            .select('avatar_dog_id')
             .single();
 
         if (error) return false;
-        setProfile(data);
+        setProfile(prev => (prev ? { ...prev, ...data } : prev));
         return true;
     }, [session]);
 
@@ -92,6 +92,23 @@ export const useLadyRunProfile = () => {
             .update({ avatar_frame_id: frameId })
             .eq('id', session.user.id)
             .select('avatar_frame_id')
+            .single();
+
+        if (error) return false;
+        setProfile(prev => (prev ? { ...prev, ...data } : prev));
+        return true;
+    }, [session]);
+
+    // Skin equipada del perro-avatar actual (no de todos los perros, solo el que es tu avatar ahora
+    // mismo): se resincroniza desde LadyRunStandalone.jsx cada vez que cambias de perro-avatar o de
+    // skin equipada para ese perro, ver 012_profiles_avatar_skin.sql.
+    const equipAvatarSkin = useCallback(async (skinId) => {
+        if (!session) return false;
+        const { data, error } = await supabase
+            .from('profiles')
+            .update({ avatar_skin_id: skinId })
+            .eq('id', session.user.id)
+            .select('avatar_skin_id')
             .single();
 
         if (error) return false;
@@ -123,5 +140,5 @@ export const useLadyRunProfile = () => {
         return true;
     }, [session]);
 
-    return { loading, initError, profile, claiming, claimError, claimUsername, equipAvatar, equipAvatarFrame, earnCurrency, spendCurrency };
+    return { loading, initError, profile, claiming, claimError, claimUsername, equipAvatar, equipAvatarFrame, equipAvatarSkin, earnCurrency, spendCurrency };
 };

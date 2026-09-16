@@ -2951,9 +2951,13 @@ export default function RunnerScreen({
                                         const frame = AVATAR_FRAMES.find(f => f.id === avatarFrameId) ?? AVATAR_FRAMES[0];
                                         return frame && <img src={frame.img} alt="" className="lady-run-avatar-trigger-frame" />;
                                     })()}
-                                    {avatarDogId && DOG_ICONS[avatarDogId] && (
-                                        <img src={DOG_ICONS[avatarDogId]} alt="" className="lady-run-avatar-trigger-photo" />
-                                    )}
+                                    {avatarDogId && DOG_ICONS[avatarDogId] && (() => {
+                                        const equippedSkinId = equippedSkinByDog[avatarDogId];
+                                        const equippedSkin = equippedSkinId
+                                            ? [SKIN_CATALOG[avatarDogId]?.ultimate, ...(SKIN_CATALOG[avatarDogId]?.normal ?? [])].find(s => s?.id === equippedSkinId)
+                                            : null;
+                                        return <img src={equippedSkin?.img ?? DOG_ICONS[avatarDogId]} alt="" className="lady-run-avatar-trigger-photo" />;
+                                    })()}
                                 </button>
                             )}
                             {phase === 'ready' && !runMode && (
@@ -2962,8 +2966,11 @@ export default function RunnerScreen({
                                         <span className="runner-mode-btn-title">Modo Libre</span>
                                     </button>
                                     <button className="runner-mode-btn runner-mode-btn-locked" disabled>
-                                        <span className="runner-mode-btn-title">Historia</span>
+                                        <span className="runner-mode-btn-title">Eventos</span>
                                         <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
+                                    </button>
+                                    <button className="runner-mode-btn" onClick={() => setSkinsOpen(true)}>
+                                        <span className="runner-mode-btn-title">Skins</span>
                                     </button>
                                 </div>
                             )}
@@ -3246,9 +3253,9 @@ export default function RunnerScreen({
 
                 {phase === 'ready' && !runMode && (
                     <div className="runner-mode-cards-extra">
-                        <div className="runner-mode-card-locked runner-mode-card-static-ciudad">
+                        <div className="runner-mode-card-locked runner-mode-card-static-hielo">
                             <button className="runner-mode-btn runner-mode-btn-locked" disabled>
-                                <span className="runner-mode-btn-title">Eventos</span>
+                                <span className="runner-mode-btn-title">Historia</span>
                                 <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
                             </button>
                             <span className="runner-mode-card-tag">Próximamente</span>
@@ -3259,16 +3266,6 @@ export default function RunnerScreen({
                                 <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
                             </button>
                             <span className="runner-mode-card-tag">Próximamente</span>
-                        </div>
-                    </div>
-                )}
-
-                {phase === 'ready' && !runMode && (
-                    <div className="runner-mode-cards-extra">
-                        <div className="runner-mode-card-active runner-mode-card-static-hielo">
-                            <button className="runner-mode-btn" onClick={() => setSkinsOpen(true)}>
-                                <span className="runner-mode-btn-title">Skins</span>
-                            </button>
                         </div>
                         <div className="runner-mode-card-locked runner-mode-card-static-bosque">
                             <button className="runner-mode-btn runner-mode-btn-locked" disabled>
@@ -3539,6 +3536,9 @@ export default function RunnerScreen({
                         onEquip={(dogId) => onEquipAvatar?.(dogId)}
                         frameId={avatarFrameId}
                         onEquipFrame={(frameId) => onEquipFrame?.(frameId)}
+                        ownedSkins={ownedSkins}
+                        equippedSkinByDog={equippedSkinByDog}
+                        onEquipSkin={onEquipSkin}
                     />
                 )}
 
