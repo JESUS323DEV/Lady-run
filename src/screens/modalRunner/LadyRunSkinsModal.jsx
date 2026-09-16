@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, X } from 'lucide-react';
 import huesinIcon from '../../assets/ui/icons-hud/hud-principal/huesin-coin.webp';
 import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
@@ -11,12 +11,20 @@ import '../../styles/modals/LadyRunSkinsModal.css';
 const SKIN_PRICES = { normal: 0, ultimate: 0 };
 const RARITY_LABEL = { legendary: 'Legendaria', epic: 'Épica', rare: 'Rara' };
 
-// Tienda de skins de Lady Run, inspirada en la de Pata y Pico (SkinShopModal.jsx): tocar una skin
-// abre un preview grande con marco de rareza/particulas, comprar hace fundido -> el perro corriendo
-// (pose propia de la skin si existe, si no los 4 frames base del perro) -> revelado con giro.
-export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {}, dogRarities = {}, ownedSkins = {}, onBuySkin }) {
-    const dogIds = Object.keys(SKIN_CATALOG);
-    const [selectedDog, setSelectedDog] = useState(dogIds[0] ?? null);
+// Orden pedido para los circulos de arriba y las secciones de la tienda: Lady y Nupito primero, el
+// resto se queda en el orden que ya trae el catalogo.
+const DOG_ORDER = ['lady', 'nupito'];
+
+// Tienda de skins de Lady Run, inspirada en la de Pata y Pico (SkinShopModal.jsx): scroll continuo
+// con todos los perros como secciones (en vez de obligar a elegir uno primero), los circulos de
+// arriba sirven de salto rapido a la seccion de ese perro (quedan fijos arriba mientras se hace
+// scroll). Tocar una skin abre un preview grande con marco de rareza/particulas, comprar hace
+// fundido -> el perro corriendo (pose propia de la skin si existe, si no los 4 frames base del
+// perro) -> revelado con giro.
+export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {}, ownedSkins = {}, onBuySkin }) {
+    const catalogDogIds = Object.keys(SKIN_CATALOG);
+    const dogIds = [...DOG_ORDER.filter(id => catalogDogIds.includes(id)), ...catalogDogIds.filter(id => !DOG_ORDER.includes(id))];
+    const [activeDog, setActiveDog] = useState(dogIds[0] ?? null);
     const [preview, setPreview] = useState(null); // { dogId, skin, tier } | null
     const [purchaseAnim, setPurchaseAnim] = useState(null); // null | 'fading' | 'running' | 'reveal'
     const [justBought, setJustBought] = useState(false);
@@ -24,6 +32,7 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
     const [tilt, setTilt] = useState({ x: 0, y: 0 });
     const [shockwave, setShockwave] = useState(null);
     const [frameIndex, setFrameIndex] = useState(0);
+    const sectionRefs = useRef({});
 
     useEffect(() => {
         setJustBought(false);
@@ -36,8 +45,10 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
         return () => clearInterval(t);
     }, []);
 
-    const dogCatalog = selectedDog ? SKIN_CATALOG[selectedDog] : null;
-    const ownedForDog = ownedSkins[selectedDog] ?? [];
+    const jumpToDog = (dogId) => {
+        setActiveDog(dogId);
+        sectionRefs.current[dogId]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     const handlePreviewTap = (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -65,7 +76,7 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
 
     return (
         <div className="lady-run-shop-backdrop" onClick={onClose}>
-            <div className="lady-run-shop-panel" onClick={e => e.stopPropagation()}>
+            <div className="lady-run-shop-panel lady-run-skins-panel" onClick={e => e.stopPropagation()}>
                 <button className="lady-run-back-btn" onClick={onClose}><ArrowLeft size={16} /></button>
                 <p className="runner-overlay-title">Skins</p>
 
@@ -73,63 +84,67 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
                     {dogIds.map(dogId => (
                         <button
                             key={dogId}
-                            className={`lady-run-skins-dog-btn${dogId === selectedDog ? ' lady-run-skins-dog-btn-active' : ''}`}
-                            onClick={() => setSelectedDog(dogId)}
+                            className={`lady-run-skins-dog-btn${dogId === activeDog ? ' lady-run-skins-dog-btn-active' : ''}`}
+                            onClick={() => jumpToDog(dogId)}
                         >
                             {dogIcons[dogId] && <img src={dogIcons[dogId]} alt={dogNames[dogId] ?? dogId} />}
                         </button>
                     ))}
                 </div>
 
-                {dogCatalog && (() => {
-                    const allSkins = [
-                        ...(dogCatalog.ultimate ? [{ ...dogCatalog.ultimate, isUltimate: true }] : []),
-                        ...dogCatalog.normal,
-                    ];
-                    const unlockedSkins = allSkins.filter(skin => skin.runImg);
-                    const lockedSkins = allSkins.filter(skin => !skin.runImg);
+                <div className="lady-run-skins-scroll">
+                    {dogIds.map(dogId => {
+                        const dogCatalog = SKIN_CATALOG[dogId];
+                        const allSkins = [
+                            ...(dogCatalog.ultimate ? [{ ...dogCatalog.ultimate, isUltimate: true }] : []),
+                            ...dogCatalog.normal,
+                        ];
+                        const unlockedSkins = allSkins.filter(skin => skin.runImg);
+                        const lockedSkins = allSkins.filter(skin => !skin.runImg);
 
-                    return (
-                        <>
-                            {unlockedSkins.length > 0 && (
-                                <div className="lady-run-skins-grid">
-                                    {unlockedSkins.map(skin => (
-                                        <SkinCard
-                                            key={skin.id}
-                                            skin={skin}
-                                            owned={ownedForDog.includes(skin.id)}
-                                            ultimate={skin.isUltimate}
-                                            onOpen={() => setPreview({ dogId: selectedDog, skin, tier: skin.isUltimate ? 'ultimate' : 'normal' })}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                            {lockedSkins.length > 0 && (
-                                <>
-                                    <span className="lady-run-skins-section-title">Próximamente</span>
+                        return (
+                            <div key={dogId} ref={el => { sectionRefs.current[dogId] = el; }} className="lady-run-skins-dog-section">
+                                <span className="lady-run-skins-section-title lady-run-skins-dog-title">{dogNames[dogId] ?? dogId}</span>
+                                {unlockedSkins.length > 0 && (
                                     <div className="lady-run-skins-grid">
-                                        {lockedSkins.map(skin => (
+                                        {unlockedSkins.map(skin => (
                                             <SkinCard
                                                 key={skin.id}
                                                 skin={skin}
-                                                owned={false}
                                                 ultimate={skin.isUltimate}
-                                                locked
-                                                onOpen={() => setPreview({ dogId: selectedDog, skin, tier: skin.isUltimate ? 'ultimate' : 'normal' })}
+                                                rarity={skin.rarity}
+                                                onOpen={() => setPreview({ dogId, skin, tier: skin.isUltimate ? 'ultimate' : 'normal' })}
                                             />
                                         ))}
                                     </div>
-                                </>
-                            )}
-                        </>
-                    );
-                })()}
+                                )}
+                                {lockedSkins.length > 0 && (
+                                    <>
+                                        <span className="lady-run-skins-section-title">Próximamente</span>
+                                        <div className="lady-run-skins-grid">
+                                            {lockedSkins.map(skin => (
+                                                <SkinCard
+                                                    key={skin.id}
+                                                    skin={skin}
+                                                    ultimate={skin.isUltimate}
+                                                    rarity={skin.rarity}
+                                                    locked
+                                                    onOpen={() => setPreview({ dogId, skin, tier: skin.isUltimate ? 'ultimate' : 'normal' })}
+                                                />
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
 
                 {preview && (() => {
                     const owned = ownedSkins[preview.dogId] ?? [];
                     const isOwned = owned.includes(preview.skin.id) || justBought;
                     const isUltimate = preview.tier === 'ultimate';
-                    const rarity = dogRarities[preview.dogId] ?? 'rare';
+                    const rarity = preview.skin.rarity ?? 'rare';
                     const price = SKIN_PRICES[preview.tier];
                     const dogName = dogNames[preview.dogId] ?? preview.dogId;
 
@@ -202,11 +217,10 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
     );
 }
 
-function SkinCard({ skin, owned, ultimate, locked, onOpen }) {
-    const price = SKIN_PRICES[ultimate ? 'ultimate' : 'normal'];
+function SkinCard({ skin, ultimate, locked, rarity, onOpen }) {
     return (
         <button
-            className={`lady-run-skin-card${ultimate ? ' lady-run-skin-card-ultimate' : ''}${locked ? ' lady-run-skin-card-locked' : ''}`}
+            className={`lady-run-skin-card${ultimate ? ' lady-run-skin-card-ultimate' : rarity ? ` dog-rarity-${rarity}` : ''}${locked ? ' lady-run-skin-card-locked' : ''}`}
             onClick={locked ? undefined : onOpen}
             disabled={locked}
         >
@@ -220,16 +234,6 @@ function SkinCard({ skin, owned, ultimate, locked, onOpen }) {
             )}
             {locked && <img src={lockIcon} alt="Bloqueada" className="lady-run-skin-card-lock" />}
             <span className="lady-run-skin-card-name">{skin.name}</span>
-            {locked ? null : owned ? (
-                <span className="lady-run-skin-card-owned">Adquirida</span>
-            ) : price === 0 ? (
-                <span className="lady-run-skin-card-price">Gratis</span>
-            ) : (
-                <span className="lady-run-skin-card-price">
-                    <img src={huesinIcon} alt="Huesín" className="lady-run-shop-heart-card-buy-icon" />
-                    {price}
-                </span>
-            )}
         </button>
     );
 }

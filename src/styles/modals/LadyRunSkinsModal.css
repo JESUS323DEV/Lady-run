@@ -90,12 +90,46 @@
     text-align: center;
 }
 
+.lady-run-skins-panel {
+    height: 100%;
+    min-height: 0;
+}
+
 .lady-run-skins-dogs {
+    position: sticky;
+    top: 0;
+    z-index: 2;
     width: 100%;
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     justify-items: center;
     gap: 8px;
+    padding: 6px 0 10px;
+    background: rgba(20, 14, 8, 0.92);
+}
+
+.lady-run-skins-scroll {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lady-run-skins-dog-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lady-run-skins-dog-title {
+    color: #ffd740;
+    font-size: 0.85rem;
 }
 
 .lady-run-skins-dog-btn {
@@ -136,6 +170,7 @@
 }
 
 .lady-run-skin-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -145,22 +180,46 @@
     border: 2px solid rgba(255, 255, 255, 0.15);
     background: rgba(0, 0, 0, 0.35);
     cursor: pointer;
+    z-index: 0;
+}
+
+.lady-run-skin-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: inherit;
+    z-index: -1;
 }
 
 .lady-run-skin-card-ultimate {
-    border-color: rgba(120, 200, 255, 0.5);
+    border-color: transparent;
 }
+
+.lady-run-skin-card-ultimate::before { background-image: url('../../assets/ui/marco-frames/marco-skin-ultimate.webp'); }
+
+.lady-run-skin-card.dog-rarity-legendary { border-color: transparent; }
+.lady-run-skin-card.dog-rarity-epic      { border-color: transparent; }
+.lady-run-skin-card.dog-rarity-rare      { border-color: transparent; }
+.lady-run-skin-card.dog-rarity-legendary::before { background-image: url('../../assets/ui/marco-frames/marco-legend.webp'); }
+.lady-run-skin-card.dog-rarity-epic::before      { background-image: url('../../assets/ui/marco-frames/marco-epic.webp'); }
+.lady-run-skin-card.dog-rarity-rare::before      { background-image: url('../../assets/ui/marco-frames/marco-rare.webp'); }
 
 .lady-run-skin-card-equipped {
     border-color: #ffd740;
 }
 
 .lady-run-skin-card-locked {
-    position: relative;
     cursor: default;
 }
 
 .lady-run-skin-card-locked .lady-run-skin-card-img {
+    filter: grayscale(70%) brightness(0.6);
+}
+
+.lady-run-skin-card-locked::before {
     filter: grayscale(70%) brightness(0.6);
 }
 
@@ -265,16 +324,11 @@
     z-index: -1;
 }
 
-.lady-run-skin-preview-frame.dog-rarity-legendary::before { background-image: url('../../assets/ui/icons-enemy/marco-slot-combat/combat-legend.webp'); }
-.lady-run-skin-preview-frame.dog-rarity-epic::before      { background-image: url('../../assets/ui/icons-enemy/marco-slot-combat/combat-epic.webp'); }
-.lady-run-skin-preview-frame.dog-rarity-rare::before      { background-image: url('../../assets/ui/icons-enemy/marco-slot-combat/combat-rare.webp'); }
+.lady-run-skin-preview-frame.dog-rarity-legendary::before { background-image: url('../../assets/ui/marco-frames/marco-legend.webp'); }
+.lady-run-skin-preview-frame.dog-rarity-epic::before      { background-image: url('../../assets/ui/marco-frames/marco-epic.webp'); }
+.lady-run-skin-preview-frame.dog-rarity-rare::before      { background-image: url('../../assets/ui/marco-frames/marco-rare.webp'); }
 
-/* Sin imagen propia (marco-skin-ultimate.webp NO es para esto, ver FEATURES.md): fondo plano +
-   borde a tono, igual que ya hace la card pequena de la rejilla (lady-run-skin-card-ultimate). */
-.lady-run-skin-preview-frame-ultimate {
-    background: rgba(20, 14, 8, 0.97);
-    border: 2px solid rgba(120, 200, 255, 0.5);
-}
+.lady-run-skin-preview-frame-ultimate::before { background-image: url('../../assets/ui/marco-frames/marco-skin-ultimate.webp'); }
 
 .lady-run-skin-preview-close {
     position: absolute;
@@ -471,7 +525,7 @@
     position: relative;
     z-index: 1;
     margin-top: auto;
-    margin-bottom: 6px;
+    margin-bottom: 26px;
 }
 
 .lady-run-skin-preview-error {

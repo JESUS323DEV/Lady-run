@@ -258,10 +258,9 @@ const DOG_ICONS = {
 // no los de "Proximamente"). Mismo icono que se ve en el Ranking una vez equipado.
 const AVATAR_OPTIONS = UNLOCKED_DOG_IDS.map(id => ({ id, name: DogsConfig[id]?.name ?? id, icon: DOG_ICONS[id] }));
 
-// Nombre/rareza legibles por perro, para la tienda de Skins (ver LadyRunSkinsModal.jsx). La rareza
-// decide el marco de color del preview (dog-rarity-*, mismo marco que el selector de perro).
+// Nombre legible por perro, para la tienda de Skins (ver LadyRunSkinsModal.jsx). La rareza de cada
+// skin ya viene del propio catalogo (ladyRunSkinsCatalog.js), no depende de la rareza del perro.
 const DOG_NAMES = Object.fromEntries(DOG_SELECT_ORDER.map(id => [id, DogsConfig[id]?.name ?? id]));
-const DOG_RARITIES = Object.fromEntries(DOG_SELECT_ORDER.map(id => [id, DogsConfig[id]?.rarity ?? 'rare']));
 
 const BIOMES = {
     mina: { title: 'Mina', desc: '3-4 escenarios encadenados', scenes: [escenarioMina1, escenarioMina2, escenarioMina3], interior: true },
@@ -3539,7 +3538,6 @@ export default function RunnerScreen({
                         onClose={() => setSkinsOpen(false)}
                         dogIcons={DOG_ICONS}
                         dogNames={DOG_NAMES}
-                        dogRarities={DOG_RARITIES}
                         ownedSkins={ownedSkins}
                         onBuySkin={onBuySkin}
                     />

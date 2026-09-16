@@ -16,6 +16,20 @@ const purchaseAnimModules = import.meta.glob('../../assets/ui/dog-skins-run-card
 
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
+// Rareza por skin (no por perro), copiada de DogSkinsConfig.js de Pata y Pico - mismo concepto de
+// skin, misma rareza en los dos juegos. Smoke se deja fuera a proposito (sin datos, pendiente de
+// rehacer alli tambien). Los "ultimate" no entran aqui, tienen su propio marco especial aparte.
+const SKIN_RARITY = {
+    druh:   { cascos: 'epic', mago: 'epic', minero: 'rare', rey: 'rare', señor: 'legendary' },
+    gordo:  { mago: 'epic', cascos: 'epic', chef: 'legendary', gafas: 'legendary', rey: 'rare', señor: 'legendary' },
+    lady:   { capucha: 'legendary', cascos: 'epic', gafas: 'legendary', minera: 'rare', pirata: 'legendary', reina: 'rare' },
+    muna:   { cascos: 'epic', minera: 'rare', piloto: 'legendary', pirata: 'legendary', reina: 'rare' },
+    nupito: { mago: 'epic', minero: 'rare', rey: 'rare', sherif: 'legendary' },
+    tokio:  { capucha: 'legendary', cascos: 'epic', gafas: 'legendary', minera: 'rare', reina: 'rare' },
+    tuka:   { capucha: 'legendary', cascos: 'epic', chef: 'legendary', gafas: 'legendary', maga: 'epic', reina: 'rare', minera: 'rare' },
+    zeus:   { chef: 'legendary', mago: 'epic', minero: 'rare', rey: 'rare', sherif: 'legendary' },
+};
+
 // La carpeta de assets usa el nombre "bonito" del perro, que no siempre coincide con su id interno
 // (DogsConfig/DOG_ICONS) - Tokyo es 'tokio' en el resto del juego. Alias para que no se pierda.
 const FOLDER_ID_ALIASES = { tokyo: 'tokio' };
@@ -30,7 +44,7 @@ for (const [path, img] of Object.entries(normalModules)) {
     const dogId = toDogId(rawDogId);
     const skinId = fileName.replace(`${rawDogId}-`, '');
     catalog[dogId] ??= { normal: [], ultimate: null };
-    catalog[dogId].normal.push({ id: skinId, name: capitalize(skinId), img });
+    catalog[dogId].normal.push({ id: skinId, name: capitalize(skinId), img, rarity: SKIN_RARITY[dogId]?.[skinId] });
 }
 
 for (const [path, img] of Object.entries(ultimateFase1Modules)) {

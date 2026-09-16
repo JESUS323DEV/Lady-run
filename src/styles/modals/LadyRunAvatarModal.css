@@ -8,7 +8,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../../assets/ui/dog-skins/ui-skins/marco-skin-ultimate.webp') center / 100% 100% no-repeat;
+    background: url('../../assets/ui/marco-frames/marco-skin-ultimate.webp') center / 100% 100% no-repeat;
     z-index: 0;
     pointer-events: none;
 }
