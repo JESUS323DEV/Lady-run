@@ -184,6 +184,67 @@
     flex: none;
 }
 
+/* Barra de carrera de Eventos: 2 huellas (tuya/CPU) sobre la misma linea, posicionadas por .style.left
+   a mano cada tick (ver eventosPlayerMarkerElRef/eventosCpuMarkerElRef en RunnerScreen.jsx), no via
+   React state - la transition de aqui es lo que suaviza el movimiento entre ticks. */
+.runner-eventos-race-bar {
+    position: relative;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.runner-eventos-race-track {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 4px;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+
+.runner-eventos-race-marker {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #14100c;
+    transform: translate(-50%, -50%);
+    transition: left 0.1s linear;
+}
+
+.runner-eventos-race-marker-player {
+    background: #6bd66b;
+    z-index: 2;
+}
+
+.runner-eventos-race-marker-cpu {
+    background: #ff6b6b;
+    z-index: 1;
+}
+
+/* Marca fija de tramo (2-3 por nodo, ver EVENTOS_NODE_REWARDS): hueca hasta que tu huella la cruza,
+   -crossed se activa a mano via classList en el bucle principal, no pasa por React state. */
+.runner-eventos-race-stop {
+    position: absolute;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    background: rgba(0, 0, 0, 0.5);
+    transform: translate(-50%, -50%);
+    z-index: 0;
+}
+
+.runner-eventos-race-stop-crossed {
+    border-color: #ffd740;
+    background: #ffd740;
+}
+
 .runner-mode-cards-extra {
     display: flex;
     gap: 8px;
@@ -566,6 +627,11 @@
    se apaga (fuera de la carrera), tu carril y la carrera en si continuan igual. */
 .runner-track-cpu-defeated {
     filter: grayscale(100%) brightness(0.6);
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/fondo-1.webp');
+}
+
+.runner-dog-defeated-hidden {
+    display: none;
 }
 
 .runner-track-player {
@@ -1019,6 +1085,12 @@
     height: 18px;
 }
 
+/* Nodo de Eventos ya reclamado (recompensa cobrada): se puede seguir jugando, pero distinto del
+   bloqueado (candado) - aqui se nota que ya no da nada nuevo. */
+.lady-run-path-node-claimed {
+    filter: grayscale(100%) brightness(0.75);
+}
+
 .runner-overlay-gameover {
     gap: 4px;
     background: linear-gradient(
@@ -1061,6 +1133,27 @@
 .runner-overlay-score {
     color: rgba(255, 255, 255, 0.85);
     font-size: 0.8rem;
+}
+
+.runner-eventos-rewards {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.runner-eventos-rewards span {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: #ffd740;
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+
+.runner-eventos-rewards img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
 }
 
 .runner-run-rewards {
@@ -1501,10 +1594,37 @@
 }
 
 .runner-dog-select-col {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 3px;
+}
+
+/* Botoncito superpuesto en la esquina superior derecha de la card del perro (rejilla de elegir
+   perro antes de correr): abre el mismo popover de Variantes/skins que ya se abre al tocar el
+   perro ya seleccionado, pero sin tener que seleccionarlo primero. Gris si no tienes ninguna skin
+   comprada de ese perro (sigue siendo clicable, solo avisa de que no hay nada que elegir). */
+.runner-dog-select-skin-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(20, 16, 12, 0.9);
+    border: 1px solid rgba(255, 215, 64, 0.6);
+    color: #ffd740;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.runner-dog-select-skin-btn-empty {
+    color: rgba(255, 255, 255, 0.35);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .runner-dog-select-btn {

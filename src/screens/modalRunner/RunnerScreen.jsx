@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Trophy, ArrowLeft, Flame, Zap, Droplets, Mountain, Moon, Skull } from 'lucide-react';
+import { X, Trophy, ArrowLeft, Flame, Zap, Droplets, Mountain, Moon, Skull, Shirt } from 'lucide-react';
 import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
 import prologoScene1 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/prologo-part-1/escenas/escena-1/lore-lady-prologo-part1.webp';
 import prologoScene0 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/prologo-part-1/escenas/escena-1/lore-lady-prologo-part0.webp';
@@ -334,7 +334,17 @@ const EVENTOS_PATH_NODES = CHAPTER1_PATH_NODES.slice(0, 4);
 // Metros repartidos con progresion (mas cortos/faciles al principio) sobre ~1900m, la mejor marca
 // real del usuario jugando Modo Libre en facil.
 const EVENTOS_NODE_META_M = [300, 450, 550, 600];
-const EVENTOS_NODE_DIFFICULTY = ['facil', 'facil', 'medio', 'dificil'];
+const EVENTOS_NODE_DIFFICULTY = ['facil', 'facil', 'medio', 'medio']; // el nodo 5 (boss, sin hacer aun) sera el dificil
+
+// Recompensas por tramo de cada nodo de Eventos (independientes de RUN_MILESTONE_REWARDS de Modo
+// Libre): solo se pagan si llegas a la meta del nodo, y solo la primera vez que lo completas (ver
+// claimEventosNodeReward). "m" es la distancia del tramo dentro del nodo, no acumulada entre nodos.
+const EVENTOS_NODE_REWARDS = [
+    [{ m: 150, chapas: 2 }, { m: 300, tavernCoins: 1 }],
+    [{ m: 225, tavernCoins: 1 }, { m: 450, huesin: 1 }],
+    [{ m: 183, chapas: 2 }, { m: 367, tavernCoins: 1 }, { m: 550, huesin: 1 }],
+    [{ m: 200, tavernCoins: 2 }, { m: 400, tavernCoins: 3 }, { m: 600, huesin: 2 }],
+];
 
 // Orden del Tutorial 2 (Modo Libre, pantalla de elegir perro). Ver useEffect de arranque mas abajo.
 const LIBRE_TUT_STEP_ORDER = ['vidas', 'vidas_verdes', 'botin', 'perros', 'dificultad', 'empezar'];
@@ -675,6 +685,10 @@ export default function RunnerScreen({
     onEquipAvatar,
     avatarFrameId = null,
     onEquipFrame,
+    eventosNodesDone = 0,
+    onAdvanceEventosNode,
+    eventosClaimedNodes = [],
+    onClaimEventosNode,
     magicHearts = 0,
     onUseMagicHeart,
     greenHearts = 0,
@@ -796,6 +810,13 @@ export default function RunnerScreen({
     // choca ni avanza, su card se pone gris via cpuLives<=0), pero la carrera sigue, el jugador
     // igualmente tiene que llegar el a la meta.
     const cpuDefeatedRef = useRef(false);
+    // Marcadores DOM de la barra de carrera de Eventos (huella tuya/del CPU), movidos a mano con
+    // .style.left cada tick (igual que runFlagElRef en Modo Libre), sin pasar por React state.
+    const eventosPlayerMarkerElRef = useRef(null);
+    const eventosCpuMarkerElRef = useRef(null);
+    // Marcas fijas de tramo (2-3 por nodo, ver EVENTOS_NODE_REWARDS) en la barra de carrera: se
+    // activan (clase CSS) en cuanto tu huella las cruza, sin pasar por React state.
+    const eventosTramoMarkerElsRef = useRef([]);
     const [runMetersEarned, setRunMetersEarned] = useState(0);
     const [runIsNewRecord, setRunIsNewRecord] = useState(false);
     const [runBestMeters, setRunBestMeters] = useState(0);
@@ -844,7 +865,16 @@ export default function RunnerScreen({
     const [historiaMenuBgStep, setHistoriaMenuBgStep] = useState(0); // 0/1/2 = historia/historia2/historia3, en bucle
     const [eventosEventId, setEventosEventId] = useState(null); // null = pantalla de seleccion de evento, 'bosque' = evento Bosque (mapa de nodos)
     const [eventosActiveNodeIndex, setEventosActiveNodeIndex] = useState(null); // null = mapa, 0-3 = nodo elegido/jugando
-    const [eventosNodesDone, setEventosNodesDone] = useState(0); // cuantos nodos de Eventos ya se completaron, desbloquea los siguientes (independiente de Historia)
+    // eventosNodesDone/eventosClaimedNodes vienen de fuera (gameState persistido, ver
+    // LadyRunStandalone.jsx) para que el progreso y las recompensas ya reclamadas sobrevivan a
+    // recargar la pagina. onAdvanceEventosNodeRef/onClaimEventosNodeRef son el espejo de siempre
+    // para poder llamarlas desde el bucle principal sin meterlas en su dependency array.
+    const onAdvanceEventosNodeRef = useRef(onAdvanceEventosNode);
+    onAdvanceEventosNodeRef.current = onAdvanceEventosNode;
+    const onClaimEventosNodeRef = useRef(onClaimEventosNode);
+    onClaimEventosNodeRef.current = onClaimEventosNode;
+    const eventosClaimedNodesRef = useRef(eventosClaimedNodes);
+    eventosClaimedNodesRef.current = eventosClaimedNodes;
 
     // Fondo del menu de Historia: ciclo historia1 -> historia2 -> historia3 (vuelve al punto de
     // partida) -> historia1... en bucle mientras se este en el menu. Sin evento nativo para saber
@@ -1225,6 +1255,38 @@ export default function RunnerScreen({
         setRunHuesinEarned(totalHuesin);
         setRunChapasEarned(totalChapas);
     }, [difficulty, dailyTramosClaimedToday]);
+
+    // Recompensa de un nodo de Eventos al llegar a la meta (ver EVENTOS_NODE_REWARDS): si el nodo ya
+    // estaba reclamado de antes, no da nada de nada (ni siquiera el botin de pista de este intento),
+    // solo la primera vez que se completa paga los tramos + lo recogido en pista + bono de huesos.
+    const claimEventosNodeReward = useCallback((nodeIndex) => {
+        if (eventosClaimedNodesRef.current.includes(nodeIndex)) {
+            setRunCoinsEarned(0);
+            setRunHuesinEarned(0);
+            setRunChapasEarned(0);
+            return;
+        }
+        let totalChapas = runChapasCollectedRef.current;
+        let totalCoins = runTrackCoinsCollectedRef.current;
+        let totalHuesin = 0;
+        for (const stop of EVENTOS_NODE_REWARDS[nodeIndex] ?? []) {
+            totalChapas += stop.chapas ?? 0;
+            totalCoins += stop.tavernCoins ?? 0;
+            totalHuesin += stop.huesin ?? 0;
+        }
+        const bonesThisRun = runBonesCollectedRef.current;
+        totalChapas += Math.floor(bonesThisRun / 20) + Math.floor(bonesThisRun / 100) * 2;
+        totalCoins += Math.floor(bonesThisRun / 100);
+        if (totalCoins > 0) onEarnTavernCoinsRef.current?.(totalCoins);
+        if (totalHuesin > 0) onEarnHuesinRef.current?.(totalHuesin);
+        if (totalChapas > 0) onEarnChapasRef.current?.(totalChapas);
+        setRunCoinsEarned(totalCoins);
+        setRunHuesinEarned(totalHuesin);
+        setRunChapasEarned(totalChapas);
+        onClaimEventosNodeRef.current?.(nodeIndex);
+    }, []);
+    const claimEventosNodeRewardRef = useRef(claimEventosNodeReward);
+    claimEventosNodeRewardRef.current = claimEventosNodeReward;
 
     // Cuenta atras 3-2-1-¡Ya! reutilizable: al terminar, quita la pausa. Se usa tanto al empezar una
     // partida nueva como al reanudar una guardada (boton REANUDAR sobre la card).
@@ -2369,7 +2431,7 @@ export default function RunnerScreen({
                 }
             }
             if (coinsCollected > 0) {
-                if (arcadeSubMode === 'libre') runTrackCoinsCollectedRef.current += coinsCollected;
+                if (arcadeSubMode === 'libre' || runMode === 'eventos') runTrackCoinsCollectedRef.current += coinsCollected;
                 else onEarnTavernCoinsRef.current?.(coinsCollected);
                 playLadyRunSfx('rewardCoin');
             }
@@ -2484,9 +2546,20 @@ export default function RunnerScreen({
                 if (!invuln) eventosPlayerDistanceRef.current += currentSpeed * dt;
                 if (!cpuInvulnNow && !cpuDefeatedRef.current) eventosCpuDistanceRef.current += currentSpeed * dt;
                 const metaPx = EVENTOS_NODE_META_M[eventosActiveNodeIndex] * METERS_PER_PX;
+                if (eventosPlayerMarkerElRef.current) {
+                    eventosPlayerMarkerElRef.current.style.left = `${Math.min(100, (eventosPlayerDistanceRef.current / metaPx) * 100)}%`;
+                }
+                if (eventosCpuMarkerElRef.current) {
+                    eventosCpuMarkerElRef.current.style.left = `${Math.min(100, (eventosCpuDistanceRef.current / metaPx) * 100)}%`;
+                }
+                (EVENTOS_NODE_REWARDS[eventosActiveNodeIndex] ?? []).forEach((stop, i) => {
+                    const el = eventosTramoMarkerElsRef.current[i];
+                    if (el) el.classList.toggle('runner-eventos-race-stop-crossed', eventosPlayerDistanceRef.current >= stop.m * METERS_PER_PX);
+                });
                 if (!endingRef.current && eventosPlayerDistanceRef.current >= metaPx) {
                     endingRef.current = true;
-                    setEventosNodesDone(prev => Math.max(prev, eventosActiveNodeIndex + 1));
+                    onAdvanceEventosNodeRef.current?.(eventosActiveNodeIndex);
+                    claimEventosNodeRewardRef.current?.(eventosActiveNodeIndex);
                     setTimeout(() => { setWon(true); setPhase('gameover'); }, GAME_END_DELAY_MS);
                 } else if (!endingRef.current && !cpuDefeatedRef.current && eventosCpuDistanceRef.current >= metaPx) {
                     endingRef.current = true;
@@ -2892,9 +2965,9 @@ export default function RunnerScreen({
                                         ref={cpuDogElRef}
                                         src={cpuDogImg}
                                         alt={DogsConfig[cpuDogId]?.name ?? cpuDogId}
-                                        className={`runner-dog${cpuHitFlash ? ' runner-dog-hit' : ''}`}
+                                        className={`runner-dog${cpuHitFlash ? ' runner-dog-hit' : ''}${runMode === 'eventos' && cpuLives <= 0 ? ' runner-dog-defeated-hidden' : ''}`}
                                     />
-                                    {obstacles.filter(o => o.lane !== 'player').map(o => (
+                                    {!(runMode === 'eventos' && cpuLives <= 0) && obstacles.filter(o => o.lane !== 'player').map(o => (
                                         <img
                                             key={o.id}
                                             ref={el => setCpuObstacleEl(o.id, el)}
@@ -3056,11 +3129,12 @@ export default function RunnerScreen({
                                     <button className="runner-mode-btn runner-mode-btn-glow" onClick={() => setRunMode('arcade')}>
                                         <span className="runner-mode-btn-title">Modo Libre</span>
                                     </button>
-                                    <button className="runner-mode-btn" onClick={() => setRunMode('eventos')}>
-                                        <span className="runner-mode-btn-title">Eventos</span>
+                                    <button className="runner-mode-btn" onClick={() => setRankingOpen(true)}>
+                                        <span className="runner-mode-btn-title">Ranking</span>
                                     </button>
-                                    <button className="runner-mode-btn" onClick={() => setSkinsOpen(true)}>
-                                        <span className="runner-mode-btn-title">Skins</span>
+                                    <button className="runner-mode-btn runner-mode-btn-locked" disabled>
+                                        <span className="runner-mode-btn-title">Eventos</span>
+                                        <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
                                     </button>
                                 </div>
                             )}
@@ -3219,6 +3293,13 @@ export default function RunnerScreen({
                                     {runMode === 'arcade' && !isLibre && (
                                         <p className="runner-overlay-score">Rivales vencidos: {rivalsDefeated}</p>
                                     )}
+                                    {runMode === 'eventos' && won && (runChapasEarned > 0 || runCoinsEarned > 0 || runHuesinEarned > 0) && (
+                                        <div className="runner-eventos-rewards">
+                                            {runChapasEarned > 0 && <span><img src={chapaIcon} alt="" />{runChapasEarned}</span>}
+                                            {runCoinsEarned > 0 && <span><img src={tavernCoinIcon} alt="" />{runCoinsEarned}</span>}
+                                            {runHuesinEarned > 0 && <span><img src={huesinIcon} alt="" />{runHuesinEarned}</span>}
+                                        </div>
+                                    )}
                                     {isLibre && goStage >= 3 && (
                                         <div className="runner-run-rewards">
                                             {rewardStep >= 1 && (
@@ -3260,6 +3341,22 @@ export default function RunnerScreen({
                             </div>
                         )}
                     </div>
+
+                    {runMode === 'eventos' && eventosActiveNodeIndex !== null && (phase === 'playing' || phase === 'gameover') && (
+                        <div className="runner-eventos-race-bar">
+                            <div className="runner-eventos-race-track" />
+                            {(EVENTOS_NODE_REWARDS[eventosActiveNodeIndex] ?? []).map((stop, i) => (
+                                <div
+                                    key={stop.m}
+                                    ref={el => { eventosTramoMarkerElsRef.current[i] = el; }}
+                                    className="runner-eventos-race-stop"
+                                    style={{ left: `${(stop.m / EVENTOS_NODE_META_M[eventosActiveNodeIndex]) * 100}%` }}
+                                />
+                            ))}
+                            <div ref={eventosPlayerMarkerElRef} className="runner-eventos-race-marker runner-eventos-race-marker-player" />
+                            <div ref={eventosCpuMarkerElRef} className="runner-eventos-race-marker runner-eventos-race-marker-cpu" />
+                        </div>
+                    )}
 
                     {checkpointOpen && (
                         <div className="runner-overlay">
@@ -3337,8 +3434,8 @@ export default function RunnerScreen({
                         >
                             <span className="runner-mode-btn-title">Tienda</span>
                         </button>
-                        <button className="runner-mode-btn" onClick={() => setRankingOpen(true)}>
-                            <span className="runner-mode-btn-title">Ranking</span>
+                        <button className="runner-mode-btn" onClick={() => setSkinsOpen(true)}>
+                            <span className="runner-mode-btn-title">Skins</span>
                         </button>
                     </div>
                 )}
@@ -3550,6 +3647,14 @@ export default function RunnerScreen({
                                         )}
                                     </button>
                                     <span className="runner-dog-select-name">{DogsConfig[id]?.name ?? id}</span>
+                                    {!needsUnlock && (
+                                        <button
+                                            className={`runner-dog-select-skin-btn${(ownedSkins[id] ?? []).length === 0 ? ' runner-dog-select-skin-btn-empty' : ''}`}
+                                            onClick={e => { e.stopPropagation(); setSelectedDogId(id); setSkinEquipOpenDogId(id); }}
+                                        >
+                                            <Shirt size={12} />
+                                        </button>
+                                    )}
                                 </div>
                             );
                         })}
@@ -3792,10 +3897,11 @@ export default function RunnerScreen({
                         {EVENTOS_PATH_NODES.map((node, i) => {
                             const pos = chapterNodePositions[i];
                             const done = eventosNodesDone >= i;
+                            const claimed = eventosClaimedNodes.includes(i);
                             return (
                                 <button
                                     key={node.num}
-                                    className={`lady-run-path-node${!done ? ' lady-run-path-node-locked' : ''}`}
+                                    className={`lady-run-path-node${!done ? ' lady-run-path-node-locked' : ''}${done && claimed ? ' lady-run-path-node-claimed' : ''}`}
                                     style={pos ? { left: `${pos.left}px`, top: `${pos.top}px` } : undefined}
                                     disabled={!done}
                                     onClick={() => setEventosActiveNodeIndex(i)}

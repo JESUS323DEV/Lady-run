@@ -5,10 +5,11 @@ import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/
 import { SKIN_CATALOG, PURCHASE_BASE_FRAMES } from './ladyRunSkinsCatalog.js';
 import '../../styles/modals/LadyRunSkinsModal.css';
 
-// TEMPORAL (ver FEATURES.md): a 0 mientras se prueban las primeras skins con sprite de correr de
-// verdad, sin tener que farmear huesin. Cuando se decida el precio definitivo, volver a poner un
-// numero aqui Y en spend_currency (supabase/sql/010_skins_gratis_temporal.sql).
-const SKIN_PRICES = { normal: 0, ultimate: 0 };
+// MOMENTANEO (ver FEATURES.md): primera tanda de precios para ver como reacciona la gente, por
+// rareza en vez de por tier normal/ultimate. Ultimate se queda a 0 porque ninguna tiene sprite de
+// correr real todavia (no hay forma de comprarla aun). Si cambia, tambien hay que tocar
+// spend_currency (supabase/sql/013_skins_precios_rareza.sql).
+const SKIN_PRICES = { rare: 5, epic: 10, legendary: 20, ultimate: 0 };
 const RARITY_LABEL = { legendary: 'Legendaria', epic: 'Épica', rare: 'Rara' };
 
 // Orden pedido para los circulos de arriba y las secciones de la tienda: Lady y Nupito primero, el
@@ -63,7 +64,7 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
         const { dogId, skin, tier } = preview;
         setBuyError(false);
         setPurchaseAnim('fading');
-        const ok = await onBuySkin?.(dogId, skin.id, tier);
+        const ok = await onBuySkin?.(dogId, skin.id, tier, skin.rarity ?? 'rare');
         if (!ok) {
             setPurchaseAnim(null);
             setBuyError(true);
@@ -145,7 +146,7 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
                     const isOwned = owned.includes(preview.skin.id) || justBought;
                     const isUltimate = preview.tier === 'ultimate';
                     const rarity = preview.skin.rarity ?? 'rare';
-                    const price = SKIN_PRICES[preview.tier];
+                    const price = isUltimate ? SKIN_PRICES.ultimate : SKIN_PRICES[rarity];
                     const dogName = dogNames[preview.dogId] ?? preview.dogId;
 
                     return (

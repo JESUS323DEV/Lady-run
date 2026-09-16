@@ -96,6 +96,17 @@ const LadyRunStandalone = () => {
                 }}
                 avatarFrameId={profile.avatar_frame_id}
                 onEquipFrame={equipAvatarFrame}
+                eventosNodesDone={gameState.ladyRunEventosNodesDone ?? 0}
+                onAdvanceEventosNode={(nodeIndex) => setGameState(prev => ({
+                    ...prev,
+                    ladyRunEventosNodesDone: Math.max(prev.ladyRunEventosNodesDone ?? 0, nodeIndex + 1),
+                }))}
+                eventosClaimedNodes={gameState.ladyRunEventosClaimedNodes ?? []}
+                onClaimEventosNode={(nodeIndex) => setGameState(prev => {
+                    const cur = prev.ladyRunEventosClaimedNodes ?? [];
+                    if (cur.includes(nodeIndex)) return prev;
+                    return { ...prev, ladyRunEventosClaimedNodes: [...cur, nodeIndex] };
+                })}
                 onEarnTavernCoins={(amount) => earnCurrency({ tavernCoins: amount })}
                 onEarnChapas={(amount) => earnCurrency({ chapas: amount })}
                 onEarnHuesin={(amount) => earnCurrency({ huesin: amount })}
@@ -190,10 +201,10 @@ const LadyRunStandalone = () => {
                     ladyRunBestDistance: { ...(prev.ladyRunBestDistance ?? {}), [dogId]: meters },
                 }))}
                 ownedSkins={gameState.ladyRunOwnedSkins ?? {}}
-                onBuySkin={async (dogId, skinId, tier) => {
+                onBuySkin={async (dogId, skinId, tier, rarity) => {
                     const owned = gameState.ladyRunOwnedSkins?.[dogId] ?? [];
                     if (owned.includes(skinId)) return true;
-                    const ok = await spendCurrency(tier === 'ultimate' ? 'skin_ultimate' : 'skin_normal');
+                    const ok = await spendCurrency(tier === 'ultimate' ? 'skin_ultimate' : `skin_${rarity ?? 'rare'}`);
                     if (!ok) return false;
                     const wasFirstSkin = owned.length === 0;
                     setGameState(prev => {
