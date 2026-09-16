@@ -16,13 +16,23 @@
 
 .lady-run-avatar-preview-photo {
     position: absolute;
-    top: 15%;
-    left: 17%;
+    top: 32.5%;
+    left: 32.5%;
     z-index: 1;
-    width: 66%;
-    height: 70%;
+    width: 35%;
+    height: 35%;
     object-fit: cover;
     border-radius: 6px;
+}
+
+/* Marcos con fondo propio (marco-fondo): el perro se apoya abajo en vez de ir centrado, para
+   respetar el paisaje del marco en vez de taparlo. */
+.lady-run-avatar-preview-photo-bottom {
+    top: auto;
+    left: 30%;
+    bottom: 8%;
+    width: 40%;
+    height: 40%;
 }
 
 .lady-run-avatar-frame-btn {

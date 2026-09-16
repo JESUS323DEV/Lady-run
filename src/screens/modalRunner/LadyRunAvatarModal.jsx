@@ -41,7 +41,11 @@ export default function LadyRunAvatarModal({
                 <div className="lady-run-avatar-preview">
                     {currentFrame && <img src={currentFrame.img} alt="" className="lady-run-avatar-preview-frame" />}
                     {currentDog ? (
-                        <img src={dogPhoto(currentDog.id, currentDog.icon)} alt={currentDog.name} className="lady-run-avatar-preview-photo" />
+                        <img
+                            src={dogPhoto(currentDog.id, currentDog.icon)}
+                            alt={currentDog.name}
+                            className={`lady-run-avatar-preview-photo${currentFrame?.folder === 'marco-fondo' ? ' lady-run-avatar-preview-photo-bottom' : ''}`}
+                        />
                     ) : null}
                 </div>
 

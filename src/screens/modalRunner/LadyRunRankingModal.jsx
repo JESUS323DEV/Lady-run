@@ -3,9 +3,13 @@ import { ArrowLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase.js';
 import { AVATAR_FRAMES } from './ladyRunAvatarFramesCatalog.js';
 import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
+import trophyGold from '../../assets/ui/icons-hud/hud-modals/rankings/copa-oro.webp';
+import trophySilver from '../../assets/ui/icons-hud/hud-modals/rankings/copa-plata.webp';
+import trophyBronze from '../../assets/ui/icons-hud/hud-modals/rankings/copa-bronze.webp';
 import '../../styles/modals/LadyRunRankingModal.css';
 
 const LEADERBOARD_LIMIT = 20;
+const TROPHY_BY_POSITION = [trophyGold, trophySilver, trophyBronze]; // solo top 3, index 0/1/2
 
 const DIFFICULTIES = [
     { id: 'facil', label: 'Fácil' },
@@ -65,23 +69,29 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, dogRunSpri
                     {!loading && !errorMsg && rows.length === 0 && (
                         <p className="lady-run-ranking-status">Todavía no hay partidas registradas.</p>
                     )}
-                    {!loading && !errorMsg && rows.map((row, index) => (
+                    {!loading && !errorMsg && rows.map((row, index) => {
+                        const frame = AVATAR_FRAMES.find(f => f.id === row.avatar_frame_id) ?? AVATAR_FRAMES[0];
+                        const catalog = SKIN_CATALOG[row.avatar_dog_id];
+                        const equippedSkin = row.avatar_skin_id
+                            ? [catalog?.ultimate, ...(catalog?.normal ?? [])].find(s => s?.id === row.avatar_skin_id)
+                            : null;
+                        return (
                         <div key={row.profile_id} className="lady-run-ranking-row">
                             <span className="lady-run-ranking-position">{index + 1}</span>
                             <span className="lady-run-ranking-avatar">
-                                {(() => {
-                                    const frame = AVATAR_FRAMES.find(f => f.id === row.avatar_frame_id) ?? AVATAR_FRAMES[0];
-                                    return frame && <img src={frame.img} alt="" className="lady-run-ranking-avatar-frame" />;
-                                })()}
-                                {row.avatar_dog_id && dogIcons[row.avatar_dog_id] && (() => {
-                                    const catalog = SKIN_CATALOG[row.avatar_dog_id];
-                                    const equippedSkin = row.avatar_skin_id
-                                        ? [catalog?.ultimate, ...(catalog?.normal ?? [])].find(s => s?.id === row.avatar_skin_id)
-                                        : null;
-                                    return <img src={equippedSkin?.img ?? dogIcons[row.avatar_dog_id]} alt="" className="lady-run-ranking-avatar-photo" />;
-                                })()}
+                                {frame && <img src={frame.img} alt="" className="lady-run-ranking-avatar-frame" />}
+                                {row.avatar_dog_id && dogIcons[row.avatar_dog_id] && (
+                                    <img
+                                        src={equippedSkin?.img ?? dogIcons[row.avatar_dog_id]}
+                                        alt=""
+                                        className={`lady-run-ranking-avatar-photo${frame?.folder === 'marco-fondo' ? ' lady-run-ranking-avatar-photo-bottom' : ''}`}
+                                    />
+                                )}
                             </span>
-                            <span className="lady-run-ranking-username">{row.username}</span>
+                            <span className="lady-run-ranking-username-cell">
+                                <span className="lady-run-ranking-username">{row.username}</span>
+                                {TROPHY_BY_POSITION[index] && <img src={TROPHY_BY_POSITION[index]} alt="" className="lady-run-ranking-trophy" />}
+                            </span>
                             <span className="lady-run-ranking-last-dog">
                                 {row.last_dog_id && dogRunSprites[row.last_dog_id] && (
                                     <img src={dogRunSprites[row.last_dog_id]} alt="" />
@@ -89,7 +99,8 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, dogRunSpri
                             </span>
                             <span className="lady-run-ranking-distance">{row.best_distance} m</span>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </div>

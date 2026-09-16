@@ -506,6 +506,10 @@
     background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/img-fija/libre-bosque-estatica.webp');
 }
 
+.runner-mode-card-static-minas {
+    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/escenarios-run-libre/img-fija/libre-minas-estatica.webp');
+}
+
 .runner-mode-card-half {
     flex: 0 1 calc(50% - 4px);
 }
@@ -556,6 +560,12 @@
 
 .runner-track-cpu {
     height: 220px;
+}
+
+/* Eventos: el CPU se queda a 0 corazones antes de que tu llegues a la meta - sigue en pantalla pero
+   se apaga (fuera de la carrera), tu carril y la carrera en si continuan igual. */
+.runner-track-cpu-defeated {
+    filter: grayscale(100%) brightness(0.6);
 }
 
 .runner-track-player {
@@ -622,6 +632,25 @@
     display: block;
     width: 100px;
     font-size: 0.85rem;
+}
+
+.lady-run-eventos-select-list {
+    position: absolute;
+    left: 50%;
+    top: 70px;
+    transform: translateX(-50%);
+    z-index: 21;
+    width: calc(100% - 20px);
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.lady-run-eventos-select-list .runner-mode-card-active,
+.lady-run-eventos-select-list .runner-mode-card-locked {
+    flex: none;
+    height: 110px;
 }
 
 .runner-boss {

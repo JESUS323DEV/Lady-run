@@ -6,13 +6,17 @@ const frameModules = import.meta.glob('../../assets/ui/marcos-avatar/*/*.webp', 
 
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-// Solo se deja disponible el "-1" de cada marco (variante unica por ahora, ver FEATURES.md); si un
-// marco trae mas variantes (ej. celeste-2) se quedan en la carpeta pero no salen en la lista.
+// Carpetas en uso ahora mismo: marco-base (6 variantes, todas seleccionables para probarlas) y
+// marco-fondo (todavia sin assets). marco-bronze/marco-celeste/marco-plata se desactivan (fuera de
+// esta lista) sin borrar los archivos, listos para eliminarse mas adelante.
+const ACTIVE_FRAME_FOLDERS = ['marco-base', 'marco-fondo'];
+
 export const AVATAR_FRAMES = Object.entries(frameModules)
     .map(([path, img]) => {
-        const match = path.match(/marcos-avatar\/[^/]+\/([^/]+)\.webp$/);
+        const match = path.match(/marcos-avatar\/([^/]+)\/([^/]+)\.webp$/);
         if (!match) return null;
-        return { id: match[1], name: capitalize(match[1]), img };
+        const [, folder, fileName] = match;
+        return { id: fileName, name: capitalize(fileName), img, folder };
     })
     .filter(Boolean)
-    .filter(frame => frame.id.endsWith('-1'));
+    .filter(frame => ACTIVE_FRAME_FOLDERS.includes(frame.folder));

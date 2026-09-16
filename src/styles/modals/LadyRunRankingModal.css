@@ -60,10 +60,25 @@
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 1;
-    width: 29px;
-    height: 35px;
+    width: 24px;
+    height: 28px;
     object-fit: cover;
     border-radius: 3px;
+}
+
+/* Marcos con fondo propio (marco-fondo): el perro se apoya abajo en vez de ir centrado, igual que
+   en LadyRunAvatarModal.css. */
+.lady-run-ranking-avatar-photo-bottom {
+    top: auto;
+    bottom: 10%;
+    transform: translateX(-50%);
+}
+
+.lady-run-ranking-username-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
 }
 
 .lady-run-ranking-username {
@@ -73,6 +88,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.lady-run-ranking-trophy {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
 }
 
 .lady-run-ranking-last-dog {

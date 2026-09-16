@@ -322,6 +322,20 @@ const CHAPTER1_NODE_RUN_CONFIG = [
     { libreScene: null, custom: 'bosque1' },
 ];
 
+// Eventos: modo totalmente separado de Historia (que sigue bloqueada y aparcada), pero reusa su
+// mismo mapa/nodos/fondos del Capitulo 1 (arriba) - mismas coordenadas, sin el nodo boss (nº5, que
+// en Historia sigue el mecanismo viejo sin arte real). Progreso propio (eventosNodesDone), no
+// comparte nada con prologoScenariosDone.
+const EVENTOS_PATH_NODES = CHAPTER1_PATH_NODES.slice(0, 4);
+
+// Cada nodo de Eventos es una carrera a meta fija (no "primero que reduce al otro a 0 vidas" como el
+// combate normal): tu y el CPU aceleran hacia esta distancia con el mismo reloj, y quien llegue
+// primero con >0 corazones gana - ver el bloque "Eventos: carrera a meta" en el bucle principal.
+// Metros repartidos con progresion (mas cortos/faciles al principio) sobre ~1900m, la mejor marca
+// real del usuario jugando Modo Libre en facil.
+const EVENTOS_NODE_META_M = [300, 450, 550, 600];
+const EVENTOS_NODE_DIFFICULTY = ['facil', 'facil', 'medio', 'dificil'];
+
 // Orden del Tutorial 2 (Modo Libre, pantalla de elegir perro). Ver useEffect de arranque mas abajo.
 const LIBRE_TUT_STEP_ORDER = ['vidas', 'vidas_verdes', 'botin', 'perros', 'dificultad', 'empezar'];
 
@@ -773,6 +787,15 @@ export default function RunnerScreen({
     const runTrackCoinsCollectedRef = useRef(0); // coins cogidas en pista, se pagan al perder
     const runChapasCollectedRef = useRef(0); // chapas cogidas en pista, se pagan al perder
     const runDistanceRef = useRef(0); // distancia acumulada esta run (px), solo cosmetico para el resumen final
+    // Eventos: distancia propia de cada uno hacia la meta del nodo (px), independiente de
+    // runDistanceRef. Se congela para uno mientras esta en su ratito de invulnerabilidad tras un
+    // golpe, asi el otro le saca ventaja de verdad (ver bucle principal).
+    const eventosPlayerDistanceRef = useRef(0);
+    const eventosCpuDistanceRef = useRef(0);
+    // true en cuanto el CPU se queda a 0 corazones en un nodo de Eventos: deja de competir (ya no
+    // choca ni avanza, su card se pone gris via cpuLives<=0), pero la carrera sigue, el jugador
+    // igualmente tiene que llegar el a la meta.
+    const cpuDefeatedRef = useRef(false);
     const [runMetersEarned, setRunMetersEarned] = useState(0);
     const [runIsNewRecord, setRunIsNewRecord] = useState(false);
     const [runBestMeters, setRunBestMeters] = useState(0);
@@ -819,6 +842,9 @@ export default function RunnerScreen({
     const [historiaCustomScene, setHistoriaCustomScene] = useState(null); // null | 'bosque1' | 'bosque2', fondo propio (no de Libre) para los nodos 1-4 del Capitulo 1
     const [historiaActiveNodeIndex, setHistoriaActiveNodeIndex] = useState(null); // 0-4, que nodo del Capitulo 1 se esta jugando (para saber que hace "Empezar")
     const [historiaMenuBgStep, setHistoriaMenuBgStep] = useState(0); // 0/1/2 = historia/historia2/historia3, en bucle
+    const [eventosEventId, setEventosEventId] = useState(null); // null = pantalla de seleccion de evento, 'bosque' = evento Bosque (mapa de nodos)
+    const [eventosActiveNodeIndex, setEventosActiveNodeIndex] = useState(null); // null = mapa, 0-3 = nodo elegido/jugando
+    const [eventosNodesDone, setEventosNodesDone] = useState(0); // cuantos nodos de Eventos ya se completaron, desbloquea los siguientes (independiente de Historia)
 
     // Fondo del menu de Historia: ciclo historia1 -> historia2 -> historia3 (vuelve al punto de
     // partida) -> historia1... en bucle mientras se este en el menu. Sin evento nativo para saber
@@ -858,11 +884,12 @@ export default function RunnerScreen({
     }, []);
 
     useEffect(() => {
-        if (!(historiaStep === 4 && phase === 'ready')) return undefined;
+        const showingMap = historiaStep === 4 || (runMode === 'eventos' && eventosEventId === 'bosque' && eventosActiveNodeIndex === null);
+        if (!(showingMap && phase === 'ready')) return undefined;
         recalcChapterNodePositions();
         window.addEventListener('resize', recalcChapterNodePositions);
         return () => window.removeEventListener('resize', recalcChapterNodePositions);
-    }, [historiaStep, phase, recalcChapterNodePositions]);
+    }, [historiaStep, phase, recalcChapterNodePositions, runMode, eventosEventId, eventosActiveNodeIndex]);
 
     // Prologo Historia: texto tipo maquina de escribir, sin tap del jugador.
     // Parte 0: 2 bloques, al terminar el ultimo salta solo a la parte 0-5 (sin btn).
@@ -1269,6 +1296,7 @@ export default function RunnerScreen({
         setSelectedBiomeId(null);
         setChapterSelectOpen(false);
         setSelectedChapter(null);
+        setEventosEventId(null);
     }, [resetStats]);
 
     // "Reclamar" es un label sin logica aun.
@@ -1421,6 +1449,33 @@ export default function RunnerScreen({
             startPrologoRun();
         }
     }, [historiaActiveNodeIndex, startHistoriaNodeRun, startPrologoRun]);
+
+    // Nodos de Eventos: carrera a meta fija contra el CPU (ver EVENTOS_NODE_META_M en el bucle
+    // principal), reusa el fondo/mecanismo de los nodos de Historia pero separado del todo -
+    // progreso propio (eventosNodesDone), nunca toca historiaStep/prologoScenariosDone.
+    const startEventosNodeRun = useCallback((nodeIndex) => {
+        const config = CHAPTER1_NODE_RUN_CONFIG[nodeIndex];
+        setDifficulty(EVENTOS_NODE_DIFFICULTY[nodeIndex] ?? 'facil');
+        setSelectedBiomeId(null);
+        setPrologoRunScene(null);
+        setHistoriaCustomScene(config.custom);
+        eventosPlayerDistanceRef.current = 0;
+        eventosCpuDistanceRef.current = 0;
+        cpuDefeatedRef.current = false;
+        resetGame(config.libreScene ?? undefined);
+    }, [resetGame]);
+
+    // Volver de una carrera de nodo de Eventos al mapa de Eventos.
+    const backToEventosMap = useCallback(() => {
+        resetStats();
+        setHistoriaCustomScene(null);
+        setPhase('ready');
+        setEventosActiveNodeIndex(null);
+    }, [resetStats]);
+
+    const startActiveEventosNode = useCallback(() => {
+        if (eventosActiveNodeIndex !== null) startEventosNodeRun(eventosActiveNodeIndex);
+    }, [eventosActiveNodeIndex, startEventosNodeRun]);
 
     // Ultimo escenario del capitulo completado: aqui es donde de verdad se "reclama" (recompensa real
     // sin definir todavia). De momento solo termina la partida como victoria.
@@ -2402,11 +2457,11 @@ export default function RunnerScreen({
                 }
             }
 
-            // Colision CPU
+            // Colision CPU (en Eventos, no si ya esta derrotado: ver cpuDefeatedRef mas abajo)
             let cpuLifeLost = false;
-            if (stage === 'cpu') {
-                const cpuInvuln = now < cpuInvulnUntilRef.current;
-                if (!cpuInvuln) {
+            const cpuInvulnNow = now < cpuInvulnUntilRef.current;
+            if (stage === 'cpu' && !cpuDefeatedRef.current) {
+                if (!cpuInvulnNow) {
                     for (const o of list) {
                         if (o.cpuHit || o.lane === 'player') continue;
                         const overlapX = DOG_X < o.x + o.size && DOG_X + DOG_SIZE > o.x;
@@ -2418,6 +2473,24 @@ export default function RunnerScreen({
                             break;
                         }
                     }
+                }
+            }
+
+            // Eventos: carrera a meta fija, en paralelo al combate normal. Cada uno acumula su propia
+            // distancia con la misma velocidad de siempre, congelada mientras esta en su ratito de
+            // invulnerabilidad (invuln/cpuInvulnNow, definidos arriba) - asi el golpe SI le hace perder
+            // terreno de verdad, sin restar metros con numero fijo. Gana quien llegue antes a la meta.
+            if (runMode === 'eventos' && eventosActiveNodeIndex !== null) {
+                if (!invuln) eventosPlayerDistanceRef.current += currentSpeed * dt;
+                if (!cpuInvulnNow && !cpuDefeatedRef.current) eventosCpuDistanceRef.current += currentSpeed * dt;
+                const metaPx = EVENTOS_NODE_META_M[eventosActiveNodeIndex] * METERS_PER_PX;
+                if (!endingRef.current && eventosPlayerDistanceRef.current >= metaPx) {
+                    endingRef.current = true;
+                    setEventosNodesDone(prev => Math.max(prev, eventosActiveNodeIndex + 1));
+                    setTimeout(() => { setWon(true); setPhase('gameover'); }, GAME_END_DELAY_MS);
+                } else if (!endingRef.current && !cpuDefeatedRef.current && eventosCpuDistanceRef.current >= metaPx) {
+                    endingRef.current = true;
+                    setTimeout(() => { setWon(false); setPhase('gameover'); playLadyRunSfx('loseGame'); }, GAME_END_DELAY_MS);
                 }
             }
 
@@ -2523,7 +2596,7 @@ export default function RunnerScreen({
                 setHitFlash(true);
                 setTimeout(() => setHitFlash(false), HIT_INVULN_MS);
                 playLadyRunSfx('hitPlayer');
-                if (arcadeSubMode === 'libre' && runGreenHeartsRef.current > 0) {
+                if ((arcadeSubMode === 'libre' || runMode === 'eventos') && runGreenHeartsRef.current > 0) {
                     // Escudo: el golpe consume 1 corazon verde en vez de vida real. Se pierde de verdad
                     // (onConsumeGreenHeart resta ya del inventario persistido, no vuelve).
                     runGreenHeartsRef.current -= 1;
@@ -2581,6 +2654,13 @@ export default function RunnerScreen({
                         setStage('boss');
                         return next;
                     }
+                    if (runMode === 'eventos') {
+                        // Nodos de Eventos: quedarse a 0 corazones NO termina la carrera para el jugador
+                        // (es una carrera a meta, ver el bloque "Eventos: carrera a meta" mas arriba) - el
+                        // CPU solo queda derrotado (su card se pone gris via cpuLives<=0) y deja de competir.
+                        cpuDefeatedRef.current = true;
+                        return next;
+                    }
                     // Arcade infinito: en vez de terminar la partida, aparece otro rival
                     setRivalsDefeated(r => r + 1);
                     const rivalPool = UNLOCKED_DOG_IDS.filter(id => id !== selectedDogId && id !== cpuDogId);
@@ -2594,7 +2674,7 @@ export default function RunnerScreen({
 
         rafId = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(rafId);
-    }, [phase, paused, difficulty, selectedDogId, cpuDogId, stage, runMode, checkpointOpen, arcadeSubMode, selectedBiomeId, sceneIndex, claimRunMilestoneRewards, bestMetersForDog, prologoRunScene, advancePrologoToCiudad, historiaCustomScene]);
+    }, [phase, paused, difficulty, selectedDogId, cpuDogId, stage, runMode, checkpointOpen, arcadeSubMode, selectedBiomeId, sceneIndex, claimRunMilestoneRewards, bestMetersForDog, prologoRunScene, advancePrologoToCiudad, historiaCustomScene, eventosActiveNodeIndex]);
 
     const dogImg = airborne ? (equippedSkin?.jumpImg ?? DOG_JUMP_FRAME[selectedDogId] ?? runFrames[1]) : runFrames[frameIdx];
     const cpuDogImg = cpuAirborne ? (DOG_JUMP_FRAME[cpuDogId] ?? cpuRunFrames[1]) : cpuRunFrames[frameIdx];
@@ -2605,16 +2685,27 @@ export default function RunnerScreen({
     // Pantalla en blanco del menu de Historia (sin card/perro/vidas) -- excepto en historiaStep 5,
     // que es la pantalla real de elegir perro (siempre Lady) + Empezar para el Prologo jugable.
     const historiaMenuBlank = runMode === 'historia' && phase === 'ready' && historiaStep !== 5;
+    // Igual que historiaMenuBlank pero para Eventos: el mapa (y la seleccion de evento) son overlays
+    // propios, en blanco -- EXCEPTO con un nodo activo, que es la pantalla real de elegir perro +
+    // Empezar (igual que Modo Libre, ver freeDogSelect mas abajo).
+    const eventosMenuBlank = runMode === 'eventos' && phase === 'ready' && eventosActiveNodeIndex === null;
+    const menuBlank = historiaMenuBlank || eventosMenuBlank;
     const prologoDogPick = runMode === 'historia' && historiaStep === 5;
+    // Rejilla de perros sin bloqueo de pago (todos disponibles para probar): Modo Libre y Eventos se
+    // comportan igual aqui, solo Historia mantiene el precio (fuera de prologoDogPick, que es su
+    // propio caso especial siempre-Lady).
+    const freeDogSelect = runMode === 'arcade' || runMode === 'eventos';
     const biomeSceneClass = (arcadeSubMode === 'biome' || runMode === 'historia') && selectedBiomeId
         ? ` runner-track-scene-${selectedBiomeId}-${sceneIndex + 1}`
         : arcadeSubMode === 'libre'
             ? ` runner-track-scene-libre-${libreSceneKey}`
-            : runMode === 'historia' && historiaCustomScene
+            : (runMode === 'historia' || runMode === 'eventos') && historiaCustomScene
                 ? ` runner-track-scene-custom-${historiaCustomScene}`
                 : runMode === 'historia' && prologoRunScene
                     ? ` runner-track-scene-libre-${prologoRunScene}`
-                    : '';
+                    : runMode === 'eventos'
+                        ? ` runner-track-scene-libre-${libreSceneKey}`
+                        : '';
     const skyOverlayClass = `runner-sky-overlay${(arcadeSubMode === 'biome' || runMode === 'historia') && BIOMES[selectedBiomeId]?.interior ? ' runner-sky-overlay-interior' : ''}`;
     const lootRunsLeftToday = Math.max(0, MAX_FULL_LOOT_RUNS_PER_DAY - fullLootRunsToday);
     const bossImg = (runMode === 'historia' && CHAPTER_BOSS_IMAGES[selectedBiomeId]?.[sceneIndex]) || batBoss;
@@ -2785,9 +2876,9 @@ export default function RunnerScreen({
                     </div>
                 )}
 
-                <div className={`runner-tracks${isLibre ? ' runner-tracks-solo' : ''}${historiaMenuBlank ? ' runner-tracks-blank' : ''}`}>
+                <div className={`runner-tracks${isLibre ? ' runner-tracks-solo' : ''}${menuBlank ? ' runner-tracks-blank' : ''}`}>
                     {phase !== 'ready' && !isLibre && (
-                        <div className={`runner-track runner-track-cpu${phase === 'gameover' ? ' runner-track-static' : ''}${biomeSceneClass}${cpuPowerPending ? ' runner-track-power-pending' : ''}${stage === 'boss' ? ' runner-track-boss' : ''}`}>
+                        <div className={`runner-track runner-track-cpu${phase === 'gameover' ? ' runner-track-static' : ''}${biomeSceneClass}${cpuPowerPending ? ' runner-track-power-pending' : ''}${stage === 'boss' ? ' runner-track-boss' : ''}${runMode === 'eventos' && cpuLives <= 0 ? ' runner-track-cpu-defeated' : ''}`}>
                             <div className="runner-ground" />
                             {phase === 'playing' && stage === 'cpu' && <div className={skyOverlayClass} />}
 
@@ -2818,7 +2909,7 @@ export default function RunnerScreen({
                     )}
 
                     <div
-                        className={`runner-track runner-track-player${isLibre ? ' runner-track-player-solo' : ''}${phase === 'gameover' ? ' runner-track-static' : ''}${biomeSceneClass}${playerPowerPending ? ' runner-track-power-pending' : ''}${historiaMenuBlank ? ' runner-track-blank' : ''}`}
+                        className={`runner-track runner-track-player${isLibre ? ' runner-track-player-solo' : ''}${phase === 'gameover' ? ' runner-track-static' : ''}${biomeSceneClass}${playerPowerPending ? ' runner-track-power-pending' : ''}${menuBlank ? ' runner-track-blank' : ''}`}
                         style={isLibre && phase === 'gameover' ? { backgroundImage: `url(${LIBRE_SCENE_STATIC_IMGS[libreSceneKey]})` } : undefined}
                         ref={trackRef}
                     >
@@ -2829,10 +2920,10 @@ export default function RunnerScreen({
                                 className="lady-run-historia-menu-bg"
                             />
                         )}
-                        {!historiaMenuBlank && <div className="runner-ground" />}
+                        {!menuBlank && <div className="runner-ground" />}
                         {phase === 'playing' && <div className={skyOverlayClass} />}
 
-                        {!historiaMenuBlank && (
+                        {!menuBlank && (
                         <span
                             className={`runner-track-player-lives${['vidas', 'vidas_verdes'].includes(libreTutStep) ? ' lady-run-tut-active' : ''}`}
                         >
@@ -2888,7 +2979,7 @@ export default function RunnerScreen({
                         )}
 
 
-                        {!historiaMenuBlank && (
+                        {!menuBlank && (
                         <img
                             ref={dogElRef}
                             src={dogImg}
@@ -2944,7 +3035,7 @@ export default function RunnerScreen({
                         })}
 
                         {(phase === 'ready' || phase === 'gameover') && (
-                        <div className={`runner-overlay${phase === 'gameover' ? ' runner-overlay-gameover' : ''}${historiaMenuBlank ? ' runner-overlay-blank' : ''}`}>
+                        <div className={`runner-overlay${phase === 'gameover' ? ' runner-overlay-gameover' : ''}${menuBlank ? ' runner-overlay-blank' : ''}`}>
                             {phase === 'ready' && !runMode && !shopOpen && !rankingOpen && !avatarOpen && !skinsOpen && (
                                 <button className="lady-run-avatar-trigger" onClick={() => setAvatarOpen(true)}>
                                     {(() => {
@@ -2965,9 +3056,8 @@ export default function RunnerScreen({
                                     <button className="runner-mode-btn runner-mode-btn-glow" onClick={() => setRunMode('arcade')}>
                                         <span className="runner-mode-btn-title">Modo Libre</span>
                                     </button>
-                                    <button className="runner-mode-btn runner-mode-btn-locked" disabled>
+                                    <button className="runner-mode-btn" onClick={() => setRunMode('eventos')}>
                                         <span className="runner-mode-btn-title">Eventos</span>
-                                        <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
                                     </button>
                                     <button className="runner-mode-btn" onClick={() => setSkinsOpen(true)}>
                                         <span className="runner-mode-btn-title">Skins</span>
@@ -3074,6 +3164,16 @@ export default function RunnerScreen({
                                     <button
                                         className="runner-start-btn runner-start-btn-glow"
                                         onClick={startActiveHistoriaNode}
+                                    >Empezar</button>
+                                </>
+                            )}
+                            {phase === 'ready' && runMode === 'eventos' && eventosActiveNodeIndex !== null && (
+                                <>
+                                    <button className="lady-run-back-btn" onClick={backToEventosMap}><ArrowLeft size={16} /></button>
+                                    <p className="runner-overlay-title">Eventos</p>
+                                    <button
+                                        className="runner-start-btn runner-start-btn-glow"
+                                        onClick={startActiveEventosNode}
                                     >Empezar</button>
                                 </>
                             )}
@@ -3282,11 +3382,11 @@ export default function RunnerScreen({
                         <div className="runner-action-row">
                             <button
                                 className="runner-start-btn runner-start-btn-compact"
-                                onClick={() => (arcadeSubMode === 'libre' ? startLibreRoulette() : (runMode === 'historia' && (historiaCustomScene || prologoRunScene) ? startActiveHistoriaNode() : resetGame()))}
+                                onClick={() => (arcadeSubMode === 'libre' ? startLibreRoulette() : (runMode === 'historia' && (historiaCustomScene || prologoRunScene) ? startActiveHistoriaNode() : runMode === 'eventos' ? startActiveEventosNode() : resetGame()))}
                             >Reintentar</button>
                             <button
                                 className="runner-start-btn runner-start-btn-secondary runner-start-btn-compact"
-                                onClick={runMode === 'historia' && historiaCustomScene ? backToChapterMap : (runMode === 'historia' && prologoRunScene ? backToPrologoScenarios : backToSelect)}
+                                onClick={runMode === 'historia' && historiaCustomScene ? backToChapterMap : (runMode === 'historia' && prologoRunScene ? backToPrologoScenarios : runMode === 'eventos' ? backToEventosMap : backToSelect)}
                             >Volver</button>
                         </div>
                         {arcadeSubMode === 'libre' && (
@@ -3387,26 +3487,27 @@ export default function RunnerScreen({
                     </div>
                 )}
 
-                {phase === 'ready' && (runMode === 'arcade' || prologoDogPick) && (
+                {phase === 'ready' && (runMode === 'arcade' || runMode === 'eventos' || prologoDogPick) && (
                     <div
                         className={`runner-dog-select${libreTutStep === 'perros' ? ' lady-run-tut-highlight' : ''}`}
                         data-tutorial="lady-run-tut-libre-perros"
                     >
                         {[...UNLOCKED_DOG_IDS]
                             .sort((a, b) => {
-                                const aLocked = prologoDogPick ? a !== 'lady' : (runMode !== 'arcade' && PAID_DOG_IDS.includes(a) && !unlockedDogIds.includes(a));
-                                const bLocked = prologoDogPick ? b !== 'lady' : (runMode !== 'arcade' && PAID_DOG_IDS.includes(b) && !unlockedDogIds.includes(b));
+                                const aLocked = prologoDogPick ? a !== 'lady' : (!freeDogSelect && PAID_DOG_IDS.includes(a) && !unlockedDogIds.includes(a));
+                                const bLocked = prologoDogPick ? b !== 'lady' : (!freeDogSelect && PAID_DOG_IDS.includes(b) && !unlockedDogIds.includes(b));
                                 return aLocked - bLocked;
                             })
                             .map(id => {
                             const elementInfo = ELEMENT_ICON[DogsConfig[id]?.element];
-                            // En Modo Libre todos los perros son gratis (se quiere que se prueben todos sin
-                            // friccion); el desbloqueo de pago solo sigue activo en Historia. Ver [[feedback_lady_run_modos_independientes]].
+                            // En Modo Libre y Eventos todos los perros son gratis (se quiere que se prueben
+                            // todos sin friccion); el desbloqueo de pago solo sigue activo en Historia. Ver
+                            // [[feedback_lady_run_modos_independientes]].
                             // En el Prologo (prologoDogPick) es un caso propio: siempre juegas de Lady, el
                             // resto se desbloqueara narrativamente mas adelante, sin precio ni compra.
                             // Nota: arcadeSubMode todavia es null aqui (solo se pone 'libre' al pulsar Empezar,
-                            // despues de elegir perro), por eso se mira runMode==='arcade' y no arcadeSubMode.
-                            const needsUnlock = prologoDogPick ? id !== 'lady' : (runMode !== 'arcade' && PAID_DOG_IDS.includes(id) && !unlockedDogIds.includes(id));
+                            // despues de elegir perro), por eso se mira freeDogSelect y no arcadeSubMode.
+                            const needsUnlock = prologoDogPick ? id !== 'lady' : (!freeDogSelect && PAID_DOG_IDS.includes(id) && !unlockedDogIds.includes(id));
                             const canAfford = !prologoDogPick && huesin >= DOG_UNLOCK_PRICE.huesin && tavernCoins >= DOG_UNLOCK_PRICE.tavernCoins;
                             // Mientras el Tutorial 2 esta en el paso 'perros' y todavia no has elegido ninguno
                             // de verdad, se oculta la marca de "activo" aunque ya haya uno random por dentro.
@@ -3442,7 +3543,7 @@ export default function RunnerScreen({
                                         )}
                                         {needsUnlock ? (
                                             <img src={lockIcon} alt="Bloqueado" className="runner-dog-select-lock" />
-                                        ) : elementInfo && runMode !== 'arcade' && (
+                                        ) : elementInfo && !freeDogSelect && (
                                             <span className={`runner-dog-select-element runner-dog-select-element-${DogsConfig[id]?.element}`}>
                                                 <elementInfo.Icon size={11} color="#14100c" />
                                             </span>
@@ -3636,6 +3737,68 @@ export default function RunnerScreen({
                                     style={pos ? { left: `${pos.left}px`, top: `${pos.top}px` } : undefined}
                                     disabled={!done}
                                     onClick={() => { setHistoriaActiveNodeIndex(i); setSelectedDogId('lady'); setHistoriaStep(5); }}
+                                >
+                                    {!done ? <img src={lockIcon} alt="Bloqueado" className="lady-run-path-node-lock" /> : node.num}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+                {phase === 'ready' && runMode === 'eventos' && eventosEventId === null && (
+                    <div className="lady-run-prologo-test">
+                        <button className="lady-run-back-btn" onClick={backToSelect}><ArrowLeft size={16} /></button>
+                        <p className="runner-overlay-title">Eventos</p>
+                        <div className="lady-run-eventos-select-list">
+                            <div className="runner-mode-card-active runner-mode-card-static-bosque">
+                                <button className="runner-mode-btn" onClick={() => setEventosEventId('bosque')}>
+                                    <span className="runner-mode-btn-title">Bosque</span>
+                                </button>
+                            </div>
+                            <div className="runner-mode-card-locked runner-mode-card-static-ciudad">
+                                <button className="runner-mode-btn runner-mode-btn-locked" disabled>
+                                    <span className="runner-mode-btn-title">Ciudad</span>
+                                    <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
+                                </button>
+                                <span className="runner-mode-card-tag">Próximamente</span>
+                            </div>
+                            <div className="runner-mode-card-locked runner-mode-card-static-minas">
+                                <button className="runner-mode-btn runner-mode-btn-locked" disabled>
+                                    <span className="runner-mode-btn-title">Mina</span>
+                                    <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
+                                </button>
+                                <span className="runner-mode-card-tag">Próximamente</span>
+                            </div>
+                            <div className="runner-mode-card-locked runner-mode-card-static-desierto">
+                                <button className="runner-mode-btn runner-mode-btn-locked" disabled>
+                                    <span className="runner-mode-btn-title">Desierto</span>
+                                    <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
+                                </button>
+                                <span className="runner-mode-card-tag">Próximamente</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {phase === 'ready' && runMode === 'eventos' && eventosEventId === 'bosque' && eventosActiveNodeIndex === null && (
+                    <div className="lady-run-prologo-test">
+                        <button className="lady-run-back-btn" onClick={() => setEventosEventId(null)}><ArrowLeft size={16} /></button>
+                        <img
+                            ref={chapterMapImgRef}
+                            src={prologoPart2Bg}
+                            alt=""
+                            className="lady-run-prologo-test-img"
+                            onLoad={recalcChapterNodePositions}
+                        />
+                        <div className="lady-run-chapter-overlay" />
+                        {EVENTOS_PATH_NODES.map((node, i) => {
+                            const pos = chapterNodePositions[i];
+                            const done = eventosNodesDone >= i;
+                            return (
+                                <button
+                                    key={node.num}
+                                    className={`lady-run-path-node${!done ? ' lady-run-path-node-locked' : ''}`}
+                                    style={pos ? { left: `${pos.left}px`, top: `${pos.top}px` } : undefined}
+                                    disabled={!done}
+                                    onClick={() => setEventosActiveNodeIndex(i)}
                                 >
                                     {!done ? <img src={lockIcon} alt="Bloqueado" className="lady-run-path-node-lock" /> : node.num}
                                 </button>
