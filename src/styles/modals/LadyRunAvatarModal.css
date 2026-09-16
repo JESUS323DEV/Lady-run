@@ -4,16 +4,17 @@
     aspect-ratio: 350 / 400;
 }
 
-.lady-run-avatar-preview::before {
-    content: '';
+.lady-run-avatar-preview-frame {
     position: absolute;
     inset: 0;
-    background: url('../../assets/ui/marco-frames/marco-skin-ultimate.webp') center / 100% 100% no-repeat;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
     z-index: 0;
     pointer-events: none;
 }
 
-.lady-run-avatar-preview img {
+.lady-run-avatar-preview-photo {
     position: absolute;
     top: 15%;
     left: 17%;
@@ -22,6 +23,10 @@
     height: 70%;
     object-fit: cover;
     border-radius: 6px;
+}
+
+.lady-run-avatar-frame-btn {
+    margin-top: 10px;
 }
 
 .lady-run-avatar-grid {

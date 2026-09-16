@@ -32,7 +32,7 @@ export const useLadyRunProfile = () => {
 
             const { data: profileRow, error: profileError } = await supabase
                 .from('profiles')
-                .select('id, username, avatar_dog_id, chapas, tavern_coins, huesin')
+                .select('id, username, avatar_dog_id, avatar_frame_id, chapas, tavern_coins, huesin')
                 .eq('id', currentSession.user.id)
                 .maybeSingle();
 
@@ -59,7 +59,7 @@ export const useLadyRunProfile = () => {
         const { data, error } = await supabase
             .from('profiles')
             .insert({ id: session.user.id, username })
-            .select('id, username, avatar_dog_id, chapas, tavern_coins, huesin')
+            .select('id, username, avatar_dog_id, avatar_frame_id, chapas, tavern_coins, huesin')
             .single();
         setClaiming(false);
 
@@ -82,6 +82,20 @@ export const useLadyRunProfile = () => {
 
         if (error) return false;
         setProfile(data);
+        return true;
+    }, [session]);
+
+    const equipAvatarFrame = useCallback(async (frameId) => {
+        if (!session) return false;
+        const { data, error } = await supabase
+            .from('profiles')
+            .update({ avatar_frame_id: frameId })
+            .eq('id', session.user.id)
+            .select('avatar_frame_id')
+            .single();
+
+        if (error) return false;
+        setProfile(prev => (prev ? { ...prev, ...data } : prev));
         return true;
     }, [session]);
 
@@ -109,5 +123,5 @@ export const useLadyRunProfile = () => {
         return true;
     }, [session]);
 
-    return { loading, initError, profile, claiming, claimError, claimUsername, equipAvatar, earnCurrency, spendCurrency };
+    return { loading, initError, profile, claiming, claimError, claimUsername, equipAvatar, equipAvatarFrame, earnCurrency, spendCurrency };
 };

@@ -33,7 +33,7 @@ const LadyRunStandalone = () => {
     const [gameState, setGameState] = useState(loadSavedState);
     const [showLanding, setShowLanding] = useState(true);
     const loaded = usePreloadImages(RUNNER_CORE_PRELOAD_IMAGES);
-    const { loading: profileLoading, initError: profileInitError, profile, claiming, claimError, claimUsername, equipAvatar, earnCurrency, spendCurrency } = useLadyRunProfile();
+    const { loading: profileLoading, initError: profileInitError, profile, claiming, claimError, claimUsername, equipAvatar, equipAvatarFrame, earnCurrency, spendCurrency } = useLadyRunProfile();
     const { tutStep: ladyRunTutStep, setTutStep: setLadyRunTutStep, advanceTutorial: advanceLadyRunTutorial } = useLadyRunTutorial(
         gameState.ladyRunTutorial?.completed ?? false,
         () => setGameState(prev => ({ ...prev, ladyRunTutorial: { completed: true } })),
@@ -90,6 +90,8 @@ const LadyRunStandalone = () => {
                 belowHud
                 avatarDogId={profile.avatar_dog_id}
                 onEquipAvatar={equipAvatar}
+                avatarFrameId={profile.avatar_frame_id}
+                onEquipFrame={equipAvatarFrame}
                 onEarnTavernCoins={(amount) => earnCurrency({ tavernCoins: amount })}
                 onEarnChapas={(amount) => earnCurrency({ chapas: amount })}
                 onEarnHuesin={(amount) => earnCurrency({ huesin: amount })}

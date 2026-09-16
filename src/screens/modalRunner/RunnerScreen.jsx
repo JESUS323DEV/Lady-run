@@ -39,6 +39,7 @@ import LadyRunAvatarModal from './LadyRunAvatarModal.jsx';
 import LadyRunSkinsModal from './LadyRunSkinsModal.jsx';
 import LadyRunSkinEquipModal from './LadyRunSkinEquipModal.jsx';
 import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
+import { AVATAR_FRAMES } from './ladyRunAvatarFramesCatalog.js';
 import LadyRunTutorialCallout from '../../components/LadyRunTutorialCallout.jsx';
 
 import ladyRun1 from '../../assets/ui/lady-sprite/sprite-run/lady-run/lady-1.webp';
@@ -658,6 +659,8 @@ export default function RunnerScreen({
     onUnlockDog,
     avatarDogId = null,
     onEquipAvatar,
+    avatarFrameId = null,
+    onEquipFrame,
     magicHearts = 0,
     onUseMagicHeart,
     greenHearts = 0,
@@ -2944,8 +2947,12 @@ export default function RunnerScreen({
                         <div className={`runner-overlay${phase === 'gameover' ? ' runner-overlay-gameover' : ''}${historiaMenuBlank ? ' runner-overlay-blank' : ''}`}>
                             {phase === 'ready' && !runMode && !shopOpen && !rankingOpen && !avatarOpen && !skinsOpen && (
                                 <button className="lady-run-avatar-trigger" onClick={() => setAvatarOpen(true)}>
+                                    {(() => {
+                                        const frame = AVATAR_FRAMES.find(f => f.id === avatarFrameId) ?? AVATAR_FRAMES[0];
+                                        return frame && <img src={frame.img} alt="" className="lady-run-avatar-trigger-frame" />;
+                                    })()}
                                     {avatarDogId && DOG_ICONS[avatarDogId] && (
-                                        <img src={DOG_ICONS[avatarDogId]} alt="" />
+                                        <img src={DOG_ICONS[avatarDogId]} alt="" className="lady-run-avatar-trigger-photo" />
                                     )}
                                 </button>
                             )}
@@ -3530,6 +3537,8 @@ export default function RunnerScreen({
                         currentAvatarDogId={avatarDogId}
                         avatarOptions={AVATAR_OPTIONS}
                         onEquip={(dogId) => onEquipAvatar?.(dogId)}
+                        frameId={avatarFrameId}
+                        onEquipFrame={(frameId) => onEquipFrame?.(frameId)}
                     />
                 )}
 

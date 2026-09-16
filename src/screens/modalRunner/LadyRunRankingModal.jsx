@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase.js';
+import { AVATAR_FRAMES } from './ladyRunAvatarFramesCatalog.js';
 import '../../styles/modals/LadyRunRankingModal.css';
 
 const LEADERBOARD_LIMIT = 20;
@@ -26,7 +27,7 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, dogRunSpri
             setLoading(true);
             const { data, error } = await supabase
                 .from('leaderboard')
-                .select('profile_id, username, avatar_dog_id, last_dog_id, best_distance')
+                .select('profile_id, username, avatar_dog_id, avatar_frame_id, last_dog_id, best_distance')
                 .eq('difficulty', difficulty)
                 .order('best_distance', { ascending: false })
                 .limit(LEADERBOARD_LIMIT);
@@ -67,8 +68,12 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, dogRunSpri
                         <div key={row.profile_id} className="lady-run-ranking-row">
                             <span className="lady-run-ranking-position">{index + 1}</span>
                             <span className="lady-run-ranking-avatar">
+                                {(() => {
+                                    const frame = AVATAR_FRAMES.find(f => f.id === row.avatar_frame_id) ?? AVATAR_FRAMES[0];
+                                    return frame && <img src={frame.img} alt="" className="lady-run-ranking-avatar-frame" />;
+                                })()}
                                 {row.avatar_dog_id && dogIcons[row.avatar_dog_id] && (
-                                    <img src={dogIcons[row.avatar_dog_id]} alt="" />
+                                    <img src={dogIcons[row.avatar_dog_id]} alt="" className="lady-run-ranking-avatar-photo" />
                                 )}
                             </span>
                             <span className="lady-run-ranking-username">{row.username}</span>

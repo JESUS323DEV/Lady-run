@@ -22,7 +22,7 @@
 
 .lady-run-ranking-row {
     display: grid;
-    grid-template-columns: 20px 36px 1fr 40px auto;
+    grid-template-columns: 20px 55px 1fr 40px auto;
     align-items: center;
     gap: 10px;
     background: rgba(0, 0, 0, 0.4);
@@ -39,18 +39,31 @@
 }
 
 .lady-run-ranking-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    overflow: hidden;
+    position: relative;
+    width: 55px;
+    height: 63px;
+    flex-shrink: 0;
 }
 
-.lady-run-ranking-avatar img {
+.lady-run-ranking-avatar-frame {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+}
+
+.lady-run-ranking-avatar-photo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    width: 29px;
+    height: 35px;
     object-fit: cover;
+    border-radius: 3px;
 }
 
 .lady-run-ranking-username {
