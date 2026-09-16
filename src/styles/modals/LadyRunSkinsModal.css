@@ -55,6 +55,7 @@
 }
 
 .lady-run-skin-equip-item {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -69,6 +70,50 @@
 .lady-run-skin-equip-item-active {
     border-color: #ffd740;
 }
+
+.lady-run-frame-offer-badge {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ff4d4d;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.6);
+}
+
+.lady-run-frame-price-badge {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 5px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #ffd740;
+    font-size: 0.55rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.lady-run-frame-price-badge img {
+    width: 10px;
+    height: 10px;
+    object-fit: contain;
+}
+
+.lady-run-skin-equip-item-locked .lady-run-skin-equip-img {
+    filter: grayscale(100%) brightness(0.5);
+}
+
 
 .lady-run-skin-equip-img {
     width: 36px;

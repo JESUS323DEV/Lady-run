@@ -96,6 +96,20 @@ const LadyRunStandalone = () => {
                 }}
                 avatarFrameId={profile.avatar_frame_id}
                 onEquipFrame={equipAvatarFrame}
+                unlockedFrames={gameState.ladyRunUnlockedFrames ?? []}
+                onBuyFrame={async (frame) => {
+                    const owned = gameState.ladyRunUnlockedFrames ?? [];
+                    if (owned.includes(frame.id)) return true;
+                    const ok = await spendCurrency(frame.itemId);
+                    if (!ok) return false;
+                    setGameState(prev => {
+                        const cur = prev.ladyRunUnlockedFrames ?? [];
+                        if (cur.includes(frame.id)) return prev;
+                        return { ...prev, ladyRunUnlockedFrames: [...cur, frame.id] };
+                    });
+                    equipAvatarFrame(frame.id);
+                    return true;
+                }}
                 eventosNodesDone={gameState.ladyRunEventosNodesDone ?? 0}
                 onAdvanceEventosNode={(nodeIndex) => setGameState(prev => ({
                     ...prev,

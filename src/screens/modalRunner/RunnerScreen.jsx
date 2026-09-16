@@ -685,6 +685,8 @@ export default function RunnerScreen({
     onEquipAvatar,
     avatarFrameId = null,
     onEquipFrame,
+    unlockedFrames = [],
+    onBuyFrame,
     eventosNodesDone = 0,
     onAdvanceEventosNode,
     eventosClaimedNodes = [],
@@ -3745,6 +3747,8 @@ export default function RunnerScreen({
                         ownedSkins={ownedSkins}
                         equippedSkinByDog={equippedSkinByDog}
                         onEquipSkin={onEquipSkin}
+                        unlockedFrames={unlockedFrames}
+                        onBuyFrame={onBuyFrame}
                     />
                 )}
 
