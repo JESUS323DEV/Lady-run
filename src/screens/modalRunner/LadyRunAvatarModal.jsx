@@ -71,6 +71,22 @@ export default function LadyRunAvatarModal({
         setFramePickerOpen(false);
     };
 
+    // Red de seguridad (visto en iPhone/Safari: el popover a veces se cierra sin que el aviso de
+    // avanzar tutorial llegue a dispararse a la vez). Si el picker se cierra por CUALQUIER via
+    // estando todavia en 'avatar_marcos': si ya estaba listo para cerrar, avanza el tutorial de
+    // todas formas; si se cerro antes de tiempo, resetea para que la proxima vez que se abra
+    // Marcos se vea limpio desde el principio en vez de quedarse en un estado a medias.
+    useEffect(() => {
+        if (framePickerOpen || tutStep !== 'avatar_marcos') return;
+        if (marcosTutCloseReady) {
+            onTutAdvance?.();
+        } else {
+            setMarcosTutContinued(false);
+            setMarcosTutCloseReady(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- solo debe reaccionar a que el picker se cierre, no a cada cambio de tutStep/marcosTutCloseReady
+    }, [framePickerOpen]);
+
     const isFrameUnlocked = frame => frame.free || unlockedFrames.includes(frame.id);
     const canAffordFrame = frame => (frame.price.chapas ?? 0) <= chapas && (frame.price.tavernCoins ?? 0) <= tavernCoins && (frame.price.huesin ?? 0) <= huesin;
 
@@ -195,7 +211,7 @@ export default function LadyRunAvatarModal({
                 )}
 
                 {framePickerOpen && (
-                    <div className="lady-run-skin-equip-backdrop" onClick={handleMarcosClose}>
+                    <div className="lady-run-skin-equip-backdrop" onClick={e => { e.stopPropagation(); handleMarcosClose(); }}>
                         <div className="lady-run-skin-equip-popover" onClick={e => e.stopPropagation()}>
                             <div className="lady-run-skin-equip-header">
                                 <span className="lady-run-skin-equip-title">Marcos</span>
