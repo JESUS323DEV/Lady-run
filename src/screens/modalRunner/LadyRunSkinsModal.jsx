@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, X } from 'lucide-react';
+import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
 import huesinIcon from '../../assets/ui/icons-hud/hud-principal/huesin-coin.webp';
 import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
 import { SKIN_CATALOG, PURCHASE_BASE_FRAMES } from './ladyRunSkinsCatalog.js';
@@ -22,7 +23,7 @@ const DOG_ORDER = ['lady', 'nupito'];
 // scroll). Tocar una skin abre un preview grande con marco de rareza/particulas, comprar hace
 // fundido -> el perro corriendo (pose propia de la skin si existe, si no los 4 frames base del
 // perro) -> revelado con giro.
-export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {}, ownedSkins = {}, onBuySkin, tutStep = null, onTutAdvance }) {
+export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {}, ownedSkins = {}, onBuySkin, huesin = 0, tutStep = null, onTutAdvance }) {
     const catalogDogIds = Object.keys(SKIN_CATALOG);
     const dogIds = [...DOG_ORDER.filter(id => catalogDogIds.includes(id)), ...catalogDogIds.filter(id => !DOG_ORDER.includes(id))];
     const [activeDog, setActiveDog] = useState(dogIds[0] ?? null);
@@ -98,7 +99,7 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
                     <button
                         className={`lady-run-back-btn${tutStep === 'skins_volver' ? ' lady-run-tut-highlight' : ''}`}
                         data-tutorial="lady-run-tut-skins-volver"
-                        onClick={handleSkinsClose}
+                        onClick={() => { playLadyRunSfx('backButton'); handleSkinsClose(); }}
                     ><ArrowLeft size={16} /></button>
                 )}
                 <p className="runner-overlay-title">Skins</p>
@@ -137,6 +138,7 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
                                                 skin={skin}
                                                 ultimate={skin.isUltimate}
                                                 rarity={skin.rarity}
+                                                owned={(ownedSkins[dogId] ?? []).includes(skin.id)}
                                                 onOpen={() => setPreview({ dogId, skin, tier: skin.isUltimate ? 'ultimate' : 'normal' })}
                                             />
                                         ))}
@@ -170,6 +172,7 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
                     const isUltimate = preview.tier === 'ultimate';
                     const rarity = preview.skin.rarity ?? 'rare';
                     const price = isUltimate ? SKIN_PRICES.ultimate : SKIN_PRICES[rarity];
+                    const canAfford = price === 0 || huesin >= price;
                     const dogName = dogNames[preview.dogId] ?? preview.dogId;
 
                     return (
@@ -221,7 +224,7 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
 
                                 <button
                                     className={`runner-start-btn runner-start-btn-compact lady-run-skin-preview-buy-btn${isOwned ? ' lady-run-skin-preview-owned' : ''}`}
-                                    disabled={isOwned}
+                                    disabled={isOwned || !canAfford}
                                     onClick={handleBuy}
                                 >
                                     {isOwned ? 'Adquirida' : price === 0 ? 'Gratis' : (
@@ -241,7 +244,10 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
     );
 }
 
-function SkinCard({ skin, ultimate, locked, rarity, onOpen }) {
+// "locked" (sin arte todavia, seccion "Proximamente") bloquea el click de verdad. "owned" es aparte:
+// solo pinta el candado como aviso de que no la has comprado, la card sigue siendo tocable para
+// abrir el preview y comprarla (igual que en Marcos, ver LadyRunAvatarModal.jsx).
+function SkinCard({ skin, ultimate, locked, owned = true, rarity, onOpen }) {
     return (
         <button
             className={`lady-run-skin-card${ultimate ? ' lady-run-skin-card-ultimate' : rarity ? ` dog-rarity-${rarity}` : ''}${locked ? ' lady-run-skin-card-locked' : ''}`}
@@ -256,7 +262,7 @@ function SkinCard({ skin, ultimate, locked, rarity, onOpen }) {
             ) : (
                 <img src={skin.img} alt={skin.name} className="lady-run-skin-card-img" />
             )}
-            {locked && <img src={lockIcon} alt="Bloqueada" className="lady-run-skin-card-lock" />}
+            {(locked || !owned) && <img src={lockIcon} alt="Bloqueada" className="lady-run-skin-card-lock" />}
             <span className="lady-run-skin-card-name">{skin.name}</span>
         </button>
     );

@@ -1,17 +1,28 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, X, Percent } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
+import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
 import { AVATAR_FRAMES } from './ladyRunAvatarFramesCatalog.js';
 import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
 import LadyRunSkinEquipModal from './LadyRunSkinEquipModal.jsx';
 import LadyRunTutorialCallout from '../../components/LadyRunTutorialCallout.jsx';
+import chapaIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/chapas.webp';
 import tavernCoinIcon from '../../assets/ui/icons-hud/hud-principal/coin-tavern1.webp';
 import huesinIcon from '../../assets/ui/icons-hud/hud-principal/huesin-coin.webp';
+import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
 import '../../styles/modals/LadyRunAvatarModal.css';
 import '../../styles/modals/LadyRunSkinsModal.css';
 
 // Grupos del picker de marcos, en el orden en que se muestran (ver ladyRunAvatarFramesCatalog.js
 // para el precio/gratis de cada uno).
 const FRAME_GROUP_ORDER = ['marco-base', 'marco-fondo'];
+
+// Cada marco tiene su precio en UNA sola moneda (chapas los base, monedas los animados) - ver
+// ladyRunAvatarFramesCatalog.js. Resuelve icono + numero segun cual de las 3 venga rellena.
+const framePriceIconAndValue = (price) => {
+    if (price.chapas > 0) return [chapaIcon, price.chapas];
+    if (price.huesin > 0) return [huesinIcon, price.huesin];
+    return [tavernCoinIcon, price.tavernCoins];
+};
 
 // Pantalla de avatar de Lady Run: circulo grande con el avatar equipado + rejilla de perros ya
 // desbloqueados para elegir uno nuevo (se guarda en profiles.avatar_dog_id, ver
@@ -20,6 +31,7 @@ export default function LadyRunAvatarModal({
     onClose, currentAvatarDogId, avatarOptions, onEquip, frameId, onEquipFrame,
     ownedSkins = {}, equippedSkinByDog = {}, onEquipSkin,
     unlockedFrames = [], onBuyFrame,
+    chapas = 0, tavernCoins = 0, huesin = 0,
     tutStep = null, onTutAdvance,
 }) {
     const currentDog = avatarOptions.find(dog => dog.id === currentAvatarDogId);
@@ -60,6 +72,7 @@ export default function LadyRunAvatarModal({
     };
 
     const isFrameUnlocked = frame => frame.free || unlockedFrames.includes(frame.id);
+    const canAffordFrame = frame => (frame.price.chapas ?? 0) <= chapas && (frame.price.tavernCoins ?? 0) <= tavernCoins && (frame.price.huesin ?? 0) <= huesin;
 
     // Foto a usar para un perro: la skin equipada (misma que se ve corriendo en pista, ver
     // ladyRunSkinsCatalog.js) si tiene una, si no el icono base del perro.
@@ -107,7 +120,7 @@ export default function LadyRunAvatarModal({
                     <button
                         className={`lady-run-back-btn${tutStep === 'avatar_volver' ? ' lady-run-tut-highlight' : ''}`}
                         data-tutorial="lady-run-tut-avatar-volver"
-                        onClick={handleAvatarClose}
+                        onClick={() => { playLadyRunSfx('backButton'); handleAvatarClose(); }}
                     ><ArrowLeft size={16} /></button>
                 )}
                 <p className="runner-overlay-title">Tu avatar</p>
@@ -211,17 +224,11 @@ export default function LadyRunAvatarModal({
                                                 return (
                                                     <button
                                                         key={frame.id}
-                                                        className={`lady-run-skin-equip-item${frame.id === currentFrame?.id ? ' lady-run-skin-equip-item-active' : ''}`}
+                                                        className={`lady-run-skin-equip-item lady-run-frame-equip-item${frame.id === currentFrame?.id ? ' lady-run-skin-equip-item-active' : ''}`}
                                                         onClick={() => openFramePreview(frame)}
                                                     >
-                                                        {!unlocked && (
-                                                            <span className="lady-run-frame-price-badge">
-                                                                <img src={frame.price.huesin > 0 ? huesinIcon : tavernCoinIcon} alt="" />
-                                                                {frame.price.huesin > 0 ? frame.price.huesin : frame.price.tavernCoins}
-                                                            </span>
-                                                        )}
-                                                        <img src={frame.img} alt={frame.name} className="lady-run-skin-equip-img" />
-                                                        {frame.offer && <span className="lady-run-frame-offer-badge"><Percent size={10} /></span>}
+                                                        {!unlocked && <img src={lockIcon} alt="Bloqueado" className="lady-run-skin-card-lock" />}
+                                                        <img src={frame.img} alt={frame.name} className="lady-run-skin-equip-img lady-run-frame-equip-img" />
                                                         <span className="lady-run-skin-equip-name">{frame.name}</span>
                                                     </button>
                                                 );
@@ -236,6 +243,7 @@ export default function LadyRunAvatarModal({
 
                 {framePreview && (() => {
                     const unlocked = isFrameUnlocked(framePreview);
+                    const canAfford = unlocked || canAffordFrame(framePreview);
                     const isEquipped = framePreview.id === currentFrame?.id;
                     const isBottom = framePreview.folder === 'marco-fondo';
                     return (
@@ -267,15 +275,18 @@ export default function LadyRunAvatarModal({
 
                                 <button
                                     className={`runner-start-btn runner-start-btn-compact lady-run-skin-preview-buy-btn${isEquipped ? ' lady-run-skin-preview-owned' : ''}`}
-                                    disabled={isEquipped || frameBuying}
+                                    disabled={isEquipped || frameBuying || !canAfford}
                                     onClick={handleFrameAction}
                                 >
-                                    {isEquipped ? 'Equipado' : !unlocked ? (
-                                        <>
-                                            <img src={framePreview.price.huesin > 0 ? huesinIcon : tavernCoinIcon} alt="" className="lady-run-shop-heart-card-buy-icon" />
-                                            {framePreview.price.huesin > 0 ? framePreview.price.huesin : framePreview.price.tavernCoins}
-                                        </>
-                                    ) : 'Equipar'}
+                                    {isEquipped ? 'Equipado' : !unlocked ? (() => {
+                                        const [priceIcon, priceValue] = framePriceIconAndValue(framePreview.price);
+                                        return (
+                                            <>
+                                                <img src={priceIcon} alt="" className="lady-run-shop-heart-card-buy-icon" />
+                                                {priceValue}
+                                            </>
+                                        );
+                                    })() : 'Equipar'}
                                 </button>
                                 {frameBuyError && <p className="lady-run-skin-preview-error">No se pudo comprar, inténtalo de nuevo.</p>}
                             </div>

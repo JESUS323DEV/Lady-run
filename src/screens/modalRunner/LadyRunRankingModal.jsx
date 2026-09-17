@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase.js';
+import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
 import { AVATAR_FRAMES } from './ladyRunAvatarFramesCatalog.js';
 import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
 import LadyRunTutorialCallout from '../../components/LadyRunTutorialCallout.jsx';
@@ -11,6 +12,7 @@ import '../../styles/modals/LadyRunRankingModal.css';
 
 const LEADERBOARD_LIMIT = 20;
 const TROPHY_BY_POSITION = [trophyGold, trophySilver, trophyBronze]; // solo top 3, index 0/1/2
+const POSITION_CLASS_BY_INDEX = ['lady-run-ranking-position-gold', 'lady-run-ranking-position-silver', 'lady-run-ranking-position-bronze'];
 
 const DIFFICULTIES = [
     { id: 'facil', label: 'Fácil' },
@@ -21,7 +23,7 @@ const DIFFICULTIES = [
 // Ranking de Lady Run (v1): un listado por mayor recorrido de Modo Libre, separado por dificultad,
 // sin separar por escenario todavia (ver FEATURES.md). Lee la vista leaderboard (MAX(distance) por
 // jugador+dificultad, ver supabase/sql/007_leaderboard_por_dificultad.sql), no la tabla runs directamente.
-export default function LadyRunRankingModal({ onClose, dogIcons = {}, dogRunSprites = {}, tutEpilogue = null, onTutEpilogueAdvance }) {
+export default function LadyRunRankingModal({ onClose, dogIcons = {}, tutEpilogue = null, onTutEpilogueAdvance }) {
     const [difficulty, setDifficulty] = useState('facil');
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -69,7 +71,7 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, dogRunSpri
                 {!rankingTutLocked && (
                     <button
                         className={`lady-run-back-btn${tutEpilogue === 'ranking_close' ? ' lady-run-tut-highlight' : ''}`}
-                        onClick={handleRankingClose}
+                        onClick={() => { playLadyRunSfx('backButton'); handleRankingClose(); }}
                     ><ArrowLeft size={16} /></button>
                 )}
                 <p className="runner-overlay-title">Ranking</p>
@@ -88,7 +90,7 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, dogRunSpri
                         <button
                             key={d.id}
                             className={`runner-difficulty-btn${difficulty === d.id ? ' runner-difficulty-active' : ''}`}
-                            onClick={() => setDifficulty(d.id)}
+                            onClick={() => { if (d.id !== difficulty) { playLadyRunSfx('difficulty'); setDifficulty(d.id); } }}
                         >
                             {d.label}
                         </button>
@@ -109,7 +111,7 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, dogRunSpri
                             : null;
                         return (
                         <div key={row.profile_id} className="lady-run-ranking-row">
-                            <span className="lady-run-ranking-position">{index + 1}</span>
+                            <span className={`lady-run-ranking-position${POSITION_CLASS_BY_INDEX[index] ? ` ${POSITION_CLASS_BY_INDEX[index]}` : ''}`}>{index + 1}</span>
                             <span className="lady-run-ranking-avatar">
                                 {frame && <img src={frame.img} alt="" className="lady-run-ranking-avatar-frame" />}
                                 {row.avatar_dog_id && dogIcons[row.avatar_dog_id] && (
@@ -123,11 +125,6 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, dogRunSpri
                             <span className="lady-run-ranking-username-cell">
                                 <span className="lady-run-ranking-username">{row.username}</span>
                                 {TROPHY_BY_POSITION[index] && <img src={TROPHY_BY_POSITION[index]} alt="" className="lady-run-ranking-trophy" />}
-                            </span>
-                            <span className="lady-run-ranking-last-dog">
-                                {row.last_dog_id && dogRunSprites[row.last_dog_id] && (
-                                    <img src={dogRunSprites[row.last_dog_id]} alt="" />
-                                )}
                             </span>
                             <span className="lady-run-ranking-distance">{row.best_distance} m</span>
                         </div>

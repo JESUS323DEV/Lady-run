@@ -34,8 +34,29 @@
 .lady-run-ranking-position {
     color: #ffd740;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     text-align: center;
+}
+
+.lady-run-ranking-position-gold,
+.lady-run-ranking-position-silver,
+.lady-run-ranking-position-bronze {
+    font-size: 1.5rem;
+}
+
+.lady-run-ranking-position-gold {
+    color: #ffd740;
+    text-shadow: 0 0 8px rgba(255, 215, 64, 0.85);
+}
+
+.lady-run-ranking-position-silver {
+    color: #d7dde3;
+    text-shadow: 0 0 8px rgba(215, 221, 227, 0.85);
+}
+
+.lady-run-ranking-position-bronze {
+    color: #cd7f32;
+    text-shadow: 0 0 8px rgba(205, 127, 50, 0.85);
 }
 
 .lady-run-ranking-avatar {

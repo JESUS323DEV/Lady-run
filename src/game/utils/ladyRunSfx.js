@@ -12,6 +12,9 @@ import sfxSelectSceneUrl  from '../../assets/audio/lady-run/sfx/select-esenario-
 import sfxHitPlayerUrl    from '../../assets/audio/lady-run/sfx/hit-pj-1-sfx-trim.mp3';
 import sfxLoseGameUrl     from '../../assets/audio/lady-run/sfx/lose-game.mp3';
 import sfxMagicHeartUrl   from '../../assets/audio/lady-run/sfx/corazon-magic.mp3';
+import sfxButtonModeUrl   from '../../assets/audio/sfx/sound-button.mp3';
+import sfxBackButtonUrl   from '../../assets/audio/sfx/sound-back-button.mp3';
+import sfxDifficultyUrl   from '../../assets/audio/sfx/sound-difficulty.mp3';
 
 let audioCtx = null;
 const buffers = {};
@@ -30,6 +33,9 @@ const SFX_CONFIG = {
     // durante los 5s que dura la invulnerabilidad (MAGIC_HEART_INVULN_MS en RunnerScreen.jsx),
     // luego se corta en seco. Si esa duracion cambia alli, actualizar stopAfter aqui tambien.
     magicHeart:  { offset: 0.0, gain: 1.0, loop: true, loopStart: 0.0, loopEnd: 1.3, stopAfter: 5.0 },
+    buttonMode:  { offset: 0.0, gain: 1.0 },
+    backButton:  { offset: 0.0, gain: 1.0 },
+    difficulty:  { offset: 0.0, gain: 1.0 },
 };
 
 const SFX_SOURCES = {
@@ -43,6 +49,9 @@ const SFX_SOURCES = {
     hitPlayer:   sfxHitPlayerUrl,
     loseGame:    sfxLoseGameUrl,
     magicHeart:  sfxMagicHeartUrl,
+    buttonMode:  sfxButtonModeUrl,
+    backButton:  sfxBackButtonUrl,
+    difficulty:  sfxDifficultyUrl,
 };
 
 const ensureCtx = () => {
