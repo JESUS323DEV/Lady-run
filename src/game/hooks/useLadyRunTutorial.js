@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-// Orden completo del tutorial de monedas/Tienda de Lady Run: primero la barra de monedas de arriba
-// (CurrencyHud, un sub-paso por moneda), luego el boton de Tienda, luego los 3 corazones dentro de
-// ella (ver LadyRunShopModal.jsx). Paso unico compartido por hook entre el acceso standalone y el
+// Orden completo del tutorial de Lady Run: primero el avatar (icono del HUD, elegir perro, marco
+// opcional, volver), luego la barra de monedas de arriba (CurrencyHud, un sub-paso por moneda),
+// luego el boton de Tienda, los 3 corazones dentro de ella (ver LadyRunShopModal.jsx), y por ultimo
+// Skins (entrar, ver, volver). Paso unico compartido por hook entre el acceso standalone y el
 // embebido (ambos renderizan CurrencyHud + RunnerScreen como hermanos), para no duplicar la secuencia
 // en los 2 sitios. Aislado del tutorial de Pata y Pico, ver feedback_lady_run_independiente_de_patapico.
-const STEP_ORDER = ['hud_chapas', 'hud_taberna', 'hud_huesin', 'tienda', 'corazon_extra', 'corazon_magico', 'corazon_verde', 'daily_reminder', 'salir_tienda'];
+const STEP_ORDER = [
+    'avatar_hud', 'avatar_perro', 'avatar_marcos', 'avatar_volver',
+    'hud_chapas', 'hud_taberna', 'hud_huesin', 'tienda',
+    'corazon_extra', 'corazon_magico', 'corazon_verde', 'daily_reminder', 'salir_tienda',
+    'skins_entrar', 'skins_volver',
+];
 
 // `active` indica si CurrencyHud ya esta realmente en pantalla (en el acceso standalone siempre lo
 // esta; en el embebido dentro de Raids, solo cuando se abre "Carrera") - sin esto, el tutorial

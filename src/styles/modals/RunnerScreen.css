@@ -1334,6 +1334,18 @@
     transition: filter 0.2s;
 }
 
+/* Paso "tienda" del tutorial: el boton Tienda, dentro de la card ya resaltada (lady-run-tut-highlight
+   en el padre), brilla y crece un poco de mas para que destaque sobre "Skins" (que esta apagado). */
+.lady-run-tut-tienda-btn-highlight {
+    z-index: 2;
+    animation: lady-run-tut-tienda-btn-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes lady-run-tut-tienda-btn-pulse {
+    0%, 100% { transform: scale(1); filter: brightness(1.05); }
+    50%      { transform: scale(1.12); filter: brightness(1.25); }
+}
+
 .runner-mode-btn::before {
     content: '';
     position: absolute;
@@ -1371,6 +1383,20 @@
 
 .runner-mode-btn-locked {
     cursor: not-allowed;
+}
+
+/* Apagado temporal por el tutorial (ej. Skins mientras dura el paso de Tienda), distinto del
+   bloqueo real (sin candado, vuelve a la normalidad en cuanto avanza el paso). */
+.runner-mode-btn:disabled {
+    cursor: not-allowed;
+}
+
+.runner-mode-btn:disabled::before {
+    filter: grayscale(100%) brightness(0.5);
+}
+
+.runner-mode-btn:disabled .runner-mode-btn-title {
+    color: rgba(255, 255, 255, 0.55);
 }
 
 .runner-mode-btn-locked::before {
@@ -1603,8 +1629,8 @@
 
 /* Botoncito superpuesto en la esquina superior derecha de la card del perro (rejilla de elegir
    perro antes de correr): abre el mismo popover de Variantes/skins que ya se abre al tocar el
-   perro ya seleccionado, pero sin tener que seleccionarlo primero. Gris si no tienes ninguna skin
-   comprada de ese perro (sigue siendo clicable, solo avisa de que no hay nada que elegir). */
+   perro ya seleccionado, pero sin tener que seleccionarlo primero. Deshabilitado (gris, sin click)
+   si no tienes ninguna skin comprada de ese perro, o durante el paso "perros" del Tutorial 2. */
 .runner-dog-select-skin-btn {
     position: absolute;
     top: -6px;
@@ -1622,9 +1648,11 @@
     z-index: 2;
 }
 
-.runner-dog-select-skin-btn-empty {
+.runner-dog-select-skin-btn-empty,
+.runner-dog-select-skin-btn:disabled {
     color: rgba(255, 255, 255, 0.35);
     border-color: rgba(255, 255, 255, 0.25);
+    cursor: default;
 }
 
 .runner-dog-select-btn {

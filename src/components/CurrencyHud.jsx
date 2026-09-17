@@ -61,7 +61,7 @@ const CurrencyHud = ({ chapas = 0, tavernCoins = 0, huesin = 0, tutStep = null, 
                 <LadyRunTutorialCallout
                     targetSelector='[data-tutorial="lady-run-tut-hud-huesin"]'
                     title="Huesín"
-                    text="Todavía no la puedes gastar, pero pronto la usarás para Skins y más cosas. Intenta conseguir todas las que puedas."
+                    text="Gástala en Skins y marcos de avatar. Intenta conseguir todas las que puedas."
                     actionLabel="Continuar"
                     onAction={onTutAdvance}
                 />

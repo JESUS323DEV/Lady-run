@@ -51,7 +51,9 @@ Divagaciones sin decidir, no hay compromiso de hacerlas, solo quedan apuntadas p
 
 - Torneo 1v1: bracket de jugadores (aforo fijo tipo 4/8, no numero libre para que el bracket cuadre), cada uno juega su run normal de forma async (nada de sincronizar partidas en vivo), se compara distancia y el que gana avanza de ronda. Encajaria con la card "Torneo" ya reservada en la UI.
 - Marcos de perfil vendibles: en vez de (o ademas de) skins de perro, vender marcos decorativos para el circulo de avatar del panel de usuario, que se verian tambien en el Ranking. Ya existe el asset `dog-skins/ui-skins/marco-skin-ultimate.webp` pensado para esto (no para skins).
-- Ghost del rival: en vez de un CPU en vivo, mostrar 2 cards (la tuya + la del rival) donde el rival reproduce con retraso una run real ya grabada. Requeriria grabar la timeline de la partida (saltos, esquives) y no solo el resultado final como ahora, es un cambio de que se guarda, no un simple añadido.
+- Ghost del rival: en vez de un CPU en vivo, mostrar 2 cards (la tuya + la del rival) donde el rival reproduce con retraso una run real ya grabada. Requeriria grabar la timeline de la partida (saltos, esquives) y no solo el resultado final como ahora, es un cambio de que se guarda, no un simple añadido. (2026-09-16) Ahora es mas facil de lo que parecia: Eventos ya tiene el motor de "2 distancias comparandose en la misma barra" (eventosPlayerDistanceRef/eventosCpuDistanceRef, ver RunnerScreen.jsx) - reusarlo cambiando el CPU en vivo por la reproduccion de una run grabada seria la parte que menos curro da, lo gordo sigue siendo decidir que se graba y como se guarda en Supabase.
+- Reto diario: todos los jugadores corren el mismo tramo (seed fija por dia, no aleatoria), con un ranking aparte tipo "hoy" comparando distancia/tiempo. Reusaria el motor de carrera-a-meta de Eventos casi tal cual, solo cambia de donde sale la meta/dificultad (fija por dia en vez de por nodo).
+- Amigos en el Ranking: como `profiles.username` ya es unico por jugador, anadir un "seguir a X" sencillo (tabla de relacion en Supabase) y resaltar a los amigos seguidos en la lista de Ranking que ya existe, en vez de tener que buscarlos entre todos.
 - Huecos vacios en el bracket rellenados con IA: reusar la logica de rival CPU que ya existe en Historia (boss) para generar una "run" de bot cuando faltan jugadores reales, asi el torneo nunca se queda colgado esperando gente.
 - Version mas simple tipo battle royale (aforo 5/10/15): todos juegan su partida de forma independiente, no compite en tiempo real contra nadie, solo se muestra visualmente quien va perdiendo/cuantos quedan via Supabase Realtime. Mas facil que sincronizar partidas, pero mas dificil de definir bien quien "gana" al final.
 
@@ -59,3 +61,24 @@ Divagaciones sin decidir, no hay compromiso de hacerlas, solo quedan apuntadas p
 
 - [x] (2026-09-15) Las 3 monedas (chapas, tavernCoins, huesín) ya NO viven en localStorage editable. Ahora viven en `profiles` en Supabase, sin permiso de UPDATE directo desde el cliente - solo se pueden tocar via `earn_currency`/`spend_currency` (funciones RPC con el precio fijo dentro, ver `supabase/sql/008_profiles_currency.sql`). Perros desbloqueados y corazones en inventario siguen en local por ahora, sin cambiar.
 - Pendiente: el ranking (tabla `runs`) sí va directo a Supabase desde el principio (nunca vivió en local, no tiene el mismo problema), pero el INSERT de una partida acepta cualquier `distance` que mande el cliente sin comprobar si es creíble. Arreglo mínimo pensado: una función `submit_run(...)` con un tope de distancia máxima razonable (ej. 50.000m) que rechace valores absurdos tipo 999999. No evita hacer trampa con un número "creíble", solo corta los casos tontos. Aparcado por ahora, decidido dejarlo tal cual.
+
+## Mantenimiento / código
+
+- Pendiente (2026-09-17): reorganizar `src/screens/modalRunner/` en subcarpetas, igual que ya está `src/styles/` (`components/`, `modals/`, `standalone/`). Ahora mismo los 10 archivos están todos sueltos en la misma carpeta. Estructura propuesta:
+  ```
+  src/screens/modalRunner/
+  ├── RunnerScreen.jsx              (se queda aquí, pantalla principal que da nombre a la carpeta)
+  ├── runnerMusic.js
+  ├── runnerPreloadAssets.js
+  ├── modals/
+  │   ├── LadyRunAvatarModal.jsx
+  │   ├── LadyRunRankingModal.jsx
+  │   ├── LadyRunShopModal.jsx
+  │   ├── LadyRunSkinEquipModal.jsx
+  │   └── LadyRunSkinsModal.jsx
+  └── catalogs/
+      ├── ladyRunAvatarFramesCatalog.js
+      └── ladyRunSkinsCatalog.js
+  ```
+  Mover 7 archivos + actualizar todos los `import` que los referencian (dentro de ellos mismos y desde fuera, `RunnerScreen.jsx`/`LadyRunStandalone.jsx`). Puramente mecánico, sin cambiar comportamiento. Aparcado mientras se pule el tutorial.
+- Pendiente (2026-09-17): la pantalla de Marcos (popover dentro de `LadyRunAvatarModal.jsx`) se queda pequeña, mejor convertirla en un modal propio a pantalla completa como el de Skins (flecha volver, título arriba, cards grandes tipo skin-card con secciones "Marco base"/"Marco Animado"). Aparcado porque afectaría al paso `avatar_marcos` del tutorial (el target/overlay apunta al popover actual), se retoma cuando el tutorial esté más asentado.

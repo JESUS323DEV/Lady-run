@@ -848,9 +848,13 @@ export default function RunnerScreen({
     // Tutorial 3 (en plena carrera): null | 'huesos' | 'pata' | 'salto' | 'corazon_magico'.
     const [runTutStep, setRunTutStep] = useState(null);
     // true si la run actual viene de completar los 4 pasos de arriba, para saber si hay que mostrar
-    // el mensaje de cierre (runTutOutro) cuando termine esta run en concreto.
+    // el epilogo (runTutEpilogue) cuando termine esta run en concreto.
     const runTutRanThisSessionRef = useRef(false);
-    const [runTutOutro, setRunTutOutro] = useState(false);
+    // Epilogo del Tutorial 3, tras terminar la primera carrera: null | 'ranking' (Reintentar
+    // bloqueado, Ranking brilla y se desbloquea en el menu) | 'ranking_intro' (dentro de Ranking,
+    // mensaje explicando como funciona) | 'ranking_close' (esperando unos segundos para resaltar la
+    // flecha de volver de Ranking) | 'final' (mensaje "Ya esta todo").
+    const [runTutEpilogue, setRunTutEpilogue] = useState(null);
     // Micro-demo del paso 'pata': indice (0-2) de la marca que se muestra reclamada, en bucle, SIN
     // tocar el progreso real de la carrera (pawFill/runMilestoneIndex se quedan intactos).
     const [pataDemoStep, setPataDemoStep] = useState(0);
@@ -1597,6 +1601,27 @@ export default function RunnerScreen({
         }
     }, [shopOpen, ladyRunTutStep, setLadyRunTutStep]);
 
+    // Mismo motivo que la red de seguridad de arriba, pero para los pasos de avatar (si se cierra
+    // sin pasar por la flecha resaltada) y de Skins (si se cierra sin pasar por su flecha).
+    useEffect(() => {
+        if (!avatarOpen && ['avatar_perro', 'avatar_marcos', 'avatar_volver'].includes(ladyRunTutStep)) {
+            setLadyRunTutStep?.('avatar_hud');
+        }
+    }, [avatarOpen, ladyRunTutStep, setLadyRunTutStep]);
+
+    useEffect(() => {
+        if (!skinsOpen && ladyRunTutStep === 'skins_volver') {
+            setLadyRunTutStep?.('skins_entrar');
+        }
+    }, [skinsOpen, ladyRunTutStep, setLadyRunTutStep]);
+
+    // Mismo motivo que las de arriba, para el epilogo de Ranking del Tutorial 3 (ver runTutEpilogue).
+    useEffect(() => {
+        if (!rankingOpen && ['ranking_intro', 'ranking_close'].includes(runTutEpilogue)) {
+            setRunTutEpilogue('ranking');
+        }
+    }, [rankingOpen, runTutEpilogue]);
+
     // Tutorial 2: se activa solo (a todos, igual criterio que el Tutorial 1) la primera vez que se
     // llega a la pantalla de elegir perro de Modo Libre. Local del todo, no necesita coordinarse con
     // nada fuera de RunnerScreen.
@@ -1630,7 +1655,7 @@ export default function RunnerScreen({
     // Ultimo paso: ademas de terminar el tutorial, hay que reanudar la partida de verdad (se quedo
     // pausada tras el 3-2-1 en vez de arrancar, ver startCountdown mas arriba). No se marca como
     // completado todavia al terminar estos 4 pasos: falta el mensaje de cierre al acabar la run
-    // (runTutOutro mas abajo), asi que solo se apunta que esta run viene del tutorial.
+    // (runTutEpilogue mas abajo), asi que solo se apunta que esta run viene del tutorial.
     const advanceRunTutorial = useCallback(() => {
         const idx = RUN_TUT_STEP_ORDER.indexOf(runTutStep);
         if (idx === -1 || idx === RUN_TUT_STEP_ORDER.length - 1) {
@@ -2890,16 +2915,16 @@ export default function RunnerScreen({
             setRewardStep(5);
             await revealCurrency('huesin', runHuesinEarned, setHuesinCountShown);
             if (cancelled) return;
-            if (runTutRanThisSessionRef.current) setRunTutOutro(true);
+            if (runTutRanThisSessionRef.current) setRunTutEpilogue('ranking');
         })();
         return () => { cancelled = true; };
     }, [goStage, isLibre, runChapasEarned, runCoinsEarned, runHuesinEarned, runBonesEarned, pawFill]);
 
-    // Mensaje de cierre del Tutorial 3 (ver runTutOutro): al continuar, se marca el tutorial como
+    // Mensaje de cierre del Tutorial 3 (ver runTutEpilogue): al continuar, se marca el tutorial como
     // terminado de verdad y se vuelve a la pantalla principal de Lady Run.
     const handleRunTutOutroContinue = useCallback(() => {
         runTutRanThisSessionRef.current = false;
-        setRunTutOutro(false);
+        setRunTutEpilogue(null);
         onCompleteLadyRunRunTutorial?.();
         backToSelect();
     }, [onCompleteLadyRunRunTutorial, backToSelect]);
@@ -3112,7 +3137,14 @@ export default function RunnerScreen({
                         {(phase === 'ready' || phase === 'gameover') && (
                         <div className={`runner-overlay${phase === 'gameover' ? ' runner-overlay-gameover' : ''}${menuBlank ? ' runner-overlay-blank' : ''}`}>
                             {phase === 'ready' && !runMode && !shopOpen && !rankingOpen && !avatarOpen && !skinsOpen && (
-                                <button className="lady-run-avatar-trigger" onClick={() => setAvatarOpen(true)}>
+                                <button
+                                    className={`lady-run-avatar-trigger${ladyRunTutStep === 'avatar_hud' ? ' lady-run-tut-highlight' : ''}`}
+                                    data-tutorial="lady-run-tut-avatar-hud"
+                                    onClick={() => {
+                                        setAvatarOpen(true);
+                                        if (ladyRunTutStep === 'avatar_hud') advanceLadyRunTutorial();
+                                    }}
+                                >
                                     {(() => {
                                         const frame = AVATAR_FRAMES.find(f => f.id === avatarFrameId) ?? AVATAR_FRAMES[0];
                                         return frame && <img src={frame.img} alt="" className="lady-run-avatar-trigger-frame" />;
@@ -3126,19 +3158,40 @@ export default function RunnerScreen({
                                     })()}
                                 </button>
                             )}
+                            {ladyRunTutStep === 'avatar_hud' && (
+                                <LadyRunTutorialCallout
+                                    targetSelector='[data-tutorial="lady-run-tut-avatar-hud"]'
+                                    title="Tu avatar"
+                                    text="Elige tu perro y personalízalo, se verá en el Ranking."
+                                />
+                            )}
                             {phase === 'ready' && !runMode && (
                                 <div className="runner-mode-select">
                                     <button className="runner-mode-btn runner-mode-btn-glow" onClick={() => setRunMode('arcade')}>
                                         <span className="runner-mode-btn-title">Modo Libre</span>
                                     </button>
-                                    <button className="runner-mode-btn" onClick={() => setRankingOpen(true)}>
+                                    <button
+                                        className={`runner-mode-btn${!ladyRunRunTutorialCompleted && runTutEpilogue !== 'ranking' ? ' runner-mode-btn-locked' : ''}${runTutEpilogue === 'ranking' ? ' lady-run-tut-highlight' : ''}`}
+                                        data-tutorial="lady-run-tut-ranking"
+                                        disabled={!ladyRunRunTutorialCompleted && runTutEpilogue !== 'ranking'}
+                                        onClick={() => {
+                                            setRankingOpen(true);
+                                            if (runTutEpilogue === 'ranking') setRunTutEpilogue('ranking_intro');
+                                        }}
+                                    >
                                         <span className="runner-mode-btn-title">Ranking</span>
+                                        {!ladyRunRunTutorialCompleted && runTutEpilogue !== 'ranking' && (
+                                            <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
+                                        )}
                                     </button>
                                     <button className="runner-mode-btn runner-mode-btn-locked" disabled>
                                         <span className="runner-mode-btn-title">Eventos</span>
                                         <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
                                     </button>
                                 </div>
+                            )}
+                            {phase === 'ready' && !runMode && runTutEpilogue === 'ranking' && (
+                                <LadyRunTutorialCallout targetSelector='[data-tutorial="lady-run-tut-ranking"]' />
                             )}
                             {phase === 'ready' && runMode === 'historia' && chapterSelectOpen && (
                                 <>
@@ -3427,7 +3480,7 @@ export default function RunnerScreen({
                 {phase === 'ready' && !runMode && (
                     <div className={`runner-mode-card-shop runner-mode-card-static-pradera${ladyRunTutStep === 'tienda' ? ' lady-run-tut-highlight' : ''}`}>
                         <button
-                            className="runner-mode-btn"
+                            className={`runner-mode-btn${ladyRunTutStep === 'tienda' ? ' lady-run-tut-tienda-btn-highlight' : ''}`}
                             data-tutorial="lady-run-tut-tienda"
                             onClick={() => {
                                 setShopOpen(true);
@@ -3436,17 +3489,33 @@ export default function RunnerScreen({
                         >
                             <span className="runner-mode-btn-title">Tienda</span>
                         </button>
-                        <button className="runner-mode-btn" onClick={() => setSkinsOpen(true)}>
+                        <button
+                            className={`runner-mode-btn${ladyRunTutStep === 'skins_entrar' ? ' lady-run-tut-highlight' : ''}`}
+                            data-tutorial="lady-run-tut-skins"
+                            disabled={ladyRunTutStep === 'tienda'}
+                            onClick={() => {
+                                setSkinsOpen(true);
+                                if (ladyRunTutStep === 'skins_entrar') advanceLadyRunTutorial();
+                            }}
+                        >
                             <span className="runner-mode-btn-title">Skins</span>
                         </button>
                     </div>
                 )}
 
+                {ladyRunTutStep === 'skins_entrar' && (
+                    <LadyRunTutorialCallout
+                        targetSelector='[data-tutorial="lady-run-tut-skins"]'
+                        title="Personaliza tus perros"
+                        text="Aquí compras skins para cambiar el aspecto de tus perros en pista."
+                    />
+                )}
+
                 {ladyRunTutStep === 'tienda' && (
                     <LadyRunTutorialCallout
                         targetSelector='[data-tutorial="lady-run-tut-tienda"]'
-                        title="Gasta lo que ganas"
-                        text="Aquí gastas las monedas que consigues corriendo: Chapas, Moneda y Huesín."
+                        title="Tu tienda"
+                        text="Cambia las monedas que consigues corriendo por corazones y más."
                     />
                 )}
 
@@ -3481,12 +3550,15 @@ export default function RunnerScreen({
                         <div className="runner-action-row">
                             <button
                                 className="runner-start-btn runner-start-btn-compact"
+                                disabled={runTutRanThisSessionRef.current}
                                 onClick={() => (arcadeSubMode === 'libre' ? startLibreRoulette() : (runMode === 'historia' && (historiaCustomScene || prologoRunScene) ? startActiveHistoriaNode() : runMode === 'eventos' ? startActiveEventosNode() : resetGame()))}
                             >Reintentar</button>
-                            <button
-                                className="runner-start-btn runner-start-btn-secondary runner-start-btn-compact"
-                                onClick={runMode === 'historia' && historiaCustomScene ? backToChapterMap : (runMode === 'historia' && prologoRunScene ? backToPrologoScenarios : runMode === 'eventos' ? backToEventosMap : backToSelect)}
-                            >Volver</button>
+                            {(!runTutRanThisSessionRef.current || runTutEpilogue === 'ranking') && (
+                                <button
+                                    className="runner-start-btn runner-start-btn-secondary runner-start-btn-compact"
+                                    onClick={runMode === 'historia' && historiaCustomScene ? backToChapterMap : (runMode === 'historia' && prologoRunScene ? backToPrologoScenarios : runMode === 'eventos' ? backToEventosMap : backToSelect)}
+                                >Volver</button>
+                            )}
                         </div>
                         {arcadeSubMode === 'libre' && (
                             <p className="runner-loot-limit-text">
@@ -3565,7 +3637,7 @@ export default function RunnerScreen({
                         onAction={advanceRunTutorial}
                     />
                 )}
-                {runTutOutro && (
+                {runTutEpilogue === 'final' && (
                     <LadyRunTutorialCallout
                         title="¡Ya está todo!"
                         text="Espero que disfrutes jugando."
@@ -3652,6 +3724,7 @@ export default function RunnerScreen({
                                     {!needsUnlock && (
                                         <button
                                             className={`runner-dog-select-skin-btn${(ownedSkins[id] ?? []).length === 0 ? ' runner-dog-select-skin-btn-empty' : ''}`}
+                                            disabled={(ownedSkins[id] ?? []).length === 0 || libreTutStep === 'perros'}
                                             onClick={e => { e.stopPropagation(); setSelectedDogId(id); setSkinEquipOpenDogId(id); }}
                                         >
                                             <Shirt size={12} />
@@ -3733,7 +3806,13 @@ export default function RunnerScreen({
                 )}
 
                 {rankingOpen && (
-                    <LadyRunRankingModal onClose={() => setRankingOpen(false)} dogIcons={DOG_ICONS} dogRunSprites={DOG_RUN_SPRITE} />
+                    <LadyRunRankingModal
+                        onClose={() => setRankingOpen(false)}
+                        dogIcons={DOG_ICONS}
+                        dogRunSprites={DOG_RUN_SPRITE}
+                        tutEpilogue={runTutEpilogue}
+                        onTutEpilogueAdvance={setRunTutEpilogue}
+                    />
                 )}
 
                 {avatarOpen && (
@@ -3749,6 +3828,8 @@ export default function RunnerScreen({
                         onEquipSkin={onEquipSkin}
                         unlockedFrames={unlockedFrames}
                         onBuyFrame={onBuyFrame}
+                        tutStep={ladyRunTutStep}
+                        onTutAdvance={advanceLadyRunTutorial}
                     />
                 )}
 
@@ -3759,6 +3840,8 @@ export default function RunnerScreen({
                         dogNames={DOG_NAMES}
                         ownedSkins={ownedSkins}
                         onBuySkin={onBuySkin}
+                        tutStep={ladyRunTutStep}
+                        onTutAdvance={advanceLadyRunTutorial}
                     />
                 )}
 
