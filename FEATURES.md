@@ -84,3 +84,7 @@ Divagaciones sin decidir, no hay compromiso de hacerlas, solo quedan apuntadas p
   ```
   Mover 7 archivos + actualizar todos los `import` que los referencian (dentro de ellos mismos y desde fuera, `RunnerScreen.jsx`/`LadyRunStandalone.jsx`). Puramente mecánico, sin cambiar comportamiento. Aparcado mientras se pule el tutorial.
 - Pendiente (2026-09-17): la pantalla de Marcos (popover dentro de `LadyRunAvatarModal.jsx`) se queda pequeña, mejor convertirla en un modal propio a pantalla completa como el de Skins (flecha volver, título arriba, cards grandes tipo skin-card con secciones "Marco base"/"Marco Animado"). Aparcado porque afectaría al paso `avatar_marcos` del tutorial (el target/overlay apunta al popover actual), se retoma cuando el tutorial esté más asentado.
+
+## PWA / Instalable
+
+- Pendiente (2026-09-17): convertir Lady Run en webapp instalable (Add to Home Screen en Android/iOS), para que el jugador tenga un icono propio en vez de tener que buscar el link cada vez. Necesita `manifest.json` + icono cuadrado + meta tags en `index.html`. Decidido de momento SIN Service Worker (un SW mal llevado es la causa típica de que una PWA se quede pillada en una version vieja, justo el problema que ya cuesta evitar con `useNewVersionAvailable.js` - sin SW, en Android hay que darle a mano a "Añadir a pantalla de inicio" desde el menú en vez de salir un banner automático de instalar, pero se sigue pudiendo confiar en el sistema de deteccion de updates que ya existe).
