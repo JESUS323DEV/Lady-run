@@ -1903,6 +1903,9 @@ export default function RunnerScreen({
                     if (runTotalMilestonesRef.current >= dailyTramosClaimedToday) {
                         pawFillRef.current = Math.min(PAW_FILL_MAX, pawFillRef.current + 1);
                         setPawFill(pawFillRef.current);
+                        // Tramo 1-2 de cada fase da monedas (mismo sonido que recogerlas en pista), tramo 3
+                        // da Huesin: de momento suena igual que las chapas, pendiente de sonido propio.
+                        playLadyRunSfx(tramoInPhase === 2 ? 'rewardGold' : 'rewardCoin');
                     }
                     runTotalMilestonesRef.current += 1;
                     setRunMilestoneIndex(tramoInPhase);
@@ -3228,6 +3231,7 @@ export default function RunnerScreen({
                                     className={`lady-run-avatar-trigger${ladyRunTutStep === 'avatar_hud' ? ' lady-run-tut-highlight' : ''}`}
                                     data-tutorial="lady-run-tut-avatar-hud"
                                     onClick={() => {
+                                        playLadyRunSfx('buttonMode');
                                         setAvatarOpen(true);
                                         if (ladyRunTutStep === 'avatar_hud') advanceLadyRunTutorial();
                                     }}
@@ -3806,6 +3810,7 @@ export default function RunnerScreen({
                                                 setSkinEquipOpenDogId(id);
                                                 return;
                                             }
+                                            playLadyRunSfx('doubleJump');
                                             setSelectedDogId(id);
                                             if (libreTutStep === 'perros') setLibreTutDogPicked(true);
                                         }}

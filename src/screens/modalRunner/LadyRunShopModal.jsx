@@ -62,7 +62,7 @@ export default function LadyRunShopModal({
 
     const handleBuy = (item, isFree) => {
         onBuyItem?.(item.id, isFree ? 0 : item.price);
-        if (isFree) onClaimDailyFree?.(item.id);
+        if (isFree) { playLadyRunSfx('boneReward'); onClaimDailyFree?.(item.id); }
         if (tutStep === item.id) onTutAdvance?.();
     };
 

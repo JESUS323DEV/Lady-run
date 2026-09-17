@@ -87,6 +87,7 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
             setBuyError(true);
             return;
         }
+        playLadyRunSfx('rewardGold');
         setTimeout(() => setPurchaseAnim('running'), 250);
         setTimeout(() => setPurchaseAnim('reveal'), 3050);
         setTimeout(() => { setPurchaseAnim(null); setJustBought(true); }, 3950);

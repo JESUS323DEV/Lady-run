@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
 import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
 import '../../styles/modals/LadyRunSkinsModal.css';
 
@@ -11,6 +12,7 @@ export default function LadyRunSkinEquipModal({ onClose, dogId, dogName, dogIcon
         ...(catalog?.ultimate && ownedSkinIds.includes(catalog.ultimate.id) ? [catalog.ultimate] : []),
         ...(catalog?.normal ?? []).filter(skin => ownedSkinIds.includes(skin.id)),
     ];
+    const handleEquip = (skinId) => { playLadyRunSfx('buttonMode'); onEquip(skinId); onClose(); };
 
     return (
         <div className="lady-run-skin-equip-backdrop" onClick={onClose}>
@@ -23,7 +25,7 @@ export default function LadyRunSkinEquipModal({ onClose, dogId, dogName, dogIcon
                 <div className="lady-run-skin-equip-grid">
                     <button
                         className={`lady-run-skin-equip-item${equippedSkinId === null ? ' lady-run-skin-equip-item-active' : ''}`}
-                        onClick={() => { onEquip(null); onClose(); }}
+                        onClick={() => handleEquip(null)}
                     >
                         <img src={dogIcon} alt={dogName} className="lady-run-skin-equip-img" />
                         <span className="lady-run-skin-equip-name">Sin skin</span>
@@ -32,7 +34,7 @@ export default function LadyRunSkinEquipModal({ onClose, dogId, dogName, dogIcon
                         <button
                             key={skin.id}
                             className={`lady-run-skin-equip-item${equippedSkinId === skin.id ? ' lady-run-skin-equip-item-active' : ''}`}
-                            onClick={() => { onEquip(skin.id); onClose(); }}
+                            onClick={() => handleEquip(skin.id)}
                         >
                             <img src={skin.img} alt={skin.name} className="lady-run-skin-equip-img" />
                             <span className="lady-run-skin-equip-name">{skin.name}</span>

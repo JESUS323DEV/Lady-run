@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import logoLadyRun1 from '../../assets/ui/icons-hud/hud-modals/game-run/logo/logo-lady-run1.webp';
 import logoLadyRun2Loop from '../../assets/ui/icons-hud/hud-modals/game-run/logo/logo-lady-run-2-loop-final2.webp';
 import { useNewVersionAvailable } from '../../game/hooks/useNewVersionAvailable.js';
+import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
 import '../../styles/standalone/LadyRunLanding.css';
 
 const LOGO_SWAP_DELAY_MS = 4000;
@@ -25,7 +26,7 @@ const LadyRunLanding = ({ onPlay }) => {
             <img src={showLoop ? logoLadyRun2Loop : logoLadyRun1} alt="Lady Run" className="lady-run-landing-logo" />
             <button
                 className="lady-run-landing-play-btn"
-                onClick={updateAvailable ? () => window.location.reload() : onPlay}
+                onClick={updateAvailable ? () => window.location.reload() : () => { playLadyRunSfx('buttonMode'); onPlay(); }}
             >
                 {updateAvailable ? 'Actualizar' : 'Jugar'}
             </button>

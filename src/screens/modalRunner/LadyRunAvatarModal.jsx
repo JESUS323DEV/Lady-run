@@ -93,6 +93,7 @@ export default function LadyRunAvatarModal({
     const handleFrameAction = async () => {
         if (!framePreview) return;
         if (isFrameUnlocked(framePreview)) {
+            playLadyRunSfx('buttonMode');
             onEquipFrame?.(framePreview.id);
             setFramePreview(null);
             return;
@@ -105,6 +106,7 @@ export default function LadyRunAvatarModal({
             setFrameBuyError(true);
             return;
         }
+        playLadyRunSfx('rewardGold');
         setTimeout(() => {
             setFrameBuying(false);
             setFramePreview(null);
@@ -140,6 +142,7 @@ export default function LadyRunAvatarModal({
                     className={`runner-start-btn runner-start-btn-compact lady-run-avatar-frame-btn${tutStep === 'avatar_marcos' && !framePickerOpen ? ' lady-run-tut-highlight' : ''}`}
                     data-tutorial="lady-run-tut-avatar-marcos"
                     onClick={() => {
+                        playLadyRunSfx('buttonMode');
                         setMarcosTutContinued(false);
                         setMarcosTutCloseReady(false);
                         setFramePickerOpen(true);
@@ -164,6 +167,7 @@ export default function LadyRunAvatarModal({
                             <button
                                 className="lady-run-avatar-option-select"
                                 onClick={() => {
+                                    playLadyRunSfx('doubleJump');
                                     onEquip(dog.id);
                                     if (tutStep === 'avatar_perro') onTutAdvance?.();
                                 }}

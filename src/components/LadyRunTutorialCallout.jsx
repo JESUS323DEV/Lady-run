@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { playLadyRunSfx } from '../game/utils/ladyRunSfx.js';
 import '../styles/components/LadyRunTutorialCallout.css';
 
 // Cajita de texto del tutorial de Lady Run, propia y aislada de la de Pata y Pico (ver
@@ -55,7 +56,7 @@ const LadyRunTutorialCallout = ({ targetSelector, title, text, subtext, actionLa
                     {subtext && <p className="lady-run-tut-dialog-subtext">{subtext}</p>}
                     {actionLabel && (
                         <div className="lady-run-tut-dialog-actions">
-                            <button className="lady-run-tut-dialog-btn" onClick={onAction}>{actionLabel}</button>
+                            <button className="lady-run-tut-dialog-btn" onClick={() => { playLadyRunSfx('buttonMode'); onAction?.(); }}>{actionLabel}</button>
                         </div>
                     )}
                 </div>
