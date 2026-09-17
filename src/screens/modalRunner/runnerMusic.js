@@ -6,6 +6,7 @@ import praderaTrack from '../../assets/audio/lady-run/sound-exterior/run-exterio
 import hieloTrack from '../../assets/audio/lady-run/sound-exterior/run-exterior-4.mp3';
 import interiorTrack1 from '../../assets/audio/lady-run/sound-interior/run-interior.mp3';
 import interiorTrack2 from '../../assets/audio/lady-run/sound-interior/run-interior-2.mp3';
+import historiaTrailerTrack from '../../assets/audio/lady-run/posible-bg-historia-1.mp3';
 
 // Musica de Modo Libre: 1 pista fija por escenario exterior, y minas (unico interior) sortea entre
 // las 2 pistas de sound-interior/ cada vez que se entra a ese escenario. sound-boss/ existe pero no
@@ -22,3 +23,7 @@ export const MINAS_MUSIC_TRACKS = [interiorTrack1, interiorTrack2];
 
 // Suena en las pantallas de seleccion (antes de darle a Empezar), en Modo Libre y las demas por ahora.
 export const BG_PRINCIPAL_TRACK = bgPrincipalTrack;
+
+// Nombre "posible" porque es un candidato sin decidir del todo, ver FEATURES.md. De momento solo
+// suena en el trailer de Historia (historiaTrailerOpen en RunnerScreen.jsx).
+export const HISTORIA_TRAILER_TRACK = historiaTrailerTrack;

@@ -8,6 +8,8 @@ import { useLadyRunTutorial } from '../../game/hooks/useLadyRunTutorial.js';
 import { useLadyRunProfile } from '../../game/hooks/useLadyRunProfile.js';
 import { usePreloadImages, prefetchImages } from '../../game/hooks/usePreloadImages.js';
 import { RUNNER_CORE_PRELOAD_IMAGES, RUNNER_HISTORIA_PRELOAD_IMAGES } from '../modalRunner/runnerPreloadAssets.js';
+import { AVATAR_FRAMES } from '../modalRunner/ladyRunAvatarFramesCatalog.js';
+import { SKIN_CATALOG } from '../modalRunner/ladyRunSkinsCatalog.js';
 import '../../styles/standalone/LadyRunStandalone.css';
 
 const SAVE_KEY = 'ladyRunGame';
@@ -50,6 +52,23 @@ const LadyRunStandalone = () => {
         if (!loaded) return;
         prefetchImages(RUNNER_HISTORIA_PRELOAD_IMAGES);
     }, [loaded]);
+
+    // El marco y las skins equipadas salen de carpetas leidas por import.meta.glob (ver
+    // ladyRunAvatarFramesCatalog.js/ladyRunSkinsCatalog.js), no pasan por RUNNER_CORE_PRELOAD_IMAGES.
+    // Se precarga solo lo que el jugador tiene puesto ahora mismo (no el catalogo entero) en cuanto
+    // se conoce su perfil, para que no parpadee en el HUD/pista.
+    useEffect(() => {
+        if (!loaded || !profile) return;
+        const frame = AVATAR_FRAMES.find(f => f.id === profile.avatar_frame_id) ?? AVATAR_FRAMES[0];
+        const equippedSkinUrls = Object.entries(gameState.ladyRunEquippedSkinByDog ?? {}).flatMap(([dogId, skinId]) => {
+            const dogCatalog = SKIN_CATALOG[dogId];
+            const skin = dogCatalog?.ultimate?.id === skinId ? dogCatalog.ultimate : dogCatalog?.normal.find(s => s.id === skinId);
+            if (!skin) return [];
+            return [skin.img, skin.runImg, skin.jumpImg];
+        });
+        prefetchImages([frame?.img, ...equippedSkinUrls].filter(Boolean));
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- solo hace falta disparar esto una vez que el perfil ya cargo, no en cada cambio de gameState
+    }, [loaded, profile]);
 
     if (!loaded || profileLoading) {
         return (

@@ -3,7 +3,7 @@ import chapaIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/c
 import tavernCoinIcon from '../../assets/ui/icons-hud/hud-principal/coin-tavern1.webp';
 import redHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/vida-base-2.webp';
 import magicHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/corazon-magico.webp';
-import greenHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/life-green.webp';
+import greenHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/shield-green.webp';
 import LadyRunTutorialCallout from '../../components/LadyRunTutorialCallout.jsx';
 import '../../styles/modals/LadyRunShopModal.css';
 
@@ -18,7 +18,7 @@ import '../../styles/modals/LadyRunShopModal.css';
 const HEART_ITEM = { id: 'corazon_extra', name: 'Corazón extra', desc: 'Una vida más al empezar', price: 50 };
 const MAGIC_HEART_ITEM = { id: 'corazon_magico', name: 'Corazón mágico', desc: '5s de invulnerabilidad', price: 100 };
 const MAGIC_HEART_MAX = 2;
-const GREEN_HEART_ITEM = { id: 'corazon_verde', name: 'Corazón verde', desc: 'Absorbe 1 golpe sin perder vida', price: 150 };
+const GREEN_HEART_ITEM = { id: 'corazon_verde', name: 'Escudo verde', desc: 'Absorbe 1 golpe sin perder vida', price: 150 };
 const GREEN_HEART_MAX = 3; // si se cambia, actualizar tambien el mismo numero en RunnerScreen.jsx (huecos fijos en la fila de vidas)
 // Cada corazon tiene su PROPIO cooldown de 24h independiente (no un unico "primero del dia"): puedes
 // sacar 1 gratis de CADA uno el mismo dia si vas probando. El mismo boton de comprar de siempre pasa a
@@ -172,7 +172,7 @@ export default function LadyRunShopModal({
             {tutStep === GREEN_HEART_ITEM.id && (
                 <LadyRunTutorialCallout
                     targetSelector='[data-tutorial="lady-run-tut-corazon_verde"]'
-                    title="Corazón verde"
+                    title="Escudo verde"
                     text="Cómpralo con Chapas. Te absorbe un golpe sin quitarte vida real, pero se gasta al usarlo."
                     actionLabel={greenUsable ? null : 'Entendido'}
                     onAction={greenUsable ? undefined : onTutAdvance}
@@ -182,7 +182,7 @@ export default function LadyRunShopModal({
                 <LadyRunTutorialCallout
                     targetSelector='[data-tutorial="lady-run-tut-corazon_verde"]'
                     title="Vuelve cada día"
-                    text="Cada corazón se puede volver a coger gratis cada 24 horas. Vuelve mañana a por más."
+                    text="Cada uno se puede volver a coger gratis cada 24 horas. Vuelve mañana a por más."
                     actionLabel="Entendido"
                     onAction={onTutAdvance}
                 />

@@ -8,6 +8,7 @@ import prologoPart2Bg from '../../assets/ui/icons-hud/hud-modals/game-run/assets
 import historiaMenuBg from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/assets-hud-ui/fondos/fondo-principal-historia.webp';
 import historiaMenuBg2 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/assets-hud-ui/fondos/fondo-principal-historia2.webp';
 import historiaMenuBg3 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/assets-hud-ui/fondos/fondo-principal-historia3.webp';
+import historiaTrailerBg from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/assets-hud-ui/fondos/trailer/fondo-trailer.webp';
 import chapterSelectBg from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/assets-hud-ui/fondos/fondo-fijo-seleccion.webp';
 import tavernCoinIcon from '../../assets/ui/icons-hud/hud-principal/coin-tavern1.webp';
 import jumpBtnIcon1 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/btn-action/jump-1.webp';
@@ -19,7 +20,7 @@ import lifeHeart1 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/
 import lifeHeart2 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/vida-base-2.webp';
 import lifeHeart3 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/vida-base-3.webp';
 import lifeHeart4 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/vida-base-4.webp';
-import lifeGreenIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/life-green.webp';
+import lifeGreenIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/shield-green.webp';
 import magicHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/corazon-magico.webp';
 import pawFill0 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-0.webp';
 import pawFill1 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-1.webp';
@@ -32,7 +33,7 @@ import { DogsConfig } from '../../game/config/DogsConfig.js';
 import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
 import { saveLadyRunOnlineRun } from '../../game/utils/ladyRunOnlineRuns.js';
 import { useLadyRunMusic } from '../../game/hooks/useLadyRunMusic.js';
-import { LIBRE_SCENE_MUSIC, MINAS_MUSIC_TRACKS, BG_PRINCIPAL_TRACK } from './runnerMusic.js';
+import { LIBRE_SCENE_MUSIC, MINAS_MUSIC_TRACKS, BG_PRINCIPAL_TRACK, HISTORIA_TRAILER_TRACK } from './runnerMusic.js';
 import LadyRunShopModal from './LadyRunShopModal.jsx';
 import LadyRunRankingModal from './LadyRunRankingModal.jsx';
 import LadyRunAvatarModal from './LadyRunAvatarModal.jsx';
@@ -300,6 +301,16 @@ const PROLOGO_PART0_HOLD_MS = 1400;
 const PROLOGO_PART05_TYPE_SPEED_MS = 60;
 const PROLOGO_PART05_HOLD_MS = 1400;
 const PROLOGO_SCENE1_BTN_DELAY_MS = 16000;
+
+// Trailer de Historia (ver historiaTrailerOpen): mismas 3 primeras lineas del prologo real
+// (PROLOGO_PART0_TEXT + PROLOGO_PART05_TEXT), a ojo por ahora, se corrige el timing luego. Se
+// reproduce UNA sola vez (no en bucle, ver historiaTrailerBeat) y se queda en la ultima linea.
+const HISTORIA_TRAILER_LINES = [
+    'Durante años, Lady llevó una vida sencilla.',
+    'Dormir. Comer. Pasear. Volver a dormir.',
+    'Hasta que un día...',
+];
+const HISTORIA_TRAILER_LINE_GAP_MS = 2500;
 const HISTORIA_MENU_BG_DURATIONS_MS = [12000, 6000, 8000]; // historia1 -> historia2 -> historia3 (vuelve al punto de partida) -> loop
 
 // Coordenadas de cada huella DENTRO de la imagen original de map-bosque.webp (941x1672 px reales).
@@ -757,26 +768,74 @@ export default function RunnerScreen({
     const [arcadeSubMode, setArcadeSubMode] = useState(null); // null | 'libre' | 'biome' -- solo 'biome' dispara checkpoints
     const arcadeSubModeRef = useRef(arcadeSubMode);
     arcadeSubModeRef.current = arcadeSubMode;
+    // Trailer de Historia (card "Historia" del menu, todavia bloqueada para jugar de verdad): fondo
+    // animado ya pulido de la escena de absorcion, con lineas de texto encima (no la maquina de
+    // estados real del prologo/historiaStep, es solo un teaser). Declarado aqui arriba (no junto al
+    // resto de modales) porque el efecto de musica de abajo lo necesita ya en su array de deps.
+    const [historiaTrailerOpen, setHistoriaTrailerOpen] = useState(false);
+    const [historiaTrailerBeat, setHistoriaTrailerBeat] = useState(0); // 0 = nada, N = HISTORIA_TRAILER_LINES[N - 1]
     const [libreMusicTrack, setLibreMusicTrack] = useState(null);
+    const prevHistoriaTrailerOpenRef = useRef(historiaTrailerOpen);
+    const musicVolume = (() => {
+        const saved = localStorage.getItem('music_volume_ladyrun');
+        return saved === null ? 0.06 : parseFloat(saved);
+    })();
     // Musica de Modo Libre: en las pantallas de seleccion (antes de darle a Empezar) suena
     // bg-principal. Al darle a Empezar se corta (mientras gira la ruleta no suena musica, solo su
     // SFX), y ya jugando suena 1 pista fija por escenario exterior, o minas (unico interior)
     // sorteando entre sus 2 pistas cada vez que se entra ahi.
     useEffect(() => {
-        if (phase === 'gameover') { setLibreMusicTrack(null); return; }
-        if (runMode === 'historia') { setLibreMusicTrack(null); return; }
-        if (phase === 'ready' && !rouletteOpen) { setLibreMusicTrack(BG_PRINCIPAL_TRACK); return; }
-        if (arcadeSubMode !== 'libre' || rouletteOpen) { setLibreMusicTrack(null); return; }
-        if (libreSceneKey === 'minas') {
-            setLibreMusicTrack(MINAS_MUSIC_TRACKS[Math.floor(Math.random() * MINAS_MUSIC_TRACKS.length)]);
-        } else {
-            setLibreMusicTrack(LIBRE_SCENE_MUSIC[libreSceneKey] ?? null);
+        const computeTrack = () => {
+            if (historiaTrailerOpen) return HISTORIA_TRAILER_TRACK;
+            if (phase === 'gameover') return null;
+            if (runMode === 'historia') return null;
+            if (phase === 'ready' && !rouletteOpen) return BG_PRINCIPAL_TRACK;
+            if (arcadeSubMode !== 'libre' || rouletteOpen) return null;
+            if (libreSceneKey === 'minas') {
+                return MINAS_MUSIC_TRACKS[Math.floor(Math.random() * MINAS_MUSIC_TRACKS.length)];
+            }
+            return LIBRE_SCENE_MUSIC[libreSceneKey] ?? null;
+        };
+        const trailerJustToggled = prevHistoriaTrailerOpenRef.current !== historiaTrailerOpen;
+        prevHistoriaTrailerOpenRef.current = historiaTrailerOpen;
+        if (!trailerJustToggled) {
+            setLibreMusicTrack(computeTrack());
+            return undefined;
         }
-    }, [phase, runMode, arcadeSubMode, libreSceneKey, rouletteOpen]);
-    const musicVolume = (() => {
-        const saved = localStorage.getItem('music_volume_ladyrun');
-        return saved === null ? 0.06 : parseFloat(saved);
-    })();
+        // Saliendo del trailer de Historia: fade real (baja el volumen de la pista del trailer,
+        // silencio breve, sube el volumen de la nueva), via el mismo evento global que usa el
+        // slider de ajustes para tocar el volumen del audio en curso sin pasar por el hook. Al
+        // ENTRAR al trailer se deja el silencio seco de siempre (ya sonaba bien).
+        if (!historiaTrailerOpen) {
+            let cancelled = false;
+            const rampVolume = async (from, to, durationMs) => {
+                const steps = 15;
+                for (let i = 1; i <= steps; i++) {
+                    if (cancelled) return;
+                    const v = from + (to - from) * (i / steps);
+                    window.dispatchEvent(new CustomEvent('ladyrun-music-volume', { detail: v }));
+                    await new Promise(resolve => setTimeout(resolve, durationMs / steps));
+                }
+            };
+            (async () => {
+                await rampVolume(musicVolume, 0, 300);
+                if (cancelled) return;
+                setLibreMusicTrack(null);
+                await new Promise(resolve => setTimeout(resolve, 150));
+                if (cancelled) return;
+                setLibreMusicTrack(computeTrack());
+                await rampVolume(0, musicVolume, 300);
+            })();
+            return () => { cancelled = true; };
+        }
+        setLibreMusicTrack(null);
+        const t = setTimeout(() => setLibreMusicTrack(computeTrack()), 400);
+        return () => clearTimeout(t);
+        // musicVolume no entra en las deps a proposito: es un valor leido de localStorage en cada
+        // render, no state real, y no queremos que un cambio de volumen (slider de ajustes) por si
+        // solo reinicie/resortee la pista actual (p.ej. minas, que sortea entre 2 pistas al entrar).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [phase, runMode, arcadeSubMode, libreSceneKey, rouletteOpen, historiaTrailerOpen]);
     useLadyRunMusic(libreMusicTrack, musicVolume);
     const [selectedBiomeId, setSelectedBiomeId] = useState(null); // key de BIOMES cuando arcadeSubMode === 'biome'
     const [score, setScore] = useState(0);
@@ -959,6 +1018,37 @@ export default function RunnerScreen({
         }, typeSpeedMs);
         return () => { clearInterval(typeInterval); clearTimeout(holdTimeout); };
     }, [historiaStep, prologoTextIndex]);
+
+    // Trailer de Historia: las 3 lineas salen en fila cada HISTORIA_TRAILER_LINE_GAP_MS, UNA sola vez
+    // (no en bucle); al terminar la ultima, un paso mas (mismo hueco) muestra el boton de Volver +
+    // "Proximamente" en vez de texto.
+    useEffect(() => {
+        if (!historiaTrailerOpen) { setHistoriaTrailerBeat(0); return undefined; }
+        let cancelled = false;
+        const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+        (async () => {
+            for (let i = 0; i < HISTORIA_TRAILER_LINES.length; i++) {
+                if (cancelled) return;
+                setHistoriaTrailerBeat(i + 1);
+                if (i === HISTORIA_TRAILER_LINES.length - 1) {
+                    // SFX "only-send-raid" (ver ladyRunSfx.js, clave 'doubleJump') a los 0.3s de la
+                    // 3era frase (~5.3s del trailer) y otra vez a los 0.8s (~5.8s), a ojo de momento.
+                    await wait(300);
+                    if (cancelled) return;
+                    playLadyRunSfx('doubleJump');
+                    await wait(500);
+                    if (cancelled) return;
+                    playLadyRunSfx('doubleJump');
+                    await wait(HISTORIA_TRAILER_LINE_GAP_MS - 800);
+                } else {
+                    await wait(HISTORIA_TRAILER_LINE_GAP_MS);
+                }
+            }
+            if (cancelled) return;
+            setHistoriaTrailerBeat(HISTORIA_TRAILER_LINES.length + 1);
+        })();
+        return () => { cancelled = true; };
+    }, [historiaTrailerOpen]);
 
     // Escena 1 (animacion de la absorcion): sin texto en pantalla, pero se calcula un tiempo
     // de espera equivalente a lo que tardaria en escribirse PROLOGO_PART1_TEXT (misma velocidad
@@ -3184,10 +3274,12 @@ export default function RunnerScreen({
                                             <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
                                         )}
                                     </button>
-                                    <button className="runner-mode-btn runner-mode-btn-locked" disabled>
-                                        <span className="runner-mode-btn-title">Eventos</span>
-                                        <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
-                                    </button>
+                                    <div className="runner-mode-select-item">
+                                        <button className="runner-mode-btn" onClick={() => setHistoriaTrailerOpen(true)}>
+                                            <span className="runner-mode-btn-title">Historia</span>
+                                        </button>
+                                        <span className="runner-mode-card-tag">Próximamente</span>
+                                    </div>
                                 </div>
                             )}
                             {phase === 'ready' && !runMode && runTutEpilogue === 'ranking' && (
@@ -3523,7 +3615,7 @@ export default function RunnerScreen({
                     <div className="runner-mode-cards-extra">
                         <div className="runner-mode-card-locked runner-mode-card-static-hielo">
                             <button className="runner-mode-btn runner-mode-btn-locked" disabled>
-                                <span className="runner-mode-btn-title">Historia</span>
+                                <span className="runner-mode-btn-title">Eventos</span>
                                 <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
                             </button>
                             <span className="runner-mode-card-tag">Próximamente</span>
@@ -3535,9 +3627,16 @@ export default function RunnerScreen({
                             </button>
                             <span className="runner-mode-card-tag">Próximamente</span>
                         </div>
-                        <div className="runner-mode-card-locked runner-mode-card-static-bosque">
+                        <div className="runner-mode-card-locked runner-mode-card-static-ciudad">
                             <button className="runner-mode-btn runner-mode-btn-locked" disabled>
-                                <span className="runner-mode-btn-title">Online</span>
+                                <span className="runner-mode-btn-title">Recompensas</span>
+                                <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
+                            </button>
+                            <span className="runner-mode-card-tag">Próximamente</span>
+                        </div>
+                        <div className="runner-mode-card-locked runner-mode-card-static-pradera">
+                            <button className="runner-mode-btn runner-mode-btn-locked" disabled>
+                                <span className="runner-mode-btn-title">Misiones</span>
                                 <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
                             </button>
                             <span className="runner-mode-card-tag">Próximamente</span>
@@ -3813,6 +3912,31 @@ export default function RunnerScreen({
                         tutEpilogue={runTutEpilogue}
                         onTutEpilogueAdvance={setRunTutEpilogue}
                     />
+                )}
+
+                {historiaTrailerOpen && (
+                    <div className="lady-run-historia-trailer-overlay" onClick={() => setHistoriaTrailerOpen(false)}>
+                        <img src={historiaTrailerBg} alt="" className="lady-run-historia-trailer-bg" />
+                        <div className="lady-run-historia-trailer-darken" />
+                        <button
+                            className="lady-run-back-btn lady-run-historia-trailer-close"
+                            onClick={e => { e.stopPropagation(); setHistoriaTrailerOpen(false); }}
+                        ><ArrowLeft size={16} /></button>
+                        {historiaTrailerBeat > 0 && historiaTrailerBeat <= HISTORIA_TRAILER_LINES.length && (
+                            <p key={historiaTrailerBeat} className="lady-run-historia-trailer-text lady-run-historia-trailer-text-fade">
+                                {HISTORIA_TRAILER_LINES[historiaTrailerBeat - 1]}
+                            </p>
+                        )}
+                        {historiaTrailerBeat > HISTORIA_TRAILER_LINES.length && (
+                            <div className="lady-run-historia-trailer-final lady-run-historia-trailer-text-fade">
+                                <button
+                                    className="runner-start-btn runner-start-btn-compact"
+                                    onClick={e => { e.stopPropagation(); setHistoriaTrailerOpen(false); }}
+                                >Volver</button>
+                                <span className="runner-mode-card-tag">Próximamente</span>
+                            </div>
+                        )}
+                    </div>
                 )}
 
                 {avatarOpen && (

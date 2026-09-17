@@ -96,6 +96,7 @@ import historiaMenuBg from '../../assets/ui/icons-hud/hud-modals/game-run/assets
 import historiaMenuBg2 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/assets-hud-ui/fondos/fondo-principal-historia2.webp';
 import historiaMenuBg3 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/assets-hud-ui/fondos/fondo-principal-historia3.webp';
 import chapterSelectBg from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/assets-hud-ui/fondos/fondo-fijo-seleccion.webp';
+import historiaTrailerBg from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/assets-hud-ui/fondos/trailer/fondo-trailer.webp';
 
 import pawFill0 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-0.webp';
 import pawFill1 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-1.webp';
@@ -109,7 +110,7 @@ import lifeHeart2 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/
 import lifeHeart3 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/vida-base-3.webp';
 import lifeHeart4 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/vida-base-4.webp';
 import magicHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/corazon-magico.webp';
-import greenHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/life-green.webp';
+import greenHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/shield-green.webp';
 import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
 import jumpBtnIcon1 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/btn-action/jump-1.webp';
 import jumpBtnIcon2 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/btn-action/jump-2.webp';
@@ -122,6 +123,13 @@ import druhGameOver from '../../assets/ui/icons-hud/hud-modals/game-run/assets-p
 import gordoGameOver from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-gordo/gordo-run-firme.webp';
 import ladyGameOver from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-lady/lady-run-firme.webp';
 import nupitoGameOver from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-nupito/nupito-run-firme.webp';
+import tukaGameOver1 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-tuka/tuka-1.webp';
+import zeusGameOver1 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-zeus/zeus-1.webp';
+import tokyoGameOver1 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-perros/animations-tokyo/tokyo-1.webp';
+
+import trophyGold from '../../assets/ui/icons-hud/hud-modals/rankings/copa-oro.webp';
+import trophySilver from '../../assets/ui/icons-hud/hud-modals/rankings/copa-plata.webp';
+import trophyBronze from '../../assets/ui/icons-hud/hud-modals/rankings/copa-bronze.webp';
 
 // Nucleo: lo que hace falta para la pantalla de seleccion y Modo Libre (unico modo jugable ahora
 // mismo, Historia/Tienda estan bloqueados). Esto es lo que bloquea la pantalla de carga inicial.
@@ -141,8 +149,9 @@ export const RUNNER_CORE_PRELOAD_IMAGES = [
     lockIcon, tavernCoinIcon, chapaIcon, huesinIcon, jumpBtnIcon1, jumpBtnIcon2, boneIcon,
     pawFill0, pawFill1, pawFill2, pawFill3, pawFill4, pawFill5,
     lifeHeart0, lifeHeart1, lifeHeart2, lifeHeart3, lifeHeart4, magicHeartIcon, greenHeartIcon,
-    munaGameOver, druhGameOver, gordoGameOver, ladyGameOver, nupitoGameOver,
-    obstaculo3, obstaculo4, obstaculo6, obstaculoArmadillo, obstaculoAereo3,
+    munaGameOver, druhGameOver, gordoGameOver, ladyGameOver, nupitoGameOver, tukaGameOver1, zeusGameOver1, tokyoGameOver1,
+    trophyGold, trophySilver, trophyBronze,
+    obstaculo3, obstaculo4, obstaculo6, obstaculoArmadillo, obstaculoAereo2, obstaculoAereo3,
     runnerFondo1, runnerFondoRunBosque, runnerFondoRunCiudad, runnerFondoRunDesierto, runnerFondoRunMinas, runnerFondoRunPradera, runnerFondoRunHielo,
     libreStaticBosque, libreStaticCiudad, libreStaticDesierto, libreStaticMinas, libreStaticPradera, libreStaticHielo,
 ];
@@ -151,9 +160,10 @@ export const RUNNER_CORE_PRELOAD_IMAGES = [
 // jugar. Se precarga en segundo plano sin bloquear la pantalla de carga, por si se desbloquea.
 export const RUNNER_HISTORIA_PRELOAD_IMAGES = [
     obstaculo2, obstaculoRata, obstaculoTopo1, obstaculoGato1,
-    obstaculoAereo, obstaculoAereo2, obstaculoAereoCuevas, obstaculoAereoCuevas2,
+    obstaculoAereo, obstaculoAereoCuevas, obstaculoAereoCuevas2,
     fuegoObstacle, electricoObstacle, aguaObstacle, tierraObstacle, oscuroObstacle, attackAgua, attackElectrico, attackBatsBoss,
     batBoss, minaBoss1, minaBoss2, spider001, spider002, spiderBossFinal,
     escenarioMina1, escenarioMina2, escenarioMina3, escenarioCiudad1, escenarioCiudad2, escenarioCiudad3,
     prologoScene1, prologoScene0, prologoScene05, prologoPart2Bg, historiaMenuBg, historiaMenuBg2, historiaMenuBg3, chapterSelectBg,
+    historiaTrailerBg,
 ];
