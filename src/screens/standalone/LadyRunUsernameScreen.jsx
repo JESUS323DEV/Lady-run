@@ -2,7 +2,7 @@ import { useState } from 'react';
 import logoLadyRun1 from '../../assets/ui/icons-hud/hud-modals/game-run/logo/logo-lady-run1.webp';
 import '../../styles/standalone/LadyRunUsernameScreen.css';
 
-const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,10}$/;
 
 // Paso previo a LadyRunLanding la primera vez que se juega: elegir el ID del ranking global.
 // Va sobre una cuenta anonima ya creada (ver useLadyRunProfile), asi que aqui no hay password
@@ -15,7 +15,7 @@ const LadyRunUsernameScreen = ({ onSubmit, submitting, errorMsg }) => {
         e.preventDefault();
         const trimmed = value.trim();
         if (!USERNAME_REGEX.test(trimmed)) {
-            setLocalError('3-20 caracteres: letras, números o guión bajo.');
+            setLocalError('3-10 caracteres: letras, números o guión bajo.');
             return;
         }
         setLocalError(null);
@@ -33,7 +33,7 @@ const LadyRunUsernameScreen = ({ onSubmit, submitting, errorMsg }) => {
                     value={value}
                     onChange={e => setValue(e.target.value)}
                     placeholder="Tu ID"
-                    maxLength={20}
+                    maxLength={10}
                     autoFocus
                     disabled={submitting}
                 />
