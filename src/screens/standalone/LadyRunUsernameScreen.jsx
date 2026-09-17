@@ -26,7 +26,7 @@ const LadyRunUsernameScreen = ({ onSubmit, submitting, errorMsg }) => {
         <div className="lady-run-username-screen">
             <img src={logoLadyRun1} alt="Lady Run" className="lady-run-username-logo" />
             <p className="lady-run-username-title">Elige tu ID</p>
-            <p className="lady-run-username-subtitle">Así apareces en el ranking global. Sin contraseña.</p>
+            <p className="lady-run-username-subtitle">Así apareces en el ranking global.</p>
             <form className="lady-run-username-form" onSubmit={handleSubmit}>
                 <input
                     type="text"
