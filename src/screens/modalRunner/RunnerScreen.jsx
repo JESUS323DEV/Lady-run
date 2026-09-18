@@ -226,6 +226,9 @@ function getLifeSlotAsset(lives, slotIndex) {
 // Debe coincidir con GREEN_HEART_MAX en LadyRunShopModal.jsx. 3 huecos fijos, igual que las vidas: los
 // que no tienes se muestran en gris (filtro CSS, sin asset nuevo), ver .runner-life-heart-img-empty.
 const GREEN_HEART_MAX = 3;
+// Debe coincidir con MAGIC_HEART_MAX en LadyRunShopModal.jsx (solo usado aqui para saber si el
+// corazon magico sigue siendo "comprable" de cara al brillo del boton Tienda).
+const MAGIC_HEART_MAX = 2;
 
 // Marcador de progreso de Modo Libre: una pata que se va llenando (0 a 5) cada vez que se cruza
 // una recompensa, tope en 5. Al perder, esto luego alimenta una recompensa extra (logica pendiente).
@@ -385,7 +388,16 @@ const LIBRE_SCENES = ['bosque', 'ciudad', 'desierto', 'minas', 'pradera', 'hielo
 // cada fase). Al completar los 3, empieza otra fase con la duracion de sus tramos x1.5 (se sigue
 // alargando fase tras fase). Nunca hay pantalla de "victoria", solo se cobra todo lo acumulado al
 // perder.
-const RUN_BASE_INTERVALS_S = [20, 25, 30]; // duracion de cada tramo dentro de una fase, no acumulado
+// Duracion de cada tramo dentro de una fase, no acumulado. Fácil mas corto que Medio/Dificil (gente
+// que recien empieza tarda en llegar hasta al 1er tramo) - las proporciones son casi identicas
+// (27/59/100% vs 27/60/100%), asi que RUN_MARK_PERCENTS de abajo (basado en medio/dificil) sigue
+// valiendo visualmente para las 3 dificultades sin tener que duplicarlo tambien.
+const RUN_BASE_INTERVALS_S_BY_DIFFICULTY = {
+    facil: [10, 12, 15],
+    medio: [20, 25, 30],
+    dificil: [20, 25, 30],
+};
+const RUN_BASE_INTERVALS_S = RUN_BASE_INTERVALS_S_BY_DIFFICULTY.medio; // usado solo para RUN_MARK_PERCENTS (visual, ver arriba)
 const RUN_PHASE_TIME_MULTIPLIER = 1.5; // cada fase completa multiplica la duracion de la siguiente
 // Posicion de las 3 marcas en la barra, como % del total de la fase: el multiplicador de fase
 // afecta a los 3 tramos por igual, asi que la proporcion (y por tanto el % en la barra) no cambia.
@@ -889,6 +901,12 @@ export default function RunnerScreen({
     const [bossWindupDurationMs, setBossWindupDurationMs] = useState(BOSS_WINDUP_MS);
     const [scoresOpen, setScoresOpen] = useState(false);
     const [shopOpen, setShopOpen] = useState(false);
+    // Brillo de "te llega el dinero" del boton Tienda (independiente del brillo de "hay algo gratis"
+    // por cooldown): no es un recalculo constante, es por item. Cada vez que entras a la Tienda se
+    // "marcan como vistos" los items que YA eran comprables en ese momento; solo vuelve a brillar si
+    // un item DISTINTO se vuelve comprable despues de esa visita. Se resetea solo (empieza vacio) al
+    // recargar/volver a abrir el juego, no hace falta persistirlo.
+    const [seenAffordableShopItems, setSeenAffordableShopItems] = useState([]);
     const [rankingOpen, setRankingOpen] = useState(false);
     const [avatarOpen, setAvatarOpen] = useState(false);
     const [skinsOpen, setSkinsOpen] = useState(false);
@@ -1888,7 +1906,8 @@ export default function RunnerScreen({
                 const tramoInPhase = runTotalMilestonesRef.current % 3;
                 const phaseIndex = Math.floor(runTotalMilestonesRef.current / 3);
                 const phaseMult = RUN_PHASE_TIME_MULTIPLIER ** phaseIndex;
-                const phaseDurations = RUN_BASE_INTERVALS_S.map(s => s * phaseMult);
+                const baseIntervals = RUN_BASE_INTERVALS_S_BY_DIFFICULTY[difficulty] ?? RUN_BASE_INTERVALS_S_BY_DIFFICULTY.medio;
+                const phaseDurations = baseIntervals.map(s => s * phaseMult);
                 const phaseTotal = phaseDurations[0] + phaseDurations[1] + phaseDurations[2];
 
                 if (runFlagElRef.current) {
@@ -3582,14 +3601,24 @@ export default function RunnerScreen({
                         const last = dailyFreeClaimedAt[id];
                         return !last || (Date.now() - last) >= SHOP_DAILY_FREE_COOLDOWN_MS;
                     });
+                    // Brillo aparte por "te llega el dinero" (mismos precios que LadyRunShopModal.jsx):
+                    // no se recalcula sin mas, solo avisa de items NUEVOS que se vuelven comprables
+                    // despues de la ultima vez que entraste a la Tienda (ver seenAffordableShopItems).
+                    const affordableShopItems = [
+                        chapas >= 10 ? 'corazon_extra' : null,
+                        tavernCoins >= 15 && magicHearts < MAGIC_HEART_MAX ? 'corazon_magico' : null,
+                        chapas >= 15 && greenHearts < GREEN_HEART_MAX ? 'corazon_verde' : null,
+                    ].filter(Boolean);
+                    const hasNewAffordableShopItem = affordableShopItems.some(id => !seenAffordableShopItems.includes(id));
                     return (
                     <div className={`runner-mode-card-shop runner-mode-card-static-pradera${ladyRunTutStep === 'tienda' ? ' lady-run-tut-highlight' : ''}`}>
                         <button
-                            className={`runner-mode-btn${ladyRunTutStep === 'tienda' ? ' lady-run-tut-tienda-btn-highlight' : ''}${hasFreeShopItem && ladyRunTutStep !== 'tienda' ? ' runner-difficulty-bonus-glow' : ''}`}
+                            className={`runner-mode-btn${ladyRunTutStep === 'tienda' ? ' lady-run-tut-tienda-btn-highlight' : ''}${(hasFreeShopItem || hasNewAffordableShopItem) && ladyRunTutStep !== 'tienda' ? ' runner-difficulty-bonus-glow' : ''}`}
                             data-tutorial="lady-run-tut-tienda"
                             onClick={() => {
                                 playLadyRunSfx('buttonMode');
                                 setShopOpen(true);
+                                setSeenAffordableShopItems(affordableShopItems);
                                 if (ladyRunTutStep === 'tienda') advanceLadyRunTutorial();
                             }}
                         >
