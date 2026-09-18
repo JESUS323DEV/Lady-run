@@ -22,6 +22,7 @@ Lista de ideas/features en marcha o por hacer. Se va actualizando según avanzam
 - [x] Arreglado (2026-09-14): el botón se ocultaba mal y tapaba la flecha "←" de Tienda/Ranking/la propia pantalla de avatar (mismo hueco fijo en pantalla, no se ocultaba mientras esos modales estaban abiertos). Ahora su condición incluye `!shopOpen && !rankingOpen && !avatarOpen`.
 - [x] El Ranking ya muestra el avatar equipado en vez del círculo vacío cuando existe.
 - Cambiar el ID sigue aparcado (no entra en esta versión, ver sección Auth/Usuarios).
+- Bug conocido, solo en iPhone/Safari (2026-09-17): en el paso `avatar_marcos` del tutorial, el popover de Marcos a veces se cierra (X o tocar fuera) sin que el tutorial avance, dejando el paso atascado para siempre (nunca aparece la flecha de volver, que solo sale en `avatar_volver`). En Android funciona bien. Se metió una red de seguridad en `LadyRunAvatarModal.jsx` (si el popover se cierra estando ya listo, fuerza el avance igual, sin depender de que el cierre original lo disparara bien), pero no está confirmado si arregla el caso real - la prima del usuario lo sigue reportando en su iPhone tras el arreglo. Teoria mas probable: la rejilla de Marcos tiene scroll (`overflow-y: auto`) y hay un fallo conocido de iOS Safari donde el primer toque justo despues de hacer scroll en un contenedor a veces no dispara el evento de click. Si se confirma, el arreglo seria quitar el scroll del popover o agrandar la zona de toque de la X. Pendiente de que alguien pruebe en un iPhone real para confirmar.
 
 ## UI / Selector de perro
 

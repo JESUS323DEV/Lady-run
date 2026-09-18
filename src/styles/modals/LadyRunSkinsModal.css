@@ -22,10 +22,15 @@
 }
 
 .lady-run-skin-equip-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: rgba(20, 14, 8, 0.97);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    padding-bottom: 4px;
 }
 
 .lady-run-skin-equip-title {
@@ -35,8 +40,8 @@
 }
 
 .lady-run-skin-equip-close {
-    width: 22px;
-    height: 22px;
+    width: 32px;
+    height: 32px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
