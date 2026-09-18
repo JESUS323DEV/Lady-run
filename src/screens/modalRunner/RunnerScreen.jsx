@@ -734,6 +734,8 @@ export default function RunnerScreen({
     onEarnHuesinRef.current = onEarnHuesin;
     const onConsumeGreenHeartRef = useRef(onConsumeGreenHeart);
     onConsumeGreenHeartRef.current = onConsumeGreenHeart;
+    const onUseMagicHeartRef = useRef(onUseMagicHeart);
+    onUseMagicHeartRef.current = onUseMagicHeart;
     const onClaimDailyTramosRef = useRef(onClaimDailyTramos);
     onClaimDailyTramosRef.current = onClaimDailyTramos;
     const onNewDistanceRecordRef = useRef(onNewDistanceRecord);
@@ -762,6 +764,10 @@ export default function RunnerScreen({
     // gastarse (onConsumeGreenHeart resta del inventario persistido en el mismo momento).
     const runGreenHeartsRef = useRef(0);
     const [runGreenHearts, setRunGreenHearts] = useState(0);
+    // Corazon magico: si te queda 1 sola vida y tienes al menos 1 en inventario, el siguiente golpe
+    // lo consume solo (mismo efecto que activarlo a mano) en vez de quitarte esa ultima vida. El boton
+    // manual sigue existiendo igual que siempre, esto es un salvavidas aparte.
+    const magicHeartsRef = useRef(0);
     const [bonusLives, setBonusLives] = useState(0); // corazones extra ganados en checkpoints, se suman al maximo
     const [cpuLives, setCpuLives] = useState(MAX_LIVES);
     const [rivalsDefeated, setRivalsDefeated] = useState(0);
@@ -1320,6 +1326,7 @@ export default function RunnerScreen({
         setBonusLives(0);
         runGreenHeartsRef.current = greenHearts;
         setRunGreenHearts(greenHearts);
+        magicHeartsRef.current = magicHearts;
         setCpuLives(MAX_LIVES);
         setRivalsDefeated(0);
         setCheckpointOpen(false);
@@ -2813,6 +2820,15 @@ export default function RunnerScreen({
                     onConsumeGreenHeartRef.current?.();
                 } else {
                     setLives(prev => {
+                        // Salvavidas: si esta es tu ultima vida y tienes corazon magico en inventario,
+                        // se consume solo y te da su invulnerabilidad normal en vez de matarte.
+                        if (prev === 1 && magicHeartsRef.current > 0) {
+                            magicHeartsRef.current -= 1;
+                            invulnUntilRef.current = now + MAGIC_HEART_INVULN_MS;
+                            playLadyRunSfx('magicHeart');
+                            onUseMagicHeartRef.current?.();
+                            return prev;
+                        }
                         const next = prev - 1;
                         if (next <= 0 && !endingRef.current) {
                             endingRef.current = true;
@@ -3247,9 +3263,10 @@ export default function RunnerScreen({
                         <div className={`runner-overlay${phase === 'gameover' ? ' runner-overlay-gameover' : ''}${menuBlank ? ' runner-overlay-blank' : ''}`}>
                             {phase === 'ready' && !runMode && !shopOpen && !rankingOpen && !avatarOpen && !skinsOpen && (
                                 <button
-                                    className={`lady-run-avatar-trigger${ladyRunTutStep === 'avatar_hud' ? ' lady-run-tut-highlight' : ''}`}
+                                    className={`lady-run-avatar-trigger${ladyRunTutStep === 'avatar_hud' ? ' lady-run-tut-highlight' : ''}${historiaTrailerOpen ? ' lady-run-avatar-trigger-disabled' : ''}`}
                                     data-tutorial="lady-run-tut-avatar-hud"
                                     onClick={() => {
+                                        if (historiaTrailerOpen) return;
                                         playLadyRunSfx('buttonMode');
                                         setAvatarOpen(true);
                                         if (ladyRunTutStep === 'avatar_hud') advanceLadyRunTutorial();

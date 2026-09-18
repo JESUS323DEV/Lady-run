@@ -1076,6 +1076,7 @@
 }
 
 .lady-run-historia-trailer-close {
+    top: 54px;
     z-index: 21;
 }
 
@@ -1533,6 +1534,10 @@
     z-index: 601;
 }
 
+.lady-run-avatar-trigger-disabled {
+    cursor: default;
+}
+
 .lady-run-avatar-trigger-frame {
     position: absolute;
     inset: 0;
@@ -1579,17 +1584,18 @@
 
 .runner-jump-hub .runner-magic-heart-sat {
     position: absolute;
-    top: -14px;
-    right: -22px;
-    width: 46px;
-    height: 46px;
+    top: 24px;
+    right: -57px;
+    transform: translateY(-50%);
+    width: 65px;
+    height: 65px;
     border: none;
     background: none;
 }
 
 .runner-jump-hub .runner-magic-heart-sat .runner-power-btn-img {
-    width: 32px;
-    height: 32px;
+    width: 90px;
+    height: 90px;
 }
 
 .runner-jump-hub .runner-magic-heart-sat .runner-power-btn-charges {
