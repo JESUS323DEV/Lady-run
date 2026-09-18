@@ -31,7 +31,7 @@ import pawFill5 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/ic
 import huesinIcon from '../../assets/ui/icons-hud/hud-principal/huesin-coin.webp';
 import { DogsConfig } from '../../game/config/DogsConfig.js';
 import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
-import { saveLadyRunOnlineRun } from '../../game/utils/ladyRunOnlineRuns.js';
+import { saveLadyRunOnlineRun, getLadyRunBestDistance } from '../../game/utils/ladyRunOnlineRuns.js';
 import { useLadyRunMusic } from '../../game/hooks/useLadyRunMusic.js';
 import { LIBRE_SCENE_MUSIC, MINAS_MUSIC_TRACKS, BG_PRINCIPAL_TRACK, HISTORIA_TRAILER_TRACK } from './runnerMusic.js';
 import LadyRunShopModal from './LadyRunShopModal.jsx';
@@ -2833,19 +2833,25 @@ export default function RunnerScreen({
                         const next = prev - 1;
                         if (next <= 0 && !endingRef.current) {
                             endingRef.current = true;
-                            setTimeout(() => {
+                            setTimeout(async () => {
                                 if (arcadeSubMode === 'libre') {
                                     claimRunMilestoneRewards(runTotalMilestonesRef.current);
                                     setObstacles([]);
                                     const meters = Math.floor(runDistanceRef.current / METERS_PER_PX);
                                     setRunMetersEarned(meters);
-                                    if (meters > bestMetersForDog) {
+                                    // Record local por perro (independiente del cartel de "Nuevo record"),
+                                    // se guarda para usarlo mas adelante en la card de cada perro.
+                                    if (meters > bestMetersForDog) onNewDistanceRecordRef.current?.(selectedDogId, meters);
+                                    // "Nuevo record" real: contra tu mejor distancia de verdad en esta
+                                    // dificultad (todos los perros, la misma fuente que el Ranking), no
+                                    // contra nada guardado en local.
+                                    const prevBest = await getLadyRunBestDistance({ difficulty });
+                                    if (meters > prevBest) {
                                         setRunIsNewRecord(true);
                                         setRunBestMeters(meters);
-                                        onNewDistanceRecordRef.current?.(selectedDogId, meters);
                                     } else {
                                         setRunIsNewRecord(false);
-                                        setRunBestMeters(bestMetersForDog);
+                                        setRunBestMeters(prevBest);
                                     }
                                 }
                                 setWon(false);
