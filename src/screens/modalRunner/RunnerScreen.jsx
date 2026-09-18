@@ -3806,10 +3806,6 @@ export default function RunnerScreen({
                                         className={`runner-dog-select-btn dog-rarity-${DogsConfig[id]?.rarity} runner-dog-select-elembg-${DogsConfig[id]?.element}${selectedDogId === id && !hideActiveForTutorial ? ' runner-dog-select-active' : ''}${needsUnlock ? ' runner-dog-select-locked' : ''}`}
                                         onClick={() => {
                                             if (needsUnlock) { if (canAfford) onUnlockDog?.(id); return; }
-                                            if (!prologoDogPick && selectedDogId === id && SKIN_CATALOG[id]) {
-                                                setSkinEquipOpenDogId(id);
-                                                return;
-                                            }
                                             playLadyRunSfx('doubleJump');
                                             setSelectedDogId(id);
                                             if (libreTutStep === 'perros') setLibreTutDogPicked(true);
