@@ -89,3 +89,10 @@ Divagaciones sin decidir, no hay compromiso de hacerlas, solo quedan apuntadas p
 ## PWA / Instalable
 
 - Pendiente (2026-09-17): convertir Lady Run en webapp instalable (Add to Home Screen en Android/iOS), para que el jugador tenga un icono propio en vez de tener que buscar el link cada vez. Necesita `manifest.json` + icono cuadrado + meta tags en `index.html`. Decidido de momento SIN Service Worker (un SW mal llevado es la causa típica de que una PWA se quede pillada en una version vieja, justo el problema que ya cuesta evitar con `useNewVersionAvailable.js` - sin SW, en Android hay que darle a mano a "Añadir a pantalla de inicio" desde el menú en vez de salir un banner automático de instalar, pero se sigue pudiendo confiar en el sistema de deteccion de updates que ya existe).
+
+## SEO / Analytics
+
+- Hecho (2026-09-18): meta tags basicos, Open Graph, Twitter Card, JSON-LD, robots.txt, favicon, contenido crawleable de respaldo (`index.html`).
+- Pendiente: dar de alta el sitio en Google Search Console (`ladyrun.jesusdev.es`) y meter el meta tag de verificacion que da Google - lo tiene que crear el usuario, no se puede hacer desde aqui.
+- Pendiente: revisar en Netlify que no sirva la web duplicada en `www.ladyrun.jesusdev.es` ademas de `ladyrun.jesusdev.es` (contenido duplicado).
+- Pendiente: Analytics (Google Analytics GA4 u otro) para Lady Run - el usuario no tiene ninguna cuenta creada todavia para este proyecto (la de su portfolio jesusdev.es es aparte, no vale para esto). Cuando quiera, decidir proveedor (GA4 vs alternativa tipo Plausible) y crear la cuenta antes de integrar el codigo.
