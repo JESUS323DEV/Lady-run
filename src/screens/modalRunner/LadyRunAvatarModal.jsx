@@ -63,29 +63,22 @@ export default function LadyRunAvatarModal({
     };
 
     // Igual para el picker de Marcos: la X y el fondo del popover no cierran hasta que pasen los
-    // 2.5s de "marcosTutCloseReady" (momento en el que empieza a brillar).
+    // 2.5s de "marcosTutCloseReady" (momento en el que empieza a brillar). Cerrar aqui YA NO hace
+    // avanzar el tutorial (ver handleFrameAction) - cerrar sin equipar solo te deja salir a mirar.
     const marcosCloseReady = tutStep !== 'avatar_marcos' || marcosTutCloseReady;
     const handleMarcosClose = () => {
         if (!marcosCloseReady) return;
-        if (tutStep === 'avatar_marcos') onTutAdvance?.();
         setFramePickerOpen(false);
     };
 
-    // Red de seguridad (visto en iPhone/Safari: el popover a veces se cierra sin que el aviso de
-    // avanzar tutorial llegue a dispararse a la vez). Si el picker se cierra por CUALQUIER via
-    // estando todavia en 'avatar_marcos': si ya estaba listo para cerrar, avanza el tutorial de
-    // todas formas; si se cerro antes de tiempo, resetea para que la proxima vez que se abra
-    // Marcos se vea limpio desde el principio en vez de quedarse en un estado a medias.
+    // Si el picker se cierra sin haber equipado nada (X, fondo, etc.) estando todavia en
+    // 'avatar_marcos', resetea el estado del tutorial para que la proxima vez que se abra Marcos
+    // se vea limpio desde el principio en vez de quedarse en un estado a medias.
     useEffect(() => {
         if (framePickerOpen || tutStep !== 'avatar_marcos') return;
-        if (marcosTutCloseReady) {
-            onTutAdvance?.();
-        } else {
-            setMarcosTutContinued(false);
-            setMarcosTutCloseReady(false);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- solo debe reaccionar a que el picker se cierre, no a cada cambio de tutStep/marcosTutCloseReady
-    }, [framePickerOpen]);
+        setMarcosTutContinued(false);
+        setMarcosTutCloseReady(false);
+    }, [framePickerOpen, tutStep]);
 
     const isFrameUnlocked = frame => frame.free || unlockedFrames.includes(frame.id);
     const canAffordFrame = frame => (frame.price.chapas ?? 0) <= chapas && (frame.price.tavernCoins ?? 0) <= tavernCoins && (frame.price.huesin ?? 0) <= huesin;
@@ -106,12 +99,22 @@ export default function LadyRunAvatarModal({
         setFramePreview(frame);
     };
 
+    // Marca el paso "avatar_marcos" del tutorial como completo: equipar un marco de verdad (no
+    // cerrar el popover) es lo que hace avanzar el tutorial, y cerramos el popover nosotros mismos
+    // en el momento - evita depender del evento de cierre, que fallaba en iPhone.
+    const advanceMarcosTutIfNeeded = () => {
+        if (tutStep !== 'avatar_marcos') return;
+        onTutAdvance?.();
+        setFramePickerOpen(false);
+    };
+
     const handleFrameAction = async () => {
         if (!framePreview) return;
         if (isFrameUnlocked(framePreview)) {
             playLadyRunSfx('buttonMode');
             onEquipFrame?.(framePreview.id);
             setFramePreview(null);
+            advanceMarcosTutIfNeeded();
             return;
         }
         setFrameBuyError(false);
@@ -123,6 +126,7 @@ export default function LadyRunAvatarModal({
             return;
         }
         playLadyRunSfx('rewardGold');
+        advanceMarcosTutIfNeeded();
         setTimeout(() => {
             setFrameBuying(false);
             setFramePreview(null);
