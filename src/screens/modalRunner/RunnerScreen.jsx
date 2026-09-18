@@ -758,6 +758,8 @@ export default function RunnerScreen({
     const dailyTramosClaimedToday = dailyTramosClaimedByDifficulty?.[difficulty] ?? 0; // tramos de "meta" ya cobrados hoy en esta dificultad, no vuelven a pagar
     const bestMetersForDog = bestDistanceByDog?.[selectedDogId] ?? 0; // record de distancia guardado para el perro actual
     const [lives, setLives] = useState(MAX_LIVES);
+    const livesRef = useRef(MAX_LIVES);
+    useEffect(() => { livesRef.current = lives; }, [lives]);
     // Corazones verdes: escudo comprado en Tienda, se activan al empezar la run con el total que tengas
     // guardado (greenHearts, persistido), y se consumen 1 a 1 en cada golpe EN VEZ de vida real. Solo
     // cuando se agotan, los golpes vuelven a restar vida real como siempre. Se pierden de verdad al
@@ -1323,6 +1325,7 @@ export default function RunnerScreen({
         if (runFlagElRef.current) runFlagElRef.current.style.left = '0%';
         setCpuAirborne(false);
         setLives(MAX_LIVES + pendingHeartsBonus);
+        livesRef.current = MAX_LIVES + pendingHeartsBonus;
         setBonusLives(0);
         runGreenHeartsRef.current = greenHearts;
         setRunGreenHearts(greenHearts);
@@ -2818,17 +2821,15 @@ export default function RunnerScreen({
                     runGreenHeartsRef.current -= 1;
                     setRunGreenHearts(runGreenHeartsRef.current);
                     onConsumeGreenHeartRef.current?.();
+                } else if (livesRef.current === 1 && magicHeartsRef.current > 0) {
+                    // Salvavidas: si esta es tu ultima vida y tienes corazon magico en inventario, se
+                    // consume solo y te da su invulnerabilidad normal en vez de matarte (no toca setLives).
+                    magicHeartsRef.current -= 1;
+                    invulnUntilRef.current = now + MAGIC_HEART_INVULN_MS;
+                    playLadyRunSfx('magicHeart');
+                    onUseMagicHeartRef.current?.();
                 } else {
                     setLives(prev => {
-                        // Salvavidas: si esta es tu ultima vida y tienes corazon magico en inventario,
-                        // se consume solo y te da su invulnerabilidad normal en vez de matarte.
-                        if (prev === 1 && magicHeartsRef.current > 0) {
-                            magicHeartsRef.current -= 1;
-                            invulnUntilRef.current = now + MAGIC_HEART_INVULN_MS;
-                            playLadyRunSfx('magicHeart');
-                            onUseMagicHeartRef.current?.();
-                            return prev;
-                        }
                         const next = prev - 1;
                         if (next <= 0 && !endingRef.current) {
                             endingRef.current = true;
