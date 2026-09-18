@@ -256,9 +256,11 @@ const DOG_ICONS = {
     dayo: dayoIcon, katrina: katrinaIcon, prince: princeIcon,
 };
 
-// Opciones de avatar (pantalla de usuario): solo los perros ya desbloqueados (UNLOCKED_DOG_IDS,
-// no los de "Proximamente"). Mismo icono que se ve en el Ranking una vez equipado.
-const AVATAR_OPTIONS = UNLOCKED_DOG_IDS.map(id => ({ id, name: DogsConfig[id]?.name ?? id, icon: DOG_ICONS[id] }));
+// Opciones de avatar (pantalla de usuario): TODOS los perros, incluidos los "Proximamente"
+// (LOCKED_DOG_IDS) - esos no se pueden jugar todavia en Modo Libre (les falta animacion de correr),
+// pero su icono ya existe y sirve igual como avatar/Ranking, no hace falta esperar a que esten
+// pulidos para eso. Mismo icono que se ve en el Ranking una vez equipado.
+const AVATAR_OPTIONS = DOG_SELECT_ORDER.map(id => ({ id, name: DogsConfig[id]?.name ?? id, icon: DOG_ICONS[id] }));
 
 // Nombre legible por perro, para la tienda de Skins (ver LadyRunSkinsModal.jsx). La rareza de cada
 // skin ya viene del propio catalogo (ladyRunSkinsCatalog.js), no depende de la rareza del perro.
@@ -378,8 +380,26 @@ const AERIAL_OBSTACLE_IMGS_MINA_CUEVAS = [obstaculoAereoCuevas, obstaculoAereoCu
 const GROUND_VISUAL_OFFSET = 12; // sube el perro un poco para que pise el camino del fondo, no la piedra de abajo
 const MAX_JUMP_HEIGHT = 130; // tope para que ni el doble salto sobresalga de la card
 const CHECKPOINT_INTERVAL_S = 45; // arcade: cada cuanto tiempo (segundos) aparece la pantalla de meta/recompensa
-const HEART_FIRST_AT_S = 25;  // modo libre: primer corazon extra al llegar al tramo 5 (25s, 5 tramos x 5s)
-const HEART_INTERVAL_S = 20;  // luego uno cada 4 tramos (20s)
+const HEART_FIRST_AT_S_FACIL = 10; // en Facil, primero mas pronto: a los 10s
+// En Facil, tras el 1o, el intervalo sube en 3 escalones segun cuantos corazones lleves ya dados:
+// los 5 siguientes (2o-6o) cada 15s, los 6 siguientes (7o-12o) cada 20s, del 13o en adelante cada 25s.
+const HEART_INTERVAL_S_FACIL_STAGE1 = 15;
+const HEART_INTERVAL_S_FACIL_STAGE2 = 20;
+const HEART_INTERVAL_S_FACIL_STAGE3 = 25;
+const HEART_FACIL_STAGE1_UNTIL_COUNT = 6;  // heartCount < 6 -> stage1 (dando el 2o al 6o)
+const HEART_FACIL_STAGE2_UNTIL_COUNT = 12; // heartCount < 12 -> stage2 (dando el 7o al 12o), si no stage3
+const HEART_FIRST_AT_S_MEDIO = 10; // en Medio, primero tambien a los 10s
+// En Medio, tras el 1o: los 2 siguientes (2o-3o) cada 15s, los 3 siguientes (4o-6o) cada 20s, del 7o en adelante cada 25s.
+const HEART_INTERVAL_S_MEDIO_STAGE1 = 15;
+const HEART_INTERVAL_S_MEDIO_STAGE2 = 20;
+const HEART_INTERVAL_S_MEDIO_STAGE3 = 25;
+const HEART_MEDIO_STAGE1_UNTIL_COUNT = 3; // heartCount < 3 -> stage1 (dando el 2o y 3o)
+const HEART_MEDIO_STAGE2_UNTIL_COUNT = 6; // heartCount < 6 -> stage2 (dando el 4o al 6o), si no stage3
+const HEART_FIRST_AT_S_DIFICIL = 10; // en Dificil, primero tambien a los 10s
+// En Dificil, tras el 1o: los 2 siguientes (2o-3o) cada 15s, del 4o en adelante cada 25s.
+const HEART_INTERVAL_S_DIFICIL_STAGE1 = 15;
+const HEART_INTERVAL_S_DIFICIL_STAGE2 = 25;
+const HEART_DIFICIL_STAGE1_UNTIL_COUNT = 3; // heartCount < 3 -> stage1 (dando el 2o y 3o), si no stage2
 const TAVERN_COIN_TIER_INTERVAL = 4; // modo libre: 1 tavern coin cada 4 tramos, toda la partida
 const MAGIC_HEART_TIER_INTERVAL = 10; // modo libre, todas las dificultades: 1 corazon magico de pista cada 10 tramos, se activa al instante (no se guarda en el inventario)
 const LIBRE_SCENES = ['bosque', 'ciudad', 'desierto', 'minas', 'pradera', 'hielo']; // fondos disponibles en escenarios-run-libre/, se sortea 1 al empezar
@@ -567,7 +587,9 @@ const CPU_DIFFICULTY_PRESETS = {
 };
 const DIFFICULTY_ORDER = ['facil', 'medio', 'dificil'];
 const MEDIUM_PAIR_CHANCE = 0.35; // en Medio, la pareja de obstaculos solo sale esta fraccion de las veces que tocaria en Dificil
-const FACIL_HARD_SWITCH_TIER = 10; // en Facil, a partir de este tramo las parejas se comportan como en Dificil (limite natural)
+const FACIL_HARD_SWITCH_TIER = 7; // en Facil, a partir de este tramo (~50s) las parejas se comportan como en Dificil (limite natural)
+const MEDIO_HARD_SWITCH_TIER = 8; // en Medio, a partir de este tramo (~60s) las parejas se comportan como en Dificil (ya no depende de MEDIUM_PAIR_CHANCE)
+const DIFICIL_SOFT_START_UNTIL_TIER = 3; // en Dificil, tramos 1-2 se comportan como Medio (MEDIUM_PAIR_CHANCE), desde el tramo 3 es Dificil de verdad
 // El regalo de chapas se repite igual en las 3 dificultades: cada 5 tramos (5, 10, 15...).
 const CHAPA_BONUS_INTERVAL_TIER = 5;
 const getChapaBonusIntervalTier = () => CHAPA_BONUS_INTERVAL_TIER;
@@ -1117,7 +1139,8 @@ export default function RunnerScreen({
     const speedTierShownRef = useRef(1);
     const matchTimeRef = useRef(0);
     const nextCheckpointAtRef = useRef(CHECKPOINT_INTERVAL_S);
-    const nextHeartAtRef = useRef(HEART_FIRST_AT_S);
+    const nextHeartAtRef = useRef(HEART_FIRST_AT_S_MEDIO); // valor real se fija en resetStats segun dificultad
+    const heartCountRef = useRef(0); // cuantos corazones de pista se han dado ya en esta run (curva progresiva de Facil)
     const pendingHeartRef = useRef(false);
     const nextTavernCoinAtTierRef = useRef(TAVERN_COIN_TIER_INTERVAL);
     const pendingTavernCoinRef = useRef(false);
@@ -1262,7 +1285,10 @@ export default function RunnerScreen({
         speedTierShownRef.current = 1;
         matchTimeRef.current = 0;
         nextCheckpointAtRef.current = CHECKPOINT_INTERVAL_S;
-        nextHeartAtRef.current = HEART_FIRST_AT_S;
+        nextHeartAtRef.current = difficulty === 'facil' ? HEART_FIRST_AT_S_FACIL
+            : difficulty === 'medio' ? HEART_FIRST_AT_S_MEDIO
+            : HEART_FIRST_AT_S_DIFICIL;
+        heartCountRef.current = 0;
         pendingHeartRef.current = false;
         nextTavernCoinAtTierRef.current = TAVERN_COIN_TIER_INTERVAL;
         pendingTavernCoinRef.current = false;
@@ -2126,11 +2152,26 @@ export default function RunnerScreen({
             let list = obstaclesDataRef.current;
             let spawned = false;
 
-            // Modo Libre: corazon extra cada HEART_INTERVAL_S a partir de HEART_FIRST_AT_S. No se genera
-            // suelto: se marca pendiente y se engancha al PROXIMO obstaculo real (ver mas abajo), exigiendo
+            // Modo Libre: corazon extra en pista, con curva de intervalo progresiva propia por dificultad
+            // (ver constantes HEART_*_FACIL/MEDIO/DIFICIL arriba). No se genera suelto: se marca pendiente
+            // y se engancha al PROXIMO obstaculo real (ver mas abajo), exigiendo
             // la accion contraria a la que hace falta para esquivarlo (asi solo lo coges esquivando bien).
             if (arcadeSubMode === 'libre' && matchTimeRef.current >= nextHeartAtRef.current) {
-                nextHeartAtRef.current += HEART_INTERVAL_S;
+                heartCountRef.current += 1;
+                let heartInterval;
+                if (difficulty === 'facil') {
+                    heartInterval = heartCountRef.current < HEART_FACIL_STAGE1_UNTIL_COUNT ? HEART_INTERVAL_S_FACIL_STAGE1
+                        : heartCountRef.current < HEART_FACIL_STAGE2_UNTIL_COUNT ? HEART_INTERVAL_S_FACIL_STAGE2
+                        : HEART_INTERVAL_S_FACIL_STAGE3;
+                } else if (difficulty === 'medio') {
+                    heartInterval = heartCountRef.current < HEART_MEDIO_STAGE1_UNTIL_COUNT ? HEART_INTERVAL_S_MEDIO_STAGE1
+                        : heartCountRef.current < HEART_MEDIO_STAGE2_UNTIL_COUNT ? HEART_INTERVAL_S_MEDIO_STAGE2
+                        : HEART_INTERVAL_S_MEDIO_STAGE3;
+                } else {
+                    heartInterval = heartCountRef.current < HEART_DIFICIL_STAGE1_UNTIL_COUNT ? HEART_INTERVAL_S_DIFICIL_STAGE1
+                        : HEART_INTERVAL_S_DIFICIL_STAGE2;
+                }
+                nextHeartAtRef.current += heartInterval;
                 pendingHeartRef.current = true;
             }
 
@@ -2202,7 +2243,9 @@ export default function RunnerScreen({
                     // se pueda alargar la partida indefinidamente farmeando moneda sin riesgo real.
                     if (difficulty === 'facil' && tierNow < FACIL_HARD_SWITCH_TIER) {
                         isPair = false;
-                    } else if (difficulty === 'medio') {
+                    } else if (difficulty === 'medio' && tierNow < MEDIO_HARD_SWITCH_TIER) {
+                        isPair = wouldBePair && Math.random() < MEDIUM_PAIR_CHANCE;
+                    } else if (difficulty === 'dificil' && tierNow < DIFICIL_SOFT_START_UNTIL_TIER) {
                         isPair = wouldBePair && Math.random() < MEDIUM_PAIR_CHANCE;
                     } else {
                         isPair = wouldBePair;
