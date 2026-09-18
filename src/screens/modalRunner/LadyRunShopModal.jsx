@@ -16,10 +16,10 @@ import '../../styles/modals/LadyRunShopModal.css';
 // - corazon_verde: se guarda en inventario (tope 5, ladyRunGreenHearts), solo Modo Libre. Al empezar
 //   la run se activan todos como escudo extra: cada golpe consume 1 en vez de vida real, y se pierden
 //   de verdad al gastarse (no vuelven). Si sobran al terminar la run, se quedan para la siguiente.
-const HEART_ITEM = { id: 'corazon_extra', name: 'Corazón extra', desc: 'Una vida más al empezar', price: 50 };
-const MAGIC_HEART_ITEM = { id: 'corazon_magico', name: 'Corazón mágico', desc: '5s de invulnerabilidad', price: 100 };
+const HEART_ITEM = { id: 'corazon_extra', name: 'Corazón extra', desc: 'Una vida más al empezar', price: 10 };
+const MAGIC_HEART_ITEM = { id: 'corazon_magico', name: 'Corazón mágico', desc: '5s de invulnerabilidad', price: 15 };
 const MAGIC_HEART_MAX = 2;
-const GREEN_HEART_ITEM = { id: 'corazon_verde', name: 'Escudo verde', desc: 'Absorbe 1 golpe sin perder vida', price: 150 };
+const GREEN_HEART_ITEM = { id: 'corazon_verde', name: 'Escudo verde', desc: 'Absorbe 1 golpe sin perder vida', price: 15 };
 const GREEN_HEART_MAX = 3; // si se cambia, actualizar tambien el mismo numero en RunnerScreen.jsx (huecos fijos en la fila de vidas)
 // Cada corazon tiene su PROPIO cooldown de 24h independiente (no un unico "primero del dia"): puedes
 // sacar 1 gratis de CADA uno el mismo dia si vas probando. El mismo boton de comprar de siempre pasa a

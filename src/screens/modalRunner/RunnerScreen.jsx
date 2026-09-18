@@ -3574,10 +3574,18 @@ export default function RunnerScreen({
                     )}
                 </div>
 
-                {phase === 'ready' && !runMode && (
+                {phase === 'ready' && !runMode && (() => {
+                    // Brilla el boton de Tienda cuando algun corazon (extra/magico/escudo) ya cumplio
+                    // las 24h y se puede volver a coger gratis - mismo cooldown que LadyRunShopModal.jsx.
+                    const SHOP_DAILY_FREE_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+                    const hasFreeShopItem = ['corazon_extra', 'corazon_magico', 'corazon_verde'].some(id => {
+                        const last = dailyFreeClaimedAt[id];
+                        return !last || (Date.now() - last) >= SHOP_DAILY_FREE_COOLDOWN_MS;
+                    });
+                    return (
                     <div className={`runner-mode-card-shop runner-mode-card-static-pradera${ladyRunTutStep === 'tienda' ? ' lady-run-tut-highlight' : ''}`}>
                         <button
-                            className={`runner-mode-btn${ladyRunTutStep === 'tienda' ? ' lady-run-tut-tienda-btn-highlight' : ''}`}
+                            className={`runner-mode-btn${ladyRunTutStep === 'tienda' ? ' lady-run-tut-tienda-btn-highlight' : ''}${hasFreeShopItem && ladyRunTutStep !== 'tienda' ? ' runner-difficulty-bonus-glow' : ''}`}
                             data-tutorial="lady-run-tut-tienda"
                             onClick={() => {
                                 playLadyRunSfx('buttonMode');
@@ -3600,7 +3608,8 @@ export default function RunnerScreen({
                             <span className="runner-mode-btn-title">Skins</span>
                         </button>
                     </div>
-                )}
+                    );
+                })()}
 
                 {ladyRunTutStep === 'skins_entrar' && (
                     <LadyRunTutorialCallout
