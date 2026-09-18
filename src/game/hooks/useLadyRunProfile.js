@@ -64,7 +64,10 @@ export const useLadyRunProfile = () => {
         setClaiming(false);
 
         if (error) {
-            setClaimError(error.code === '23505' ? 'Ese ID ya está en uso, prueba otro.' : 'No se pudo guardar, inténtalo de nuevo.');
+            const message = error.code === '23505' ? 'Ese ID ya está en uso, prueba otro.'
+                : error.code === '23514' ? 'Ese ID no está permitido, elige otro.'
+                : 'No se pudo guardar, inténtalo de nuevo.';
+            setClaimError(message);
             return false;
         }
         setProfile(data);
