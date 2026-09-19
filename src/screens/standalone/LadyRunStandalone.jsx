@@ -88,12 +88,12 @@ const LadyRunStandalone = () => {
         );
     }
 
-    if (!profile) {
-        return <LadyRunUsernameScreen onSubmit={claimUsername} submitting={claiming} errorMsg={claimError} />;
-    }
-
     if (showLanding) {
         return <LadyRunLanding onPlay={() => setShowLanding(false)} />;
+    }
+
+    if (!profile) {
+        return <LadyRunUsernameScreen onSubmit={claimUsername} submitting={claiming} errorMsg={claimError} />;
     }
 
     return (
