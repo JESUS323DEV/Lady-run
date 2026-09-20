@@ -118,13 +118,16 @@ export default function LadyRunAvatarModal({
     return (
         <div className="lady-run-shop-backdrop" onClick={handleAvatarClose}>
             <div className="lady-run-shop-panel" onClick={e => e.stopPropagation()}>
-                {!avatarTutLocked && (
-                    <button
-                        className={`lady-run-back-btn${tutStep === 'avatar_volver' ? ' lady-run-tut-highlight' : ''}`}
-                        data-tutorial="lady-run-tut-avatar-volver"
-                        onClick={() => { playLadyRunSfx('backButton'); handleAvatarClose(); }}
-                    ><ArrowLeft size={16} /></button>
-                )}
+                {/* Se renderiza SIEMPRE (nunca se inserta de golpe): en iOS/Safari, un boton
+                    position:fixed que aparece recien insertado en el DOM a veces se queda
+                    invisible aunque sigue siendo tocable (bug real, confirmado en un iPhone real
+                    via BrowserStack el 2026-09-20). Estando ya montado desde el principio y solo
+                    cambiando de aspecto/interactividad, evita ese problema de pintado. */}
+                <button
+                    className={`lady-run-back-btn${tutStep === 'avatar_volver' ? ' lady-run-tut-highlight' : ''}${avatarTutLocked ? ' lady-run-back-btn-inert' : ''}`}
+                    data-tutorial="lady-run-tut-avatar-volver"
+                    onClick={() => { if (avatarTutLocked) return; playLadyRunSfx('backButton'); handleAvatarClose(); }}
+                ><ArrowLeft size={16} /></button>
                 <p className="runner-overlay-title">Tu avatar</p>
 
                 <div className="lady-run-avatar-preview">

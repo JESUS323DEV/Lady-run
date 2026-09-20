@@ -6,11 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // Skins (entrar, ver, volver). Paso unico compartido por hook entre el acceso standalone y el
 // embebido (ambos renderizan CurrencyHud + RunnerScreen como hermanos), para no duplicar la secuencia
 // en los 2 sitios. Aislado del tutorial de Pata y Pico, ver feedback_lady_run_independiente_de_patapico.
-// TEMPORAL (desactivado para probar si el bug de iPhone es solo del avatar/marcos o tambien pasa
-// en Tienda/Skins): 'avatar_hud', 'avatar_perro', 'avatar_marcos', 'avatar_volver' quitados del
-// principio, el tutorial arranca directo en las chapas. Volver a meterlos cuando se decida que
-// hacer con el paso de Marcos.
 const STEP_ORDER = [
+    'avatar_hud', 'avatar_perro', 'avatar_marcos', 'avatar_volver',
     'hud_chapas', 'hud_taberna', 'hud_huesin', 'tienda',
     'corazon_extra', 'corazon_magico', 'corazon_verde', 'daily_reminder', 'salir_tienda',
     'skins_entrar', 'skins_volver',
