@@ -1497,18 +1497,18 @@
 }
 
 .lady-run-back-btn {
-    position: fixed;
+    /* Antes era position:fixed - en iPhone real (BrowserStack, 2026-09-20) se quedaba invisible
+       (pero seguia siendo tocable) pase lo que pase con opacity/display/transform, un bug de
+       compositing de iOS asociado a fixed. Se prueba con absolute en su lugar: como todos los
+       contenedores por encima (.lady-run-shop-panel/.lady-run-shop-backdrop, inset:0) ya cubren
+       exactamente el mismo area que cubriria fixed, visualmente deberia quedar identico. */
+    position: absolute;
     top: 20px;
     /* left:10px de toda la vida en movil (donde la columna del juego ocupa el 100% del ancho); en
        desktop la columna esta centrada con max-width:430px (ver .runner-screen), asi que a partir de
        ahi el boton se pega al borde IZQUIERDO de esa columna en vez de al del navegador entero. */
     left: max(10px, calc(50vw - 205px));
-    /* translate3d en vez de translateY fuerza a iOS Safari a crear la capa grafica del elemento
-       fixed de inmediato - sin esto, hay un fallo conocido de WebKit donde un position:fixed se
-       queda invisible aunque siga siendo tocable en su sitio (confirmado en iPhone real). */
-    transform: translate3d(0, -50%, 0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    transform: translateY(-50%);
     display: flex;
     align-items: center;
     justify-content: center;
