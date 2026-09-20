@@ -1254,6 +1254,10 @@ export default function RunnerScreen({
     const useMagicHeart = useCallback(() => {
         if (phase !== 'playing' || paused) return;
         if (magicHearts <= 0) return;
+        // El salvavidas automatico (ultima vida) comprueba magicHeartsRef, no el prop - si no se
+        // resta aqui tambien, se queda desincronizado tras usarlo a mano y el salvavidas se activa
+        // igual aunque ya no te quede ninguno de verdad.
+        magicHeartsRef.current = Math.max(0, magicHeartsRef.current - 1);
         invulnUntilRef.current = performance.now() + MAGIC_HEART_INVULN_MS;
         playLadyRunSfx('magicHeart');
         onUseMagicHeart?.();
