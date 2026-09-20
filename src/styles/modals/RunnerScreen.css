@@ -1571,17 +1571,24 @@
 
 /* .lady-run-tut-highlight pone position:relative por defecto (para las cards de la Tienda, que no
    tienen position propia) - aqui hay que forzar que se quede fixed, si no pierde su sitio en pantalla.
-   Ademas, esta combinacion (fixed + animation con filter infinita, la del brillo) es justo el patron
-   conocido de iOS Safari que manda el elemento a una capa oculta sin pintarlo (invisible pero
-   tocable, confirmado en iPhone real el 2026-09-20) - isolation+translateZ fuerza su propia capa
-   grafica aislada para que WebKit no la esconda detras del fondo. */
+   Bug real de WebKit/Safari, confirmado en iPhone real el 2026-09-20: un filter (el "filter:
+   brightness()" de la animacion del brillo) aplicado sobre un elemento que contiene un SVG inline
+   (nuestro icono de flecha) lo vuelve invisible del todo, aunque siga siendo tocable. Aislar la capa
+   grafica (isolation/translateZ) NO lo arreglo - hay que quitar el filter por completo para este
+   boton en concreto y usar una version del brillo solo con box-shadow, sin filter. */
 .lady-run-back-btn.lady-run-tut-highlight {
     position: fixed;
-    isolation: isolate;
     transform: translate3d(0, -50%, 0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    will-change: filter, box-shadow;
+    animation: lady-run-tut-pulse-glow-no-filter 1.5s ease-in-out infinite;
+}
+
+@keyframes lady-run-tut-pulse-glow-no-filter {
+    0%, 100% {
+        box-shadow: 0 0 10px 3px rgba(255, 215, 64, 0.45);
+    }
+    50% {
+        box-shadow: 0 0 18px 6px rgba(255, 215, 64, 0.75);
+    }
 }
 
 .runner-action-row {
