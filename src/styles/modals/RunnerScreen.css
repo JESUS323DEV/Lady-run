@@ -1497,12 +1497,11 @@
 }
 
 .lady-run-back-btn {
-    /* Antes era position:fixed - en iPhone real (BrowserStack, 2026-09-20) se quedaba invisible
-       (pero seguia siendo tocable) pase lo que pase con opacity/display/transform, un bug de
-       compositing de iOS asociado a fixed. Se prueba con absolute en su lugar: como todos los
-       contenedores por encima (.lady-run-shop-panel/.lady-run-shop-backdrop, inset:0) ya cubren
-       exactamente el mismo area que cubriria fixed, visualmente deberia quedar identico. */
-    position: absolute;
+    /* Probado position:absolute como alternativa a fixed (2026-09-20): revertido, rompia la
+       posicion en Android real (se iba abajo/derecha) aunque en desktop parecia correcto por
+       casualidad del viewport. No vale la pena romper una plataforma que SI funciona persiguiendo
+       un arreglo sin confirmar para otra. */
+    position: fixed;
     top: 20px;
     /* left:10px de toda la vida en movil (donde la columna del juego ocupa el 100% del ancho); en
        desktop la columna esta centrada con max-width:430px (ver .runner-screen), asi que a partir de
