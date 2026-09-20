@@ -1,18 +1,3 @@
-/* Cabecera normal (nada de position:fixed) para probar si el bug de la flecha invisible en iOS es
-   cosa del position:fixed superpuesto en si. El grid de 3 columnas deja la flecha a la izquierda y
-   el titulo centrado de verdad (la 3a columna vacia hace de contrapeso). */
-.lady-run-modal-header {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 26px 1fr 26px;
-    align-items: center;
-    gap: 8px;
-}
-
-.lady-run-modal-header .runner-overlay-title {
-    text-align: center;
-}
-
 .lady-run-avatar-preview {
     position: relative;
     width: 110px;

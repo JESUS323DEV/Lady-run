@@ -1,5 +1,4 @@
 import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
-import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import chapaIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/chapas.webp';
 import tavernCoinIcon from '../../assets/ui/icons-hud/hud-principal/coin-tavern1.webp';
 import redHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/vida-base-2.webp';
@@ -70,12 +69,6 @@ export default function LadyRunShopModal({
     return (
         <div className="lady-run-shop-backdrop" onClick={onClose}>
             <div className="lady-run-shop-panel" onClick={e => e.stopPropagation()}>
-                <button
-                    className={`lady-run-back-btn${tutStep === 'salir_tienda' ? ' lady-run-tut-highlight' : ''}`}
-                    onClick={() => { playLadyRunSfx('backButton'); if (tutStep === 'salir_tienda') onTutAdvance?.(); onClose(); }}
-                >
-                    <img src={backIcon} className="lady-run-back-icon" alt="" />
-                </button>
                 <p className="runner-overlay-title">Tienda</p>
 
                 <div className="lady-run-shop-content">
@@ -151,6 +144,11 @@ export default function LadyRunShopModal({
                         </button>
                     </div>
                 </div>
+
+                <button
+                    className={`runner-start-btn runner-start-btn-secondary runner-start-btn-compact${tutStep === 'salir_tienda' ? ' lady-run-tut-highlight' : ''}`}
+                    onClick={() => { playLadyRunSfx('backButton'); if (tutStep === 'salir_tienda') onTutAdvance?.(); onClose(); }}
+                >Volver</button>
             </div>
 
             {tutStep === HEART_ITEM.id && (

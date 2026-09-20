@@ -3410,7 +3410,6 @@ export default function RunnerScreen({
                             )}
                             {phase === 'ready' && runMode === 'arcade' && !biomeSelectOpen && !chapterSelectOpen && (
                                 <>
-                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setRunMode(null); setBiomeSelectOpen(false); setArcadeSubMode(null); setSelectedBiomeId(null); setChapterSelectOpen(false); setSelectedChapter(null); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                                     <p className={`runner-overlay-title${libreTutStep === 'empezar' ? ' lady-run-tut-highlight' : ''}`}>Corre y esquiva</p>
                                     <button
                                         className={`runner-start-btn runner-start-btn-glow${libreTutStep === 'empezar' ? ' lady-run-tut-highlight' : ''}`}
@@ -3418,6 +3417,11 @@ export default function RunnerScreen({
                                         disabled={libreTutStep !== null && libreTutStep !== 'empezar'}
                                         onClick={() => { if (libreTutStep === 'empezar') advanceLibreTutorial(); playLadyRunSfx('buttonMode'); startLibreRoulette(); }}
                                     >Empezar</button>
+                                    <button
+                                        className="runner-start-btn runner-start-btn-secondary runner-start-btn-compact"
+                                        disabled={libreTutStep !== null}
+                                        onClick={() => { playLadyRunSfx('backButton'); setRunMode(null); setBiomeSelectOpen(false); setArcadeSubMode(null); setSelectedBiomeId(null); setChapterSelectOpen(false); setSelectedChapter(null); }}
+                                    >Volver</button>
                                     <p
                                         className={`runner-loot-limit-text${libreTutStep === 'botin' ? ' lady-run-tut-highlight' : ''}`}
                                         data-tutorial="lady-run-tut-libre-botin"

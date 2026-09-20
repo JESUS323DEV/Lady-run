@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
-import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import huesinIcon from '../../assets/ui/icons-hud/hud-principal/huesin-coin.webp';
 import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
 import { SKIN_CATALOG, PURCHASE_BASE_FRAMES } from './ladyRunSkinsCatalog.js';
@@ -97,13 +96,6 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
     return (
         <div className="lady-run-shop-backdrop" onClick={handleSkinsClose}>
             <div className="lady-run-shop-panel lady-run-skins-panel" onClick={e => e.stopPropagation()}>
-                {skinsCloseReady && (
-                    <button
-                        className={`lady-run-back-btn${tutStep === 'skins_volver' ? ' lady-run-tut-highlight' : ''}`}
-                        data-tutorial="lady-run-tut-skins-volver"
-                        onClick={() => { playLadyRunSfx('backButton'); handleSkinsClose(); }}
-                    ><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
-                )}
                 <p className="runner-overlay-title">Skins</p>
 
 
@@ -167,6 +159,13 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
                         );
                     })}
                 </div>
+
+                <button
+                    className={`runner-start-btn runner-start-btn-secondary runner-start-btn-compact${tutStep === 'skins_volver' ? ' lady-run-tut-highlight' : ''}`}
+                    data-tutorial="lady-run-tut-skins-volver"
+                    disabled={!skinsCloseReady}
+                    onClick={() => { playLadyRunSfx('backButton'); handleSkinsClose(); }}
+                >Volver</button>
 
                 {preview && (() => {
                     const owned = ownedSkins[preview.dogId] ?? [];
