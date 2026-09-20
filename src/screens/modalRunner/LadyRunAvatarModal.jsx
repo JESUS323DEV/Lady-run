@@ -134,18 +134,16 @@ export default function LadyRunAvatarModal({
     return (
         <div className="lady-run-shop-backdrop" onClick={handleAvatarClose}>
             <div className="lady-run-shop-panel" onClick={e => e.stopPropagation()}>
-                {/* Se renderiza SIEMPRE (nunca se inserta de golpe): en iOS/Safari, un boton
-                    position:fixed que aparece recien insertado en el DOM a veces se queda
-                    invisible aunque sigue siendo tocable (bug real, confirmado en un iPhone real
-                    via BrowserStack el 2026-09-20). Estando ya montado desde el principio y solo
-                    cambiando de aspecto/interactividad, evita ese problema de pintado. */}
-                <button
-                    ref={backBtnRef}
-                    className={`lady-run-back-btn${tutStep === 'avatar_volver' ? ' lady-run-tut-highlight' : ''}${avatarTutLocked ? ' lady-run-back-btn-inert' : ''}`}
-                    data-tutorial="lady-run-tut-avatar-volver"
-                    onClick={() => { if (avatarTutLocked) return; playLadyRunSfx('backButton'); handleAvatarClose(); }}
-                ><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
-                <p className="runner-overlay-title">Tu avatar</p>
+                <div className="lady-run-modal-header">
+                    <button
+                        ref={backBtnRef}
+                        className={`lady-run-back-btn lady-run-back-btn-inline${tutStep === 'avatar_volver' ? ' lady-run-tut-highlight' : ''}${avatarTutLocked ? ' lady-run-back-btn-inert' : ''}`}
+                        data-tutorial="lady-run-tut-avatar-volver"
+                        onClick={() => { if (avatarTutLocked) return; playLadyRunSfx('backButton'); handleAvatarClose(); }}
+                    ><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
+                    <p className="runner-overlay-title">Tu avatar</p>
+                    <span aria-hidden="true"></span>
+                </div>
 
                 <div className="lady-run-avatar-preview">
                     {currentFrame && <img src={currentFrame.img} alt="" className="lady-run-avatar-preview-frame" />}

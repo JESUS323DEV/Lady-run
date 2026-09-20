@@ -1537,6 +1537,20 @@
     pointer-events: none;
 }
 
+/* Prueba (2026-09-20, Avatar primero): en vez de position:fixed superpuesto, el boton va dentro de
+   una cabecera normal del panel (.lady-run-modal-header), como ya funciona .lady-run-skin-equip-header
+   en Skins. Se prueba aqui antes de tocar el resto de pantallas por si no arregla el bug en iOS. */
+.lady-run-back-btn.lady-run-back-btn-inline {
+    position: static;
+    transform: none;
+    flex-shrink: 0;
+}
+
+.lady-run-back-btn.lady-run-tut-highlight.lady-run-back-btn-inline {
+    position: static;
+    transform: none;
+}
+
 /* Mismo hueco/logica de posicion que .lady-run-back-btn (arriba), solo que aqui es al reves: 10px en
    movil, pegado al borde izquierdo de la columna en desktop. Nunca coinciden en pantalla a la vez
    (este boton solo sale en la pantalla principal, sin runMode; la flecha sale en el resto). */
