@@ -172,12 +172,13 @@ const DOG_SELECT_ORDER = ['lady', 'gordo', 'muna', 'nupito', 'tokio', 'tuka', 'z
 
 // Bloqueados temporalmente ("Proximamente"): Smoke, Dayo y Prince porque su ciclo de correr todavia
 // no esta pulido/animado como el resto, y Katrina porque solo tiene icono, sin sprites de carrera aun.
-const LOCKED_DOG_IDS = ['dayo', 'smoke', 'katrina', 'prince'];
+// Druh vuelve a bloqueado a peticion (2026-09-20), aunque si tiene animacion propia.
+const LOCKED_DOG_IDS = ['dayo', 'smoke', 'katrina', 'prince', 'druh'];
 const UNLOCKED_DOG_IDS = DOG_SELECT_ORDER.filter(id => !LOCKED_DOG_IDS.includes(id));
 // Desbloqueados primero (en su orden habitual), bloqueados al final.
 const DOG_SELECT_DISPLAY_ORDER = [...UNLOCKED_DOG_IDS, ...DOG_SELECT_ORDER.filter(id => LOCKED_DOG_IDS.includes(id))];
 
-// De los ya animados (UNLOCKED_DOG_IDS), solo Gordo y Druh son gratis. El resto hay que comprarlo
+// De los ya animados (UNLOCKED_DOG_IDS), solo Gordo es gratis. El resto hay que comprarlo
 // con la moneda del juego (ver unlockedDogIds/onUnlockDog, guardado en gameState.ladyRunUnlockedDogs).
 const PAID_DOG_IDS = ['lady', 'muna', 'nupito'];
 const DOG_UNLOCK_PRICE = { huesin: 10, tavernCoins: 5 };
