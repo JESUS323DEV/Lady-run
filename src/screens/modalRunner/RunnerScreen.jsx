@@ -3490,12 +3490,15 @@ export default function RunnerScreen({
                             )}
                             {phase === 'ready' && runMode === 'eventos' && eventosActiveNodeIndex !== null && (
                                 <>
-                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); backToEventosMap(); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                                     <p className="runner-overlay-title">Eventos</p>
                                     <button
                                         className="runner-start-btn runner-start-btn-glow"
                                         onClick={() => { playLadyRunSfx('buttonMode'); startActiveEventosNode(); }}
                                     >Empezar</button>
+                                    <button
+                                        className="runner-start-btn runner-start-btn-secondary runner-start-btn-compact"
+                                        onClick={() => { playLadyRunSfx('backButton'); backToEventosMap(); }}
+                                    >Volver</button>
                                 </>
                             )}
                             {phase === 'ready' && runMode === 'arcade' && biomeSelectOpen && (
@@ -4189,7 +4192,6 @@ export default function RunnerScreen({
                 )}
                 {phase === 'ready' && runMode === 'eventos' && eventosEventId === null && (
                     <div className="lady-run-prologo-test">
-                        <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); backToSelect(); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                         <p className="runner-overlay-title">Eventos</p>
                         <div className="lady-run-eventos-select-list">
                             <div className="runner-mode-card-active runner-mode-card-static-bosque">
@@ -4219,11 +4221,14 @@ export default function RunnerScreen({
                                 <span className="runner-mode-card-tag">Próximamente</span>
                             </div>
                         </div>
+                        <button
+                            className="runner-start-btn runner-start-btn-secondary runner-start-btn-compact lady-run-prologo-test-btn"
+                            onClick={() => { playLadyRunSfx('backButton'); backToSelect(); }}
+                        >Volver</button>
                     </div>
                 )}
                 {phase === 'ready' && runMode === 'eventos' && eventosEventId === 'bosque' && eventosActiveNodeIndex === null && (
                     <div className="lady-run-prologo-test">
-                        <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setEventosEventId(null); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                         <img
                             ref={chapterMapImgRef}
                             src={prologoPart2Bg}
@@ -4248,6 +4253,10 @@ export default function RunnerScreen({
                                 </button>
                             );
                         })}
+                        <button
+                            className="runner-start-btn runner-start-btn-secondary runner-start-btn-compact lady-run-prologo-test-btn"
+                            onClick={() => { playLadyRunSfx('backButton'); setEventosEventId(null); }}
+                        >Volver</button>
                     </div>
                 )}
             </div>
