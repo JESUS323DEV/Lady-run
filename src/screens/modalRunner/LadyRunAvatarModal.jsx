@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
 import { AVATAR_FRAMES } from './ladyRunAvatarFramesCatalog.js';
 import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
 import LadyRunSkinEquipModal from './LadyRunSkinEquipModal.jsx';
 import LadyRunTutorialCallout from '../../components/LadyRunTutorialCallout.jsx';
-import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import chapaIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/chapas.webp';
 import tavernCoinIcon from '../../assets/ui/icons-hud/hud-principal/coin-tavern1.webp';
 import huesinIcon from '../../assets/ui/icons-hud/hud-principal/huesin-coin.webp';
@@ -57,20 +56,6 @@ export default function LadyRunAvatarModal({
     // Durante avatar_perro/avatar_marcos el tutorial es obligatorio: ni la flecha de volver del
     // modal ni el fondo oscuro pueden cerrarlo, solo se libera al llegar a avatar_volver.
     const avatarTutLocked = tutStep === 'avatar_perro' || tutStep === 'avatar_marcos';
-
-    // Confirmado en un iPhone real (BrowserStack, 2026-09-20): al pasar de "inerte" a activo, el
-    // computed style del boton ya es correcto (opacity:1, visible, con posicion valida) pero WebKit
-    // no lo pinta de verdad en pantalla - un bug de compositing, no de CSS. Alternar display fuerza
-    // un reflow/recomposicion real justo en ese momento, sin depender de que el navegador lo haga solo.
-    const backBtnRef = useRef(null);
-    useEffect(() => {
-        if (avatarTutLocked) return;
-        const el = backBtnRef.current;
-        if (!el) return;
-        el.style.display = 'none';
-        void el.offsetHeight;
-        el.style.display = '';
-    }, [avatarTutLocked]);
 
     const handleAvatarClose = () => {
         if (avatarTutLocked) return;
@@ -134,17 +119,6 @@ export default function LadyRunAvatarModal({
     return (
         <div className="lady-run-shop-backdrop" onClick={handleAvatarClose}>
             <div className="lady-run-shop-panel" onClick={e => e.stopPropagation()}>
-                {/* Se renderiza SIEMPRE (nunca se inserta de golpe): en iOS/Safari, un boton
-                    position:fixed que aparece recien insertado en el DOM a veces se queda
-                    invisible aunque sigue siendo tocable (bug real, confirmado en un iPhone real
-                    via BrowserStack el 2026-09-20). Estando ya montado desde el principio y solo
-                    cambiando de aspecto/interactividad, evita ese problema de pintado. */}
-                <button
-                    ref={backBtnRef}
-                    className={`lady-run-back-btn${tutStep === 'avatar_volver' ? ' lady-run-tut-highlight' : ''}${avatarTutLocked ? ' lady-run-back-btn-inert' : ''}`}
-                    data-tutorial="lady-run-tut-avatar-volver"
-                    onClick={() => { if (avatarTutLocked) return; playLadyRunSfx('backButton'); handleAvatarClose(); }}
-                ><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                 <p className="runner-overlay-title">Tu avatar</p>
 
                 <div className="lady-run-avatar-preview">
@@ -213,6 +187,13 @@ export default function LadyRunAvatarModal({
                         text="Este será tu avatar, se verá en el Ranking."
                     />
                 )}
+
+                <button
+                    className={`runner-start-btn runner-start-btn-secondary runner-start-btn-compact${tutStep === 'avatar_volver' ? ' lady-run-tut-highlight' : ''}`}
+                    data-tutorial="lady-run-tut-avatar-volver"
+                    disabled={avatarTutLocked}
+                    onClick={() => { playLadyRunSfx('backButton'); handleAvatarClose(); }}
+                >Volver</button>
 
                 {framePickerOpen && (
                     <div className="lady-run-skin-equip-backdrop" onClick={handleMarcosClose}>

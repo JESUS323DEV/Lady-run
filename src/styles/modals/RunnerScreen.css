@@ -1530,13 +1530,6 @@
     object-fit: contain;
 }
 
-/* Estado "montado pero inerte": el boton se ve SIEMPRE igual, visible desde el primer render (nunca
-   pasa de invisible a visible - ese cambio de opacidad es sospechoso de disparar el bug de pintado
-   de iOS, confirmado con datos reales el 2026-09-20). Solo deja de reaccionar al toque. */
-.lady-run-back-btn-inert {
-    pointer-events: none;
-}
-
 /* Mismo hueco/logica de posicion que .lady-run-back-btn (arriba), solo que aqui es al reves: 10px en
    movil, pegado al borde izquierdo de la columna en desktop. Nunca coinciden en pantalla a la vez
    (este boton solo sale en la pantalla principal, sin runMode; la flecha sale en el resto). */

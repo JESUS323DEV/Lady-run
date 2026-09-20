@@ -4,7 +4,6 @@ import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
 import { AVATAR_FRAMES } from './ladyRunAvatarFramesCatalog.js';
 import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
 import LadyRunTutorialCallout from '../../components/LadyRunTutorialCallout.jsx';
-import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import trophyGold from '../../assets/ui/icons-hud/hud-modals/rankings/copa-oro.webp';
 import trophySilver from '../../assets/ui/icons-hud/hud-modals/rankings/copa-plata.webp';
 import trophyBronze from '../../assets/ui/icons-hud/hud-modals/rankings/copa-bronze.webp';
@@ -68,12 +67,6 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, tutEpilogu
     return (
         <div className="lady-run-shop-backdrop" onClick={handleRankingClose}>
             <div className="lady-run-shop-panel" onClick={e => e.stopPropagation()}>
-                {!rankingTutLocked && (
-                    <button
-                        className={`lady-run-back-btn${tutEpilogue === 'ranking_close' ? ' lady-run-tut-highlight' : ''}`}
-                        onClick={() => { playLadyRunSfx('backButton'); handleRankingClose(); }}
-                    ><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
-                )}
                 <p className="runner-overlay-title">Ranking</p>
 
                 {tutEpilogue === 'ranking_intro' && (
@@ -131,6 +124,12 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, tutEpilogu
                         );
                     })}
                 </div>
+
+                <button
+                    className={`runner-start-btn runner-start-btn-secondary runner-start-btn-compact${tutEpilogue === 'ranking_close' ? ' lady-run-tut-highlight' : ''}`}
+                    disabled={rankingTutLocked}
+                    onClick={() => { playLadyRunSfx('backButton'); handleRankingClose(); }}
+                >Volver</button>
             </div>
         </div>
     );
