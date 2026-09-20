@@ -52,8 +52,12 @@ img {
     display: block;
 }
 
-/* Botones sin estilos raros */
+/* Botones sin estilos raros. -webkit-appearance/appearance:none quita el estilo nativo de iOS
+   Safari, que aplica sus propios estilos por encima aunque el CSS diga otra cosa si no se
+   desactiva explicitamente - posible causa de botones que no se ven bien en iPhone. */
 button {
+    -webkit-appearance: none;
+    appearance: none;
     background: none;
     border: none;
     padding: 0;
