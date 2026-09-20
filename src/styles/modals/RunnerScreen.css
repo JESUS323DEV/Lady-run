@@ -1522,10 +1522,10 @@
     z-index: 601;
 }
 
-/* Estado "montado pero inerte": el boton sigue en el DOM (no aparece de golpe mas tarde), solo se
-   ve invisible y no reacciona al toque hasta que se activa de verdad quitando esta clase. */
+/* Estado "montado pero inerte": el boton se ve SIEMPRE igual, visible desde el primer render (nunca
+   pasa de invisible a visible - ese cambio de opacidad es sospechoso de disparar el bug de pintado
+   de iOS, confirmado con datos reales el 2026-09-20). Solo deja de reaccionar al toque. */
 .lady-run-back-btn-inert {
-    opacity: 0;
     pointer-events: none;
 }
 
