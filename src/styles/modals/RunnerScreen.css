@@ -1570,9 +1570,18 @@
 }
 
 /* .lady-run-tut-highlight pone position:relative por defecto (para las cards de la Tienda, que no
-   tienen position propia) - aqui hay que forzar que se quede fixed, si no pierde su sitio en pantalla. */
+   tienen position propia) - aqui hay que forzar que se quede fixed, si no pierde su sitio en pantalla.
+   Ademas, esta combinacion (fixed + animation con filter infinita, la del brillo) es justo el patron
+   conocido de iOS Safari que manda el elemento a una capa oculta sin pintarlo (invisible pero
+   tocable, confirmado en iPhone real el 2026-09-20) - isolation+translateZ fuerza su propia capa
+   grafica aislada para que WebKit no la esconda detras del fondo. */
 .lady-run-back-btn.lady-run-tut-highlight {
     position: fixed;
+    isolation: isolate;
+    transform: translate3d(0, -50%, 0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: filter, box-shadow;
 }
 
 .runner-action-row {
