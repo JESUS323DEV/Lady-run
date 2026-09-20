@@ -1521,6 +1521,15 @@
     z-index: 601;
 }
 
+/* Imagen normal en vez de SVG inline: el bug de invisibilidad en iOS/Safari era especifico de SVG
+   inline con filter encima (ver .lady-run-back-btn.lady-run-tut-highlight). Una img normal, como el
+   resto de iconos del HUD, no deberia tener ese problema aunque le apliquen animaciones/filter. */
+.lady-run-back-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
 /* Estado "montado pero inerte": el boton se ve SIEMPRE igual, visible desde el primer render (nunca
    pasa de invisible a visible - ese cambio de opacidad es sospechoso de disparar el bug de pintado
    de iOS, confirmado con datos reales el 2026-09-20). Solo deja de reaccionar al toque. */

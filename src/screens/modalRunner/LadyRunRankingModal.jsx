@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase.js';
 import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
 import { AVATAR_FRAMES } from './ladyRunAvatarFramesCatalog.js';
 import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
 import LadyRunTutorialCallout from '../../components/LadyRunTutorialCallout.jsx';
+import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import trophyGold from '../../assets/ui/icons-hud/hud-modals/rankings/copa-oro.webp';
 import trophySilver from '../../assets/ui/icons-hud/hud-modals/rankings/copa-plata.webp';
 import trophyBronze from '../../assets/ui/icons-hud/hud-modals/rankings/copa-bronze.webp';
@@ -72,7 +72,7 @@ export default function LadyRunRankingModal({ onClose, dogIcons = {}, tutEpilogu
                     <button
                         className={`lady-run-back-btn${tutEpilogue === 'ranking_close' ? ' lady-run-tut-highlight' : ''}`}
                         onClick={() => { playLadyRunSfx('backButton'); handleRankingClose(); }}
-                    ><ArrowLeft size={16} /></button>
+                    ><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                 )}
                 <p className="runner-overlay-title">Ranking</p>
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
+import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import huesinIcon from '../../assets/ui/icons-hud/hud-principal/huesin-coin.webp';
 import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
 import { SKIN_CATALOG, PURCHASE_BASE_FRAMES } from './ladyRunSkinsCatalog.js';
@@ -101,7 +102,7 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
                         className={`lady-run-back-btn${tutStep === 'skins_volver' ? ' lady-run-tut-highlight' : ''}`}
                         data-tutorial="lady-run-tut-skins-volver"
                         onClick={() => { playLadyRunSfx('backButton'); handleSkinsClose(); }}
-                    ><ArrowLeft size={16} /></button>
+                    ><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                 )}
                 <p className="runner-overlay-title">Skins</p>
 
