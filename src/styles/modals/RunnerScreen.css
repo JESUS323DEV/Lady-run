@@ -1517,6 +1517,13 @@
     z-index: 601;
 }
 
+/* Estado "montado pero inerte": el boton sigue en el DOM (no aparece de golpe mas tarde), solo se
+   ve invisible y no reacciona al toque hasta que se activa de verdad quitando esta clase. */
+.lady-run-back-btn-inert {
+    opacity: 0;
+    pointer-events: none;
+}
+
 /* Mismo hueco/logica de posicion que .lady-run-back-btn (arriba), solo que aqui es al reves: 10px en
    movil, pegado al borde izquierdo de la columna en desktop. Nunca coinciden en pantalla a la vez
    (este boton solo sale en la pantalla principal, sin runMode; la flecha sale en el resto). */

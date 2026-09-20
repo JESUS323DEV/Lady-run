@@ -63,22 +63,13 @@ export default function LadyRunAvatarModal({
     };
 
     // Igual para el picker de Marcos: la X y el fondo del popover no cierran hasta que pasen los
-    // 2.5s de "marcosTutCloseReady" (momento en el que empieza a brillar). Cerrar aqui YA NO hace
-    // avanzar el tutorial (ver handleFrameAction) - cerrar sin equipar solo te deja salir a mirar.
+    // 2.5s de "marcosTutCloseReady" (momento en el que empieza a brillar).
     const marcosCloseReady = tutStep !== 'avatar_marcos' || marcosTutCloseReady;
     const handleMarcosClose = () => {
         if (!marcosCloseReady) return;
+        if (tutStep === 'avatar_marcos') onTutAdvance?.();
         setFramePickerOpen(false);
     };
-
-    // Si el picker se cierra sin haber equipado nada (X, fondo, etc.) estando todavia en
-    // 'avatar_marcos', resetea el estado del tutorial para que la proxima vez que se abra Marcos
-    // se vea limpio desde el principio en vez de quedarse en un estado a medias.
-    useEffect(() => {
-        if (framePickerOpen || tutStep !== 'avatar_marcos') return;
-        setMarcosTutContinued(false);
-        setMarcosTutCloseReady(false);
-    }, [framePickerOpen, tutStep]);
 
     const isFrameUnlocked = frame => frame.free || unlockedFrames.includes(frame.id);
     const canAffordFrame = frame => (frame.price.chapas ?? 0) <= chapas && (frame.price.tavernCoins ?? 0) <= tavernCoins && (frame.price.huesin ?? 0) <= huesin;
@@ -99,22 +90,12 @@ export default function LadyRunAvatarModal({
         setFramePreview(frame);
     };
 
-    // Marca el paso "avatar_marcos" del tutorial como completo: equipar un marco de verdad (no
-    // cerrar el popover) es lo que hace avanzar el tutorial, y cerramos el popover nosotros mismos
-    // en el momento - evita depender del evento de cierre, que fallaba en iPhone.
-    const advanceMarcosTutIfNeeded = () => {
-        if (tutStep !== 'avatar_marcos') return;
-        onTutAdvance?.();
-        setFramePickerOpen(false);
-    };
-
     const handleFrameAction = async () => {
         if (!framePreview) return;
         if (isFrameUnlocked(framePreview)) {
             playLadyRunSfx('buttonMode');
             onEquipFrame?.(framePreview.id);
             setFramePreview(null);
-            advanceMarcosTutIfNeeded();
             return;
         }
         setFrameBuyError(false);
@@ -126,7 +107,6 @@ export default function LadyRunAvatarModal({
             return;
         }
         playLadyRunSfx('rewardGold');
-        advanceMarcosTutIfNeeded();
         setTimeout(() => {
             setFrameBuying(false);
             setFramePreview(null);
@@ -138,13 +118,16 @@ export default function LadyRunAvatarModal({
     return (
         <div className="lady-run-shop-backdrop" onClick={handleAvatarClose}>
             <div className="lady-run-shop-panel" onClick={e => e.stopPropagation()}>
-                {!avatarTutLocked && (
-                    <button
-                        className={`lady-run-back-btn${tutStep === 'avatar_volver' ? ' lady-run-tut-highlight' : ''}`}
-                        data-tutorial="lady-run-tut-avatar-volver"
-                        onClick={() => { playLadyRunSfx('backButton'); handleAvatarClose(); }}
-                    ><ArrowLeft size={16} /></button>
-                )}
+                {/* Se renderiza SIEMPRE (nunca se inserta de golpe): en iOS/Safari, un boton
+                    position:fixed que aparece recien insertado en el DOM a veces se queda
+                    invisible aunque sigue siendo tocable (bug real, confirmado en un iPhone real
+                    via BrowserStack el 2026-09-20). Estando ya montado desde el principio y solo
+                    cambiando de aspecto/interactividad, evita ese problema de pintado. */}
+                <button
+                    className={`lady-run-back-btn${tutStep === 'avatar_volver' ? ' lady-run-tut-highlight' : ''}${avatarTutLocked ? ' lady-run-back-btn-inert' : ''}`}
+                    data-tutorial="lady-run-tut-avatar-volver"
+                    onClick={() => { if (avatarTutLocked) return; playLadyRunSfx('backButton'); handleAvatarClose(); }}
+                ><ArrowLeft size={16} /></button>
                 <p className="runner-overlay-title">Tu avatar</p>
 
                 <div className="lady-run-avatar-preview">
@@ -215,7 +198,7 @@ export default function LadyRunAvatarModal({
                 )}
 
                 {framePickerOpen && (
-                    <div className="lady-run-skin-equip-backdrop" onClick={e => { e.stopPropagation(); handleMarcosClose(); }}>
+                    <div className="lady-run-skin-equip-backdrop" onClick={handleMarcosClose}>
                         <div className="lady-run-skin-equip-popover" onClick={e => e.stopPropagation()}>
                             <div className="lady-run-skin-equip-header">
                                 <span className="lady-run-skin-equip-title">Marcos</span>
