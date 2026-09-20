@@ -112,6 +112,7 @@ import lifeHeart4 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/
 import magicHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/corazon-magico.webp';
 import greenHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/shield-green.webp';
 import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
+import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import jumpBtnIcon1 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/btn-action/jump-1.webp';
 import jumpBtnIcon2 from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/btn-action/jump-2.webp';
 import tavernCoinIcon from '../../assets/ui/icons-hud/hud-principal/coin-tavern1.webp';
@@ -146,7 +147,7 @@ export const RUNNER_CORE_PRELOAD_IMAGES = [
     druhRun1, druhJump,
     dayoRun1, dayoJump,
     ladyIcon, gordoIcon, munaIcon, nupitoIcon, smokeIcon, tokyoIcon, tukaIcon, zeusIcon, druhIcon, dayoIcon,
-    lockIcon, tavernCoinIcon, chapaIcon, huesinIcon, jumpBtnIcon1, jumpBtnIcon2, boneIcon,
+    lockIcon, backIcon, tavernCoinIcon, chapaIcon, huesinIcon, jumpBtnIcon1, jumpBtnIcon2, boneIcon,
     pawFill0, pawFill1, pawFill2, pawFill3, pawFill4, pawFill5,
     lifeHeart0, lifeHeart1, lifeHeart2, lifeHeart3, lifeHeart4, magicHeartIcon, greenHeartIcon,
     munaGameOver, druhGameOver, gordoGameOver, ladyGameOver, nupitoGameOver, tukaGameOver1, zeusGameOver1, tokyoGameOver1,

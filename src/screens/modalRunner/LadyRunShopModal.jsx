@@ -1,5 +1,5 @@
-import { ArrowLeft } from 'lucide-react';
 import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
+import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import chapaIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/chapas.webp';
 import tavernCoinIcon from '../../assets/ui/icons-hud/hud-principal/coin-tavern1.webp';
 import redHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/vida-base-2.webp';
@@ -74,7 +74,7 @@ export default function LadyRunShopModal({
                     className={`lady-run-back-btn${tutStep === 'salir_tienda' ? ' lady-run-tut-highlight' : ''}`}
                     onClick={() => { playLadyRunSfx('backButton'); if (tutStep === 'salir_tienda') onTutAdvance?.(); onClose(); }}
                 >
-                    <ArrowLeft size={16} />
+                    <img src={backIcon} className="lady-run-back-icon" alt="" />
                 </button>
                 <p className="runner-overlay-title">Tienda</p>
 

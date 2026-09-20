@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Trophy, ArrowLeft, Flame, Zap, Droplets, Mountain, Moon, Skull, Shirt } from 'lucide-react';
+import { X, Trophy, Flame, Zap, Droplets, Mountain, Moon, Skull, Shirt } from 'lucide-react';
+import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
 import prologoScene1 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/prologo-part-1/escenas/escena-1/lore-lady-prologo-part1.webp';
 import prologoScene0 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/prologo-part-1/escenas/escena-1/lore-lady-prologo-part0.webp';
@@ -3382,7 +3383,7 @@ export default function RunnerScreen({
                             )}
                             {phase === 'ready' && runMode === 'historia' && chapterSelectOpen && (
                                 <>
-                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setRunMode(null); setChapterSelectOpen(false); setSelectedChapter(null); }}><ArrowLeft size={16} /></button>
+                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setRunMode(null); setChapterSelectOpen(false); setSelectedChapter(null); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                                     <div className="runner-mode-select">
                                         <button className="runner-mode-btn" onClick={() => { setSelectedChapter(1); setSelectedBiomeId('mina'); setSceneIndex(0); setChapterSelectOpen(false); }}>
                                             <span className="runner-mode-btn-title">Capítulo 1</span>
@@ -3395,7 +3396,7 @@ export default function RunnerScreen({
                             )}
                             {phase === 'ready' && runMode === 'historia' && historiaStep === -1 && !chapterSelectOpen && (
                                 <>
-                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setRunMode(null); setChapterSelectOpen(false); setSelectedChapter(null); }}><ArrowLeft size={16} /></button>
+                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setRunMode(null); setChapterSelectOpen(false); setSelectedChapter(null); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                                     <p className="runner-overlay-title">Historia</p>
                                     <div className="lady-run-historia-menu-row">
                                         <button className="runner-mode-btn" onClick={() => { setPrologoBtnReady(false); setPrologoTextIndex(0); setHistoriaStep(0); }}>
@@ -3409,7 +3410,7 @@ export default function RunnerScreen({
                             )}
                             {phase === 'ready' && runMode === 'arcade' && !biomeSelectOpen && !chapterSelectOpen && (
                                 <>
-                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setRunMode(null); setBiomeSelectOpen(false); setArcadeSubMode(null); setSelectedBiomeId(null); setChapterSelectOpen(false); setSelectedChapter(null); }}><ArrowLeft size={16} /></button>
+                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setRunMode(null); setBiomeSelectOpen(false); setArcadeSubMode(null); setSelectedBiomeId(null); setChapterSelectOpen(false); setSelectedChapter(null); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                                     <p className={`runner-overlay-title${libreTutStep === 'empezar' ? ' lady-run-tut-highlight' : ''}`}>Corre y esquiva</p>
                                     <button
                                         className={`runner-start-btn runner-start-btn-glow${libreTutStep === 'empezar' ? ' lady-run-tut-highlight' : ''}`}
@@ -3475,7 +3476,7 @@ export default function RunnerScreen({
                             )}
                             {phase === 'ready' && runMode === 'historia' && historiaStep === 5 && (
                                 <>
-                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setHistoriaStep(4); }}><ArrowLeft size={16} /></button>
+                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setHistoriaStep(4); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                                     <p className="runner-overlay-title">Capítulo 1</p>
                                     <button
                                         className="runner-start-btn runner-start-btn-glow"
@@ -3485,7 +3486,7 @@ export default function RunnerScreen({
                             )}
                             {phase === 'ready' && runMode === 'eventos' && eventosActiveNodeIndex !== null && (
                                 <>
-                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); backToEventosMap(); }}><ArrowLeft size={16} /></button>
+                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); backToEventosMap(); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                                     <p className="runner-overlay-title">Eventos</p>
                                     <button
                                         className="runner-start-btn runner-start-btn-glow"
@@ -3495,7 +3496,7 @@ export default function RunnerScreen({
                             )}
                             {phase === 'ready' && runMode === 'arcade' && biomeSelectOpen && (
                                 <>
-                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setBiomeSelectOpen(false); }}><ArrowLeft size={16} /></button>
+                                    <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setBiomeSelectOpen(false); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                                     <div className="runner-mode-select">
                                         <button className="runner-mode-btn" onClick={() => { setArcadeSubMode('libre'); setBiomeSelectOpen(false); resetGame(); }}>
                                             <span className="runner-mode-btn-title">Modo Libre</span>
@@ -4039,7 +4040,7 @@ export default function RunnerScreen({
                         <button
                             className="lady-run-back-btn lady-run-historia-trailer-close"
                             onClick={e => { e.stopPropagation(); playLadyRunSfx('backButton'); setHistoriaTrailerOpen(false); }}
-                        ><ArrowLeft size={16} /></button>
+                        ><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                         {historiaTrailerBeat > 0 && historiaTrailerBeat <= HISTORIA_TRAILER_LINES.length && (
                             <p key={historiaTrailerBeat} className="lady-run-historia-trailer-text lady-run-historia-trailer-text-fade">
                                 {HISTORIA_TRAILER_LINES[historiaTrailerBeat - 1]}
@@ -4138,7 +4139,7 @@ export default function RunnerScreen({
                 )}
                 {historiaStep === 3 && (
                     <div className="lady-run-prologo-test">
-                        <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setHistoriaStep(-1); }}><ArrowLeft size={16} /></button>
+                        <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setHistoriaStep(-1); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                         <img src={chapterSelectBg} alt="" className="lady-run-prologo-test-img" />
                         <p className="runner-overlay-title">Historia</p>
                         <div className="lady-run-chapter-select-list">
@@ -4156,7 +4157,7 @@ export default function RunnerScreen({
                 )}
                 {historiaStep === 4 && (
                     <div className="lady-run-prologo-test">
-                        <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setHistoriaStep(3); }}><ArrowLeft size={16} /></button>
+                        <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setHistoriaStep(3); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                         <img
                             ref={chapterMapImgRef}
                             src={prologoPart2Bg}
@@ -4184,7 +4185,7 @@ export default function RunnerScreen({
                 )}
                 {phase === 'ready' && runMode === 'eventos' && eventosEventId === null && (
                     <div className="lady-run-prologo-test">
-                        <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); backToSelect(); }}><ArrowLeft size={16} /></button>
+                        <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); backToSelect(); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                         <p className="runner-overlay-title">Eventos</p>
                         <div className="lady-run-eventos-select-list">
                             <div className="runner-mode-card-active runner-mode-card-static-bosque">
@@ -4218,7 +4219,7 @@ export default function RunnerScreen({
                 )}
                 {phase === 'ready' && runMode === 'eventos' && eventosEventId === 'bosque' && eventosActiveNodeIndex === null && (
                     <div className="lady-run-prologo-test">
-                        <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setEventosEventId(null); }}><ArrowLeft size={16} /></button>
+                        <button className="lady-run-back-btn" onClick={() => { playLadyRunSfx('backButton'); setEventosEventId(null); }}><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                         <img
                             ref={chapterMapImgRef}
                             src={prologoPart2Bg}

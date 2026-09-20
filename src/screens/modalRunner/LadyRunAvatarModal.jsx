@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
 import { AVATAR_FRAMES } from './ladyRunAvatarFramesCatalog.js';
 import { SKIN_CATALOG } from './ladyRunSkinsCatalog.js';
 import LadyRunSkinEquipModal from './LadyRunSkinEquipModal.jsx';
 import LadyRunTutorialCallout from '../../components/LadyRunTutorialCallout.jsx';
+import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import chapaIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/chapas.webp';
 import tavernCoinIcon from '../../assets/ui/icons-hud/hud-principal/coin-tavern1.webp';
 import huesinIcon from '../../assets/ui/icons-hud/hud-principal/huesin-coin.webp';
@@ -143,7 +144,7 @@ export default function LadyRunAvatarModal({
                     className={`lady-run-back-btn${tutStep === 'avatar_volver' ? ' lady-run-tut-highlight' : ''}${avatarTutLocked ? ' lady-run-back-btn-inert' : ''}`}
                     data-tutorial="lady-run-tut-avatar-volver"
                     onClick={() => { if (avatarTutLocked) return; playLadyRunSfx('backButton'); handleAvatarClose(); }}
-                ><ArrowLeft size={16} /></button>
+                ><img src={backIcon} className="lady-run-back-icon" alt="" /></button>
                 <p className="runner-overlay-title">Tu avatar</p>
 
                 <div className="lady-run-avatar-preview">
