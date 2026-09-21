@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { X } from 'lucide-react';
 import { playLadyRunSfx } from '../../game/utils/ladyRunSfx.js';
 import { AVATAR_FRAMES } from './ladyRunAvatarFramesCatalog.js';
@@ -36,22 +36,15 @@ export default function LadyRunAvatarModal({
 }) {
     const currentDog = avatarOptions.find(dog => dog.id === currentAvatarDogId);
     const currentFrame = AVATAR_FRAMES.find(frame => frame.id === frameId) ?? AVATAR_FRAMES[0];
-    const [framePickerOpen, setFramePickerOpen] = useState(false);
+    // Pantalla "Perfil": 3 pestañas compartiendo el mismo preview de arriba. Estadisticas se queda
+    // bloqueada (sin contenido) por ahora, ver FEATURES.md.
+    const [activeTab, setActiveTab] = useState('avatar'); // 'avatar' | 'marcos' | 'estadisticas'
     const [variantsDogId, setVariantsDogId] = useState(null);
     // Preview grande al tocar un marco (bloqueado o no), igual que el flujo de compra de Skins:
     // se ve el marco con tu avatar actual dentro, y el boton de abajo compra o equipa segun toque.
     const [framePreview, setFramePreview] = useState(null); // frame | null
     const [frameBuying, setFrameBuying] = useState(false); // giro de compra en curso
     const [frameBuyError, setFrameBuyError] = useState(false);
-    // Paso "avatar_marcos" del tutorial: el mensaje sale YA CON el picker abierto (no antes de
-    // tocar "Marcos"), al tocar Continuar espera unos segundos y resalta la X para cerrar.
-    const [marcosTutContinued, setMarcosTutContinued] = useState(false);
-    const [marcosTutCloseReady, setMarcosTutCloseReady] = useState(false);
-    useEffect(() => {
-        if (!marcosTutContinued) return undefined;
-        const t = setTimeout(() => setMarcosTutCloseReady(true), 2500);
-        return () => clearTimeout(t);
-    }, [marcosTutContinued]);
 
     // Durante avatar_perro/avatar_marcos el tutorial es obligatorio: ni la flecha de volver del
     // modal ni el fondo oscuro pueden cerrarlo, solo se libera al llegar a avatar_volver.
@@ -61,15 +54,6 @@ export default function LadyRunAvatarModal({
         if (avatarTutLocked) return;
         if (tutStep === 'avatar_volver') onTutAdvance?.();
         onClose();
-    };
-
-    // Igual para el picker de Marcos: la X y el fondo del popover no cierran hasta que pasen los
-    // 2.5s de "marcosTutCloseReady" (momento en el que empieza a brillar).
-    const marcosCloseReady = tutStep !== 'avatar_marcos' || marcosTutCloseReady;
-    const handleMarcosClose = () => {
-        if (!marcosCloseReady) return;
-        if (tutStep === 'avatar_marcos') onTutAdvance?.();
-        setFramePickerOpen(false);
     };
 
     const isFrameUnlocked = frame => frame.free || unlockedFrames.includes(frame.id);
@@ -118,8 +102,8 @@ export default function LadyRunAvatarModal({
 
     return (
         <div className="lady-run-shop-backdrop" onClick={handleAvatarClose}>
-            <div className="lady-run-shop-panel" onClick={e => e.stopPropagation()}>
-                <p className="runner-overlay-title">Tu avatar</p>
+            <div className="lady-run-shop-panel lady-run-avatar-panel" onClick={e => e.stopPropagation()}>
+                <p className="runner-overlay-title">Perfil</p>
 
                 <div className="lady-run-avatar-preview">
                     {currentFrame && <img src={currentFrame.img} alt="" className="lady-run-avatar-preview-frame" />}
@@ -132,61 +116,105 @@ export default function LadyRunAvatarModal({
                     ) : null}
                 </div>
 
-                <button
-                    className={`runner-start-btn runner-start-btn-compact lady-run-avatar-frame-btn${tutStep === 'avatar_marcos' && !framePickerOpen ? ' lady-run-tut-highlight' : ''}`}
-                    data-tutorial="lady-run-tut-avatar-marcos"
-                    onClick={() => {
-                        playLadyRunSfx('buttonMode');
-                        setMarcosTutContinued(false);
-                        setMarcosTutCloseReady(false);
-                        setFramePickerOpen(true);
-                    }}
-                >
-                    Marcos
-                </button>
+                <div className="runner-difficulty-select">
+                    <button
+                        className={`runner-difficulty-btn${activeTab === 'avatar' ? ' runner-difficulty-active' : ''}`}
+                        onClick={() => { playLadyRunSfx('buttonMode'); setActiveTab('avatar'); }}
+                    >Avatar</button>
+                    <button
+                        className={`runner-difficulty-btn${activeTab === 'marcos' ? ' runner-difficulty-active' : ''}${tutStep === 'avatar_marcos' && activeTab !== 'marcos' ? ' lady-run-tut-highlight' : ''}`}
+                        data-tutorial="lady-run-tut-avatar-marcos"
+                        onClick={() => { playLadyRunSfx('buttonMode'); setActiveTab('marcos'); }}
+                    >Marcos</button>
+                    <button className="runner-difficulty-btn" disabled>Récords</button>
+                </div>
 
-                {tutStep === 'avatar_marcos' && !framePickerOpen && (
+                {tutStep === 'avatar_marcos' && activeTab !== 'marcos' && (
                     <LadyRunTutorialCallout targetSelector='[data-tutorial="lady-run-tut-avatar-marcos"]' />
                 )}
 
-                <div
-                    className={`lady-run-avatar-grid${tutStep === 'avatar_perro' ? ' lady-run-tut-highlight' : ''}`}
-                    data-tutorial="lady-run-tut-avatar-perros"
-                >
-                    {avatarOptions.map(dog => (
+                <div className="lady-run-profile-scroll">
+                {activeTab === 'avatar' && (
+                    <>
                         <div
-                            key={dog.id}
-                            className={`lady-run-avatar-option${dog.id === currentAvatarDogId ? ' lady-run-avatar-option-active' : ''}`}
+                            className={`lady-run-avatar-grid${tutStep === 'avatar_perro' ? ' lady-run-tut-highlight' : ''}`}
+                            data-tutorial="lady-run-tut-avatar-perros"
                         >
-                            <button
-                                className="lady-run-avatar-option-select"
-                                onClick={() => {
-                                    playLadyRunSfx('doubleJump');
-                                    onEquip(dog.id);
-                                    if (tutStep === 'avatar_perro') onTutAdvance?.();
-                                }}
-                            >
-                                <img src={dogPhoto(dog.id, dog.icon)} alt={dog.name} className="lady-run-avatar-option-icon" />
-                                <span className="lady-run-avatar-option-name">{dog.name}</span>
-                            </button>
-                            <button
-                                className="lady-run-avatar-option-variants"
-                                disabled={(ownedSkins[dog.id] ?? []).length === 0}
-                                onClick={() => setVariantsDogId(dog.id)}
-                            >
-                                Variantes
-                            </button>
+                            {avatarOptions.map(dog => (
+                                <div
+                                    key={dog.id}
+                                    className={`lady-run-avatar-option${dog.id === currentAvatarDogId ? ' lady-run-avatar-option-active' : ''}`}
+                                >
+                                    <button
+                                        className="lady-run-avatar-option-select"
+                                        onClick={() => {
+                                            playLadyRunSfx('doubleJump');
+                                            onEquip(dog.id);
+                                            if (tutStep === 'avatar_perro') onTutAdvance?.();
+                                        }}
+                                    >
+                                        <img src={dogPhoto(dog.id, dog.icon)} alt={dog.name} className="lady-run-avatar-option-icon" />
+                                        <span className="lady-run-avatar-option-name">{dog.name}</span>
+                                    </button>
+                                    <button
+                                        className="lady-run-avatar-option-variants"
+                                        disabled={(ownedSkins[dog.id] ?? []).length === 0}
+                                        onClick={() => setVariantsDogId(dog.id)}
+                                    >
+                                        Variantes
+                                    </button>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
 
-                {tutStep === 'avatar_perro' && (
-                    <LadyRunTutorialCallout
-                        targetSelector='[data-tutorial="lady-run-tut-avatar-perros"]'
-                        title="Elige tu perro"
-                        text="Este será tu avatar, se verá en el Ranking."
-                    />
+                        {tutStep === 'avatar_perro' && (
+                            <LadyRunTutorialCallout
+                                targetSelector='[data-tutorial="lady-run-tut-avatar-perros"]'
+                                title="Elige tu perro"
+                                text="Este será tu avatar, se verá en el Ranking."
+                            />
+                        )}
+                    </>
                 )}
+
+                {activeTab === 'marcos' && (
+                    <>
+                        {tutStep === 'avatar_marcos' && (
+                            <LadyRunTutorialCallout
+                                title="Personaliza tu avatar"
+                                text="Elige un marco para destacar en el Ranking."
+                                actionLabel="Continuar"
+                                onAction={onTutAdvance}
+                            />
+                        )}
+                        {FRAME_GROUP_ORDER.map(folder => {
+                            const framesInGroup = AVATAR_FRAMES.filter(frame => frame.folder === folder);
+                            if (framesInGroup.length === 0) return null;
+                            return (
+                                <div key={folder}>
+                                    <span className="lady-run-skins-section-title lady-run-frame-section-title">{framesInGroup[0].groupLabel}</span>
+                                    <div className="lady-run-skin-equip-grid">
+                                        {framesInGroup.map(frame => {
+                                            const unlocked = isFrameUnlocked(frame);
+                                            return (
+                                                <button
+                                                    key={frame.id}
+                                                    className={`lady-run-skin-equip-item lady-run-frame-equip-item${frame.id === currentFrame?.id ? ' lady-run-skin-equip-item-active' : ''}`}
+                                                    onClick={() => openFramePreview(frame)}
+                                                >
+                                                    {!unlocked && <img src={lockIcon} alt="Bloqueado" className="lady-run-skin-card-lock" />}
+                                                    <img src={frame.img} alt={frame.name} className="lady-run-skin-equip-img lady-run-frame-equip-img" />
+                                                    <span className="lady-run-skin-equip-name">{frame.name}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </>
+                )}
+                </div>
 
                 <button
                     className={`runner-start-btn runner-start-btn-secondary runner-start-btn-compact${tutStep === 'avatar_volver' ? ' lady-run-tut-highlight' : ''}`}
@@ -194,57 +222,6 @@ export default function LadyRunAvatarModal({
                     disabled={avatarTutLocked}
                     onClick={() => { playLadyRunSfx('backButton'); handleAvatarClose(); }}
                 >Volver</button>
-
-                {framePickerOpen && (
-                    <div className="lady-run-skin-equip-backdrop" onClick={handleMarcosClose}>
-                        <div className="lady-run-skin-equip-popover" onClick={e => e.stopPropagation()}>
-                            <div className="lady-run-skin-equip-header">
-                                <span className="lady-run-skin-equip-title">Marcos</span>
-                                {marcosCloseReady && (
-                                    <button
-                                        className={`lady-run-skin-equip-close${tutStep === 'avatar_marcos' ? ' lady-run-tut-highlight' : ''}`}
-                                        data-tutorial="lady-run-tut-avatar-marcos-cerrar"
-                                        onClick={handleMarcosClose}
-                                    ><X size={13} /></button>
-                                )}
-                            </div>
-
-                            {tutStep === 'avatar_marcos' && !marcosTutContinued && (
-                                <LadyRunTutorialCallout
-                                    title="Personaliza tu avatar"
-                                    text="Elige un marco para destacar en el Ranking."
-                                    actionLabel="Continuar"
-                                    onAction={() => setMarcosTutContinued(true)}
-                                />
-                            )}
-                            {FRAME_GROUP_ORDER.map(folder => {
-                                const framesInGroup = AVATAR_FRAMES.filter(frame => frame.folder === folder);
-                                if (framesInGroup.length === 0) return null;
-                                return (
-                                    <div key={folder}>
-                                        <span className="lady-run-skins-section-title">{framesInGroup[0].groupLabel}</span>
-                                        <div className="lady-run-skin-equip-grid">
-                                            {framesInGroup.map(frame => {
-                                                const unlocked = isFrameUnlocked(frame);
-                                                return (
-                                                    <button
-                                                        key={frame.id}
-                                                        className={`lady-run-skin-equip-item lady-run-frame-equip-item${frame.id === currentFrame?.id ? ' lady-run-skin-equip-item-active' : ''}`}
-                                                        onClick={() => openFramePreview(frame)}
-                                                    >
-                                                        {!unlocked && <img src={lockIcon} alt="Bloqueado" className="lady-run-skin-card-lock" />}
-                                                        <img src={frame.img} alt={frame.name} className="lady-run-skin-equip-img lady-run-frame-equip-img" />
-                                                        <span className="lady-run-skin-equip-name">{frame.name}</span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
 
                 {framePreview && (() => {
                     const unlocked = isFrameUnlocked(framePreview);

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Flame, Zap, Droplets, Mountain, Moon, Shirt, Pause, Play } from 'lucide-react';
+import { X, Flame, Zap, Droplets, Mountain, Moon, Shirt } from 'lucide-react';
 import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
 import prologoScene1 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/prologo-part-1/escenas/escena-1/lore-lady-prologo-part1.webp';
@@ -1377,7 +1377,7 @@ export default function RunnerScreen({
         setSpeedTierDisplay(1);
         setWon(false);
         setPaused(false);
-    }, [pendingHeartsBonus, difficulty, greenHearts]);
+    }, [pendingHeartsBonus, difficulty, greenHearts, magicHearts]);
 
     const claimRunMilestoneRewards = useCallback((totalCrossed) => {
         const rewards = RUN_MILESTONE_REWARDS[difficulty] ?? RUN_MILESTONE_REWARDS.facil;
@@ -1764,18 +1764,12 @@ export default function RunnerScreen({
     }, [shopOpen, ladyRunTutStep, setLadyRunTutStep]);
 
     // Mismo motivo que la red de seguridad de arriba, pero para los pasos de avatar (si se cierra
-    // sin pasar por la flecha resaltada) y de Skins (si se cierra sin pasar por su flecha).
+    // sin pasar por la flecha resaltada).
     useEffect(() => {
         if (!avatarOpen && ['avatar_perro', 'avatar_marcos', 'avatar_volver'].includes(ladyRunTutStep)) {
             setLadyRunTutStep?.('avatar_hud');
         }
     }, [avatarOpen, ladyRunTutStep, setLadyRunTutStep]);
-
-    useEffect(() => {
-        if (!skinsOpen && ladyRunTutStep === 'skins_volver') {
-            setLadyRunTutStep?.('skins_entrar');
-        }
-    }, [skinsOpen, ladyRunTutStep, setLadyRunTutStep]);
 
     // Mismo motivo que las de arriba, para el epilogo de Ranking del Tutorial 3 (ver runTutEpilogue).
     useEffect(() => {
@@ -3129,8 +3123,8 @@ export default function RunnerScreen({
     return (
         <div className={`runner-backdrop${belowHud ? ' runner-backdrop-below-hud' : ''}`} onClick={phase !== 'playing' ? onClose : undefined}>
             <div
-                className={`runner-screen${phase === 'playing' || phase === 'gameover' ? ' runner-screen-centered' : ''}${phase === 'playing' && isLibre ? ' runner-screen-scene-bg' : ''}`}
-                style={phase === 'playing' && isLibre ? { backgroundImage: `url(${LIBRE_SCENE_STATIC_IMGS[libreSceneKey]})` } : undefined}
+                className={`runner-screen${phase === 'playing' || phase === 'gameover' ? ' runner-screen-centered' : ''}${(phase === 'playing' || phase === 'gameover') && isLibre ? ' runner-screen-scene-bg' : ''}`}
+                style={(phase === 'playing' || phase === 'gameover') && isLibre ? { backgroundImage: `url(${LIBRE_SCENE_STATIC_IMGS[libreSceneKey]})` } : undefined}
                 onClick={e => e.stopPropagation()}
             >
                 {phase !== 'playing' && onClose && (
@@ -3731,13 +3725,11 @@ export default function RunnerScreen({
                             <span className="runner-mode-btn-title">Tienda</span>
                         </button>
                         <button
-                            className={`runner-mode-btn${ladyRunTutStep === 'skins_entrar' ? ' lady-run-tut-highlight' : ''}`}
-                            data-tutorial="lady-run-tut-skins"
-                            disabled={ladyRunTutStep === 'tienda'}
+                            className="runner-mode-btn"
+                            disabled={ladyRunTutStep !== null}
                             onClick={() => {
                                 playLadyRunSfx('buttonMode');
                                 setSkinsOpen(true);
-                                if (ladyRunTutStep === 'skins_entrar') advanceLadyRunTutorial();
                             }}
                         >
                             <span className="runner-mode-btn-title">Skins</span>
@@ -3745,14 +3737,6 @@ export default function RunnerScreen({
                     </div>
                     );
                 })()}
-
-                {ladyRunTutStep === 'skins_entrar' && (
-                    <LadyRunTutorialCallout
-                        targetSelector='[data-tutorial="lady-run-tut-skins"]'
-                        title="Personaliza tus perros"
-                        text="Aquí compras skins para cambiar el aspecto de tus perros en pista."
-                    />
-                )}
 
                 {ladyRunTutStep === 'tienda' && (
                     <LadyRunTutorialCallout
@@ -3875,6 +3859,7 @@ export default function RunnerScreen({
                         text="Tu huella se llena al alcanzar cada recompensa del tramo. Cada marca aumenta tu multiplicador final: x2, x3, x4, x5 y x6. Cuanto más avances, mayor será tu recompensa al terminar."
                         actionLabel="Continuar"
                         onAction={advanceRunTutorial}
+                        forcePosition="above"
                     />
                 )}
                 {runTutStep === 'salto' && (
@@ -3903,15 +3888,6 @@ export default function RunnerScreen({
                         actionLabel="Continuar"
                         onAction={handleRunTutOutroContinue}
                     />
-                )}
-
-                {phase === 'playing' && (
-                    <div className="runner-hud">
-                        {/* TEMPORAL: boton de pausa manual para probar en vivo, quitar luego. */}
-                        <button className="runner-scores-btn" onClick={() => setPaused(p => !p)}>
-                            {paused ? <Play size={18} /> : <Pause size={18} />}
-                        </button>
-                    </div>
                 )}
 
                 {phase === 'ready' && (runMode === 'arcade' || runMode === 'eventos' || prologoDogPick) && (
@@ -4121,8 +4097,6 @@ export default function RunnerScreen({
                         ownedSkins={ownedSkins}
                         onBuySkin={onBuySkin}
                         huesin={huesin}
-                        tutStep={ladyRunTutStep}
-                        onTutAdvance={advanceLadyRunTutorial}
                     />
                 )}
 

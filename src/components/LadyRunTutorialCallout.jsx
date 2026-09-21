@@ -7,7 +7,7 @@ import '../styles/components/LadyRunTutorialCallout.css';
 // real senalado (targetSelector via data-tutorial), igual tecnica que el resto del juego
 // (getBoundingClientRect, ver feedback_tutorial_positioning). Sin targetSelector (mensaje de cierre,
 // sin nada concreto que señalar) se muestra centrada en pantalla en vez de buscar un elemento.
-const LadyRunTutorialCallout = ({ targetSelector, title, text, subtext, actionLabel, onAction }) => {
+const LadyRunTutorialCallout = ({ targetSelector, title, text, subtext, actionLabel, onAction, forcePosition }) => {
     const [dialogStyle, setDialogStyle] = useState({});
     const [targetFound, setTargetFound] = useState(!targetSelector);
 
@@ -23,7 +23,11 @@ const LadyRunTutorialCallout = ({ targetSelector, title, text, subtext, actionLa
             const DIALOG_H = 150;
             const GAP = 10;
             const vh = window.innerHeight;
-            if (rect.bottom + DIALOG_H + GAP <= vh) {
+            if (forcePosition === 'above') {
+                setDialogStyle({ bottom: `${vh - rect.top + GAP}px`, top: 'auto' });
+            } else if (forcePosition === 'below') {
+                setDialogStyle({ top: `${rect.bottom + GAP}px`, bottom: 'auto' });
+            } else if (rect.bottom + DIALOG_H + GAP <= vh) {
                 setDialogStyle({ top: `${rect.bottom + GAP}px`, bottom: 'auto' });
             } else {
                 setDialogStyle({ bottom: `${vh - rect.top + GAP}px`, top: 'auto' });
@@ -38,7 +42,7 @@ const LadyRunTutorialCallout = ({ targetSelector, title, text, subtext, actionLa
             observer.disconnect();
             window.removeEventListener('resize', recalc);
         };
-    }, [targetSelector]);
+    }, [targetSelector, forcePosition]);
 
     if (!targetFound) return null;
 

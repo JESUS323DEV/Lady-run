@@ -1,6 +1,29 @@
+/* Igual patron que .lady-run-skins-panel/.lady-run-skins-scroll (LadyRunSkinsModal.css, ya probado):
+   el panel entero mide 100% de alto, solo el contenido de la pestaña activa hace scroll interno -
+   el titulo, el preview, las pestañas y el Volver se quedan siempre visibles, sin importar cuanto
+   contenido tenga la pestaña abierta (antes el Volver de Marcos quedaba empujado fuera de pantalla). */
+.lady-run-avatar-panel {
+    height: 100%;
+    min-height: 0;
+}
+
+.lady-run-profile-scroll {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* .lady-run-frame-equip-item tiene padding:4px (LadyRunSkinsModal.css), asi que la imagen del marco
+   empieza 4px mas adentro que el borde de su celda - este padding hace que el titulo de la seccion
+   arranque en el mismo punto que el marco de verdad, en vez de mas a la izquierda. */
+.lady-run-frame-section-title {
+    padding-left: 4px;
+}
+
 .lady-run-avatar-preview {
     position: relative;
-    width: 110px;
+    width: 90px;
     aspect-ratio: 350 / 400;
 }
 
@@ -16,11 +39,11 @@
 
 .lady-run-avatar-preview-photo {
     position: absolute;
-    top: 32.5%;
-    left: 32.5%;
+    top: 22.5%;
+    left: 22.5%;
     z-index: 1;
-    width: 35%;
-    height: 35%;
+    width: 55%;
+    height: 55%;
     object-fit: cover;
     border-radius: 6px;
 }
