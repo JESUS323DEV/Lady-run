@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Settings, X, Volume2 } from 'lucide-react';
+import { Settings, X, Volume2, User } from 'lucide-react';
 import '../styles/components/LadyRunSoundSettings.css';
 
 /**
  * Boton de ajustes de sonido de Lady Run (independiente de Pata y Pico, ver
  * feedback_sistemas_aislados). CSS totalmente propio, sin depender de ModalsMenu.css.
  * Solo musica/efectos, conectado a las claves propias music_volume_ladyrun / sfx_volume_ladyrun.
+ * Tambien vive aqui vincular Google a la cuenta (ver project_lady_run_online_plan / useLadyRunProfile.js),
+ * ya que es el unico panel de "ajustes de cuenta" que existe en Lady Run.
  */
-const LadyRunSoundSettings = () => {
+const LadyRunSoundSettings = ({
+    googleLinked = false, onLinkGoogle, onSignInGoogle, linkGoogleIdentityExists = false, linkGoogleError = null,
+}) => {
     const [open, setOpen] = useState(false);
     const [musicVolume, setMusicVolume] = useState(() => {
         const saved = localStorage.getItem('music_volume_ladyrun');
@@ -72,6 +76,26 @@ const LadyRunSoundSettings = () => {
                                     onChange={e => handleSfxVolume(parseFloat(e.target.value))}
                                     className="ladyrun-volume-slider"
                                 />
+                            </div>
+
+                            <div className="ladyrun-settings-item">
+                                <span className="ladyrun-settings-item-icon"><User size={18} /></span>
+                                <span className="ladyrun-settings-item-label">Cuenta</span>
+                            </div>
+                            <div className="ladyrun-settings-account-row">
+                                {googleLinked ? (
+                                    <span className="ladyrun-settings-account-linked">Vinculada con Google</span>
+                                ) : (
+                                    <>
+                                        <p className="ladyrun-settings-account-hint">Ahora mismo juegas como invitado: tu progreso vive solo en este navegador.</p>
+                                        <button className="ladyrun-settings-account-btn" onClick={onLinkGoogle}>Registrarme con Google</button>
+                                        <button className="ladyrun-settings-account-btn ladyrun-settings-account-btn-secondary" onClick={onSignInGoogle}>Ya tengo cuenta, iniciar sesión</button>
+                                        {linkGoogleIdentityExists && (
+                                            <p className="ladyrun-settings-account-hint">Esa cuenta de Google ya está registrada. Usa "Ya tengo cuenta, iniciar sesión".</p>
+                                        )}
+                                    </>
+                                )}
+                                {linkGoogleError && <p className="ladyrun-settings-account-error">{linkGoogleError}</p>}
                             </div>
                         </div>
                     </div>

@@ -100,3 +100,52 @@
 .lady-run-username-submit-btn:disabled::before {
     filter: grayscale(60%) brightness(0.5);
 }
+
+.lady-run-username-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.75rem;
+}
+
+.lady-run-username-divider::before,
+.lady-run-username-divider::after {
+    content: '';
+    width: 100px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.lady-run-username-google-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: min(280px, 80vw);
+}
+
+.lady-run-username-google-btn {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 180, 50, 0.4);
+    background: rgba(255, 180, 50, 0.12);
+    color: #ffd966;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.lady-run-username-google-btn-secondary {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.lady-run-username-google-hint {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.7rem;
+    text-align: center;
+}

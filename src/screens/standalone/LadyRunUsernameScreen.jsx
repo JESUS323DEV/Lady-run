@@ -25,7 +25,10 @@ const containsBlockedWord = (username) => {
 // Paso previo a LadyRunLanding la primera vez que se juega: elegir el ID del ranking global.
 // Va sobre una cuenta anonima ya creada (ver useLadyRunProfile), asi que aqui no hay password
 // ni email, solo el texto que se va a ver en el ranking.
-const LadyRunUsernameScreen = ({ onSubmit, submitting, errorMsg }) => {
+const LadyRunUsernameScreen = ({
+    onSubmit, submitting, errorMsg,
+    onRegisterGoogle, onSignInGoogle, linkGoogleIdentityExists = false, linkGoogleError = null,
+}) => {
     const [value, setValue] = useState('');
     const [localError, setLocalError] = useState(null);
 
@@ -64,6 +67,17 @@ const LadyRunUsernameScreen = ({ onSubmit, submitting, errorMsg }) => {
                     {submitting ? '...' : 'Confirmar'}
                 </button>
             </form>
+
+            <div className="lady-run-username-divider"><span>o</span></div>
+
+            <div className="lady-run-username-google-row">
+                <button type="button" className="lady-run-username-google-btn" onClick={onRegisterGoogle}>Registrarme con Google</button>
+                <button type="button" className="lady-run-username-google-btn lady-run-username-google-btn-secondary" onClick={onSignInGoogle}>Ya tengo cuenta, iniciar sesión con Google</button>
+                {linkGoogleIdentityExists && (
+                    <p className="lady-run-username-google-hint">Esa cuenta de Google ya está registrada. Usa "Ya tengo cuenta, iniciar sesión".</p>
+                )}
+                {linkGoogleError && <p className="lady-run-username-error">{linkGoogleError}</p>}
+            </div>
         </div>
     );
 };

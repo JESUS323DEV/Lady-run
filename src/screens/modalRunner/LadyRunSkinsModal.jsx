@@ -23,26 +23,10 @@ const DOG_ORDER = ['lady', 'nupito'];
 // scroll). Tocar una skin abre un preview grande con marco de rareza/particulas, comprar hace
 // fundido -> el perro corriendo (pose propia de la skin si existe, si no los 4 frames base del
 // perro) -> revelado con giro.
-export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {}, ownedSkins = {}, onBuySkin, huesin = 0, tutStep = null, onTutAdvance }) {
+export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {}, ownedSkins = {}, onBuySkin, huesin = 0 }) {
     const catalogDogIds = Object.keys(SKIN_CATALOG);
     const dogIds = [...DOG_ORDER.filter(id => catalogDogIds.includes(id)), ...catalogDogIds.filter(id => !DOG_ORDER.includes(id))];
     const [activeDog, setActiveDog] = useState(dogIds[0] ?? null);
-    // Paso "skins_volver" del tutorial: tras unos segundos viendo la tienda, se resalta la flecha
-    // de volver para cerrar el ultimo paso.
-    const [tutBackReady, setTutBackReady] = useState(false);
-    useEffect(() => {
-        if (tutStep !== 'skins_volver') return undefined;
-        const t = setTimeout(() => setTutBackReady(true), 2500);
-        return () => clearTimeout(t);
-    }, [tutStep]);
-    // En skins_volver el modal es obligatorio hasta que pasen los 2.5s (momento en el que la
-    // flecha empieza a brillar): ni la flecha ni el fondo oscuro cierran antes de eso.
-    const skinsCloseReady = tutStep !== 'skins_volver' || tutBackReady;
-    const handleSkinsClose = () => {
-        if (!skinsCloseReady) return;
-        if (tutStep === 'skins_volver') onTutAdvance?.();
-        onClose();
-    };
     const [preview, setPreview] = useState(null); // { dogId, skin, tier } | null
     const [purchaseAnim, setPurchaseAnim] = useState(null); // null | 'fading' | 'running' | 'reveal'
     const [justBought, setJustBought] = useState(false);
@@ -94,7 +78,7 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
     };
 
     return (
-        <div className="lady-run-shop-backdrop" onClick={handleSkinsClose}>
+        <div className="lady-run-shop-backdrop" onClick={onClose}>
             <div className="lady-run-shop-panel lady-run-skins-panel" onClick={e => e.stopPropagation()}>
                 <p className="runner-overlay-title">Skins</p>
 
@@ -161,10 +145,8 @@ export default function LadyRunSkinsModal({ onClose, dogIcons = {}, dogNames = {
                 </div>
 
                 <button
-                    className={`runner-start-btn runner-start-btn-secondary runner-start-btn-compact${tutStep === 'skins_volver' ? ' lady-run-tut-highlight' : ''}`}
-                    data-tutorial="lady-run-tut-skins-volver"
-                    disabled={!skinsCloseReady}
-                    onClick={() => { playLadyRunSfx('backButton'); handleSkinsClose(); }}
+                    className="runner-start-btn runner-start-btn-secondary runner-start-btn-compact"
+                    onClick={() => { playLadyRunSfx('backButton'); onClose(); }}
                 >Volver</button>
 
                 {preview && (() => {

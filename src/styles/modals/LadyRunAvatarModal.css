@@ -1,6 +1,33 @@
+/* Igual patron que .lady-run-skins-panel/.lady-run-skins-scroll (LadyRunSkinsModal.css, ya probado):
+   el panel entero mide 100% de alto, solo el contenido de la pestaña activa hace scroll interno -
+   el titulo, el preview, las pestañas y el Volver se quedan siempre visibles, sin importar cuanto
+   contenido tenga la pestaña abierta (antes el Volver de Marcos quedaba empujado fuera de pantalla). */
+.lady-run-avatar-panel {
+    height: 100%;
+    min-height: 0;
+}
+
+.lady-run-profile-scroll {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* Subtabs Base/Animados dentro de Marcos: mismo estilo que Avatar/Marcos/Records pero mas
+   compactos, ya que son un segundo nivel de pestanas. */
+.lady-run-marco-subtabs {
+    margin-bottom: 4px;
+}
+
+.lady-run-marco-subtab-btn {
+    padding: 4px 12px;
+    font-size: 0.7rem;
+}
+
 .lady-run-avatar-preview {
     position: relative;
-    width: 110px;
+    width: 90px;
     aspect-ratio: 350 / 400;
 }
 
@@ -16,11 +43,11 @@
 
 .lady-run-avatar-preview-photo {
     position: absolute;
-    top: 32.5%;
-    left: 32.5%;
+    top: 22.5%;
+    left: 22.5%;
     z-index: 1;
-    width: 35%;
-    height: 35%;
+    width: 55%;
+    height: 55%;
     object-fit: cover;
     border-radius: 6px;
 }
