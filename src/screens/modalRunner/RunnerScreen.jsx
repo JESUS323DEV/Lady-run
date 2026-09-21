@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Trophy, Flame, Zap, Droplets, Mountain, Moon, Skull, Shirt } from 'lucide-react';
+import { X, Trophy, Flame, Zap, Droplets, Mountain, Moon, Skull, Shirt, Pause, Play } from 'lucide-react';
 import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
 import prologoScene1 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/prologo-part-1/escenas/escena-1/lore-lady-prologo-part1.webp';
@@ -167,6 +167,10 @@ const ATTACK_PLAYER_ELEMENT_IMGS = {
 const ATTACK_BOSS_BIOME_IMGS = {
     mina: attackBatsBoss,
 };
+
+// Escritorio de verdad (raton + teclado), no tactil: se calcula una vez, no cambia durante la
+// partida. Se usa para mostrar las etiquetas de teclas (Espacio/Q) encima de los botones de accion.
+const IS_DESKTOP_INPUT = typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 const DOG_SELECT_ORDER = ['lady', 'gordo', 'muna', 'nupito', 'tokio', 'tuka', 'zeus', 'druh', 'dayo', 'smoke', 'katrina', 'prince'];
 
@@ -880,6 +884,7 @@ export default function RunnerScreen({
     useLadyRunMusic(libreMusicTrack, musicVolume);
     const [selectedBiomeId, setSelectedBiomeId] = useState(null); // key de BIOMES cuando arcadeSubMode === 'biome'
     const [score, setScore] = useState(0);
+    const [liveMeters, setLiveMeters] = useState(0);
     const [speedTierDisplay, setSpeedTierDisplay] = useState(1);
     const [airborne, setAirborne] = useState(false);
     const [canDoubleJump, setCanDoubleJump] = useState(false); // true tras el 1er salto, hasta usar el 2o o aterrizar
@@ -920,7 +925,6 @@ export default function RunnerScreen({
     // activan (clase CSS) en cuanto tu huella las cruza, sin pasar por React state.
     const eventosTramoMarkerElsRef = useRef([]);
     const [runMetersEarned, setRunMetersEarned] = useState(0);
-    const [runIsNewRecord, setRunIsNewRecord] = useState(false);
     const [runBestMeters, setRunBestMeters] = useState(0);
     const [cpuAirborne, setCpuAirborne] = useState(false);
     const [obstacles, setObstacles] = useState([]); // solo {id, img}, la posicion real vive en refs
@@ -1138,6 +1142,7 @@ export default function RunnerScreen({
     const cpuInvulnUntilRef = useRef(0);
     const scoreAccumRef = useRef(0);
     const scoreShownRef = useRef(0);
+    const liveMetersShownRef = useRef(0);
     const speedTierShownRef = useRef(1);
     const matchTimeRef = useRef(0);
     const nextCheckpointAtRef = useRef(CHECKPOINT_INTERVAL_S);
@@ -1353,7 +1358,6 @@ export default function RunnerScreen({
         setRunHuesinEarned(0);
         setRunChapasEarned(0);
         setRunMetersEarned(0);
-        setRunIsNewRecord(false);
         if (runFlagElRef.current) runFlagElRef.current.style.left = '0%';
         setCpuAirborne(false);
         setLives(MAX_LIVES + pendingHeartsBonus);
@@ -1475,6 +1479,17 @@ export default function RunnerScreen({
         setPaused(true);
         startCountdown();
     }, [resetStats, selectedDogId, pendingHeartsBonus, onConsumePendingHearts, fullLootRunsToday, startCountdown]);
+
+    // Record en vivo del HUD: la misma fuente que el Ranking/game-over, no el local por perro. Se pide
+    // aqui (al montar/cambiar de dificultad) y no justo al pulsar Empezar, porque en una carga de
+    // pagina recien hecha la sesion de Supabase puede tardar un poco en estar lista - pedirlo justo al
+    // arrancar la carrera podia devolver 0 por esa carrera de fondo (confirmado en real, 2026-09-21).
+    useEffect(() => {
+        if (arcadeSubMode !== 'libre') return;
+        let cancelled = false;
+        getLadyRunBestDistance({ difficulty }).then(meters => { if (!cancelled) setRunBestMeters(meters); });
+        return () => { cancelled = true; };
+    }, [arcadeSubMode, difficulty]);
 
     const startLibreRoulette = useCallback(() => {
         setArcadeSubMode('libre');
@@ -1862,14 +1877,15 @@ export default function RunnerScreen({
         return () => clearInterval(interval);
     }, [phase, paused]);
 
-    // Salto con espacio (pruebas de escritorio)
+    // Salto con espacio, corazon magico con Q (pruebas de escritorio)
     useEffect(() => {
         const onKey = (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); jump(); }
+            else if (e.code === 'KeyQ') { e.preventDefault(); useMagicHeart(); }
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [jump]);
+    }, [jump, useMagicHeart]);
 
     // Bucle principal: fisica (jugador + CPU), spawns, colisiones. Las posiciones
     // se escriben directo en el DOM via refs, nunca por props style dinamicas en el JSX.
@@ -2859,6 +2875,12 @@ export default function RunnerScreen({
                 setScore(flooredScore);
             }
 
+            const flooredLiveMeters = Math.floor(runDistanceRef.current / METERS_PER_PX);
+            if (flooredLiveMeters !== liveMetersShownRef.current) {
+                liveMetersShownRef.current = flooredLiveMeters;
+                setLiveMeters(flooredLiveMeters);
+            }
+
             if (lifeLost) {
                 invulnUntilRef.current = now + HIT_INVULN_MS;
                 setHitFlash(true);
@@ -2895,13 +2917,7 @@ export default function RunnerScreen({
                                     // dificultad (todos los perros, la misma fuente que el Ranking), no
                                     // contra nada guardado en local.
                                     const prevBest = await getLadyRunBestDistance({ difficulty });
-                                    if (meters > prevBest) {
-                                        setRunIsNewRecord(true);
-                                        setRunBestMeters(meters);
-                                    } else {
-                                        setRunIsNewRecord(false);
-                                        setRunBestMeters(prevBest);
-                                    }
+                                    setRunBestMeters(meters > prevBest ? meters : prevBest);
                                 }
                                 setWon(false);
                                 setPhase('gameover');
@@ -3156,6 +3172,19 @@ export default function RunnerScreen({
                         </span>
                     </div>
                 )}
+
+                {(phase === 'playing' || (phase === 'gameover' && isLibre && goStage >= 2)) && (() => {
+                    const isNewRecord = phase === 'gameover' && runMetersEarned >= runBestMeters;
+                    return (
+                        <div className={`runner-live-meters${phase === 'gameover' ? ' runner-live-meters-centered' : ''}${isNewRecord ? ' runner-live-meters-new-record' : ''}`}>
+                            <div className="runner-live-meters-row">
+                                <span className="runner-live-meters-value">{phase === 'playing' ? liveMeters : runMetersEarned}<span className="runner-live-meters-unit">m</span></span>
+                                <span className="runner-live-meters-best">récord {runBestMeters}m</span>
+                            </div>
+                            {isNewRecord && <span className="runner-live-meters-new-label">¡Nuevo récord!</span>}
+                        </div>
+                    );
+                })()}
 
                 <div className={`runner-tracks${isLibre ? ' runner-tracks-solo' : ''}${menuBlank ? ' runner-tracks-blank' : ''}`}>
                     {phase !== 'ready' && !isLibre && (
@@ -3533,14 +3562,6 @@ export default function RunnerScreen({
                                     {isLibre && (
                                         <p className="runner-run-dog-summary-name">{DogsConfig[selectedDogId]?.name ?? selectedDogId}</p>
                                     )}
-                                    {(!isLibre || goStage >= 1) && (
-                                        <p className="runner-overlay-score">Puntos: {score}</p>
-                                    )}
-                                    {isLibre && goStage >= 2 && (
-                                        <p className="runner-overlay-score">
-                                            {runMetersEarned}m {runIsNewRecord ? '¡Nuevo récord!' : `(Récord: ${runBestMeters}m)`}
-                                        </p>
-                                    )}
                                     {runMode === 'arcade' && !isLibre && (
                                         <p className="runner-overlay-score">Rivales vencidos: {rivalsDefeated}</p>
                                     )}
@@ -3808,6 +3829,7 @@ export default function RunnerScreen({
                             >
                                 <img src={canDoubleJump ? jumpBtnIcon2 : jumpBtnIcon1} alt="Saltar" className="runner-jump-btn-img" />
                             </button>
+                            {IS_DESKTOP_INPUT && <span className="runner-jump-key-label">Espacio</span>}
                             {isLibre && (
                                 <button
                                     className={`runner-power-btn runner-magic-heart-sat${runTutStep === 'corazon_magico' ? ' lady-run-tut-highlight' : ''}`}
@@ -3817,6 +3839,7 @@ export default function RunnerScreen({
                                 >
                                     <img src={magicHeartIcon} alt="" className="runner-power-btn-img" />
                                     <span className="runner-power-btn-charges">x{magicHearts}</span>
+                                    {IS_DESKTOP_INPUT && <span className="runner-magic-heart-key-label">Q</span>}
                                 </button>
                             )}
                         </div>
@@ -3880,7 +3903,10 @@ export default function RunnerScreen({
                 {phase === 'playing' && (
                     <div className="runner-hud">
                         <button className="runner-scores-btn" onClick={() => setScoresOpen(true)}><Trophy size={18} /></button>
-                        <span className="runner-hud-score">{score}</span>
+                        {/* TEMPORAL: boton de pausa manual para probar en vivo, quitar luego. */}
+                        <button className="runner-scores-btn" onClick={() => setPaused(p => !p)}>
+                            {paused ? <Play size={18} /> : <Pause size={18} />}
+                        </button>
                         {phase === 'playing' && <span className="runner-hud-tier">T{speedTierDisplay}</span>}
                         {phase === 'playing' && runMode === 'arcade' && (
                             <span className="runner-hud-rivals"><Skull size={13} />{rivalsDefeated}</span>

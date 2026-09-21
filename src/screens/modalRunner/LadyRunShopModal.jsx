@@ -164,7 +164,7 @@ export default function LadyRunShopModal({
                 <LadyRunTutorialCallout
                     targetSelector='[data-tutorial="lady-run-tut-corazon_magico"]'
                     title="Corazón mágico"
-                    text="Cómpralo con Moneda. Te da unos segundos de invulnerabilidad al usarlo en la carrera."
+                    text="Cómpralo con Moneda. Actívalo cuando quieras durante la carrera para ser invulnerable unos segundos. Si te queda 1 corazón y tienes uno guardado, se usa solo para salvarte."
                     actionLabel={magicUsable ? null : 'Entendido'}
                     onAction={magicUsable ? undefined : onTutAdvance}
                 />
