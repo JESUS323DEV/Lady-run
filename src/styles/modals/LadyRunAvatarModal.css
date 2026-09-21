@@ -14,11 +14,15 @@
     overflow-y: auto;
 }
 
-/* .lady-run-frame-equip-item tiene padding:4px (LadyRunSkinsModal.css), asi que la imagen del marco
-   empieza 4px mas adentro que el borde de su celda - este padding hace que el titulo de la seccion
-   arranque en el mismo punto que el marco de verdad, en vez de mas a la izquierda. */
-.lady-run-frame-section-title {
-    padding-left: 4px;
+/* Subtabs Base/Animados dentro de Marcos: mismo estilo que Avatar/Marcos/Records pero mas
+   compactos, ya que son un segundo nivel de pestanas. */
+.lady-run-marco-subtabs {
+    margin-bottom: 4px;
+}
+
+.lady-run-marco-subtab-btn {
+    padding: 4px 12px;
+    font-size: 0.7rem;
 }
 
 .lady-run-avatar-preview {

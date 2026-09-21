@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import RunnerScreen from '../modalRunner/RunnerScreen.jsx';
 import LadyRunLanding from './LadyRunLanding.jsx';
 import LadyRunUsernameScreen from './LadyRunUsernameScreen.jsx';
@@ -15,15 +15,21 @@ import '../../styles/standalone/LadyRunStandalone.css';
 const SAVE_KEY = 'ladyRunGame';
 
 // Guardado propio de Lady Run, 100% independiente de Pata y Pico desde la separacion de repos (ver
-// project_plan_separar_lady_run). Las 3 monedas ya NO viven aqui, viven en Supabase (profiles.chapas/
-// tavern_coins/huesin, ver supabase/sql/008_profiles_currency.sql) para que no se puedan editar a
-// mano desde el navegador - esto solo guarda el resto del progreso (perros desbloqueados, corazones
-// en inventario, tutoriales, records...).
-const loadSavedState = () => {
+// project_plan_separar_lady_run). Las 3 monedas viven en Supabase (profiles.chapas/tavern_coins/
+// huesin, ver supabase/sql/008_profiles_currency.sql) desde el principio. El RESTO del progreso
+// (perros/marcos/skins desbloqueados, corazones en inventario, tutoriales, records...) vivio SOLO
+// en localStorage hasta ahora - ver 022_progress_sync.sql: ahora vive en profiles.progress, para que
+// se comparta entre navegadores al vincular Google (antes cada navegador tenia su propio progreso
+// aislado, ver project_lady_run_online_plan). loadLegacyLocalState solo se usa una vez, para migrar
+// el progreso viejo de quien ya jugaba antes de este cambio (ver el useEffect de migracion abajo).
+const loadLegacyLocalState = () => {
     try {
         const raw = localStorage.getItem(SAVE_KEY);
-        if (raw) return JSON.parse(raw);
-    } catch { /* save corrupto o inexistente: se empieza de cero */ }
+        if (raw) {
+            const { savedAt, ...rest } = JSON.parse(raw);
+            return rest;
+        }
+    } catch { /* nada que migrar */ }
     return {};
 };
 
@@ -32,19 +38,38 @@ const loadSavedState = () => {
  * estetica/assets). Ya no hay acceso "?lady-run" ni juego a cargar: esto ES la aplicacion.
  */
 const LadyRunStandalone = () => {
-    const [gameState, setGameState] = useState(loadSavedState);
     const [showLanding, setShowLanding] = useState(true);
     const loaded = usePreloadImages(RUNNER_CORE_PRELOAD_IMAGES);
-    const { loading: profileLoading, initError: profileInitError, profile, claiming, claimError, claimUsername, equipAvatar, equipAvatarFrame, equipAvatarSkin, earnCurrency, spendCurrency } = useLadyRunProfile();
+    const {
+        loading: profileLoading, initError: profileInitError, profile, claiming, claimError, claimUsername,
+        equipAvatar, equipAvatarFrame, equipAvatarSkin, earnCurrency, spendCurrency, updateProgress,
+        googleLinked, linkGoogleAccount, signInWithGoogleAccount, linkGoogleIdentityExists, linkGoogleError,
+    } = useLadyRunProfile();
+    // gameState/setGameState mantienen la misma forma que antes (objeto plano + updater funcional
+    // "prev => ({...prev, x: y})") para no tener que tocar cada sitio que ya los usaba asi - lo unico
+    // que cambia es que ahora leen/escriben profiles.progress en vez de localStorage.
+    const gameState = profile?.progress ?? {};
+    const setGameState = updateProgress;
     const { tutStep: ladyRunTutStep, setTutStep: setLadyRunTutStep, advanceTutorial: advanceLadyRunTutorial } = useLadyRunTutorial(
         gameState.ladyRunTutorial?.completed ?? false,
         () => setGameState(prev => ({ ...prev, ladyRunTutorial: { completed: true } })),
         loaded && !showLanding,
     );
 
+    // Migracion de una sola vez: si un jugador ya tenia progreso guardado en localStorage de antes
+    // de este cambio (ver 022_progress_sync.sql) y su profiles.progress en la nube llega vacio, se
+    // sube tal cual ese progreso local - asi no se pierde nada al pasar a guardarlo en Supabase.
+    // Una vez migrado, localStorage deja de leerse: Supabase pasa a ser la unica fuente de verdad.
+    const migratedRef = useRef(false);
     useEffect(() => {
-        localStorage.setItem(SAVE_KEY, JSON.stringify({ ...gameState, savedAt: Date.now() }));
-    }, [gameState]);
+        if (!profile || migratedRef.current) return;
+        migratedRef.current = true;
+        if (profile.progress && Object.keys(profile.progress).length > 0) return;
+        const legacy = loadLegacyLocalState();
+        if (Object.keys(legacy).length === 0) return;
+        setGameState(() => legacy);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- solo debe correr una vez que el perfil carga, no en cada cambio de gameState/setGameState
+    }, [profile]);
 
     // Historia esta bloqueada ahora mismo: no hace falta su contenido para jugar, asi que se
     // precarga de fondo (sin bloquear la pantalla) por si se desbloquea despues.
@@ -93,7 +118,17 @@ const LadyRunStandalone = () => {
     }
 
     if (!profile) {
-        return <LadyRunUsernameScreen onSubmit={claimUsername} submitting={claiming} errorMsg={claimError} />;
+        return (
+            <LadyRunUsernameScreen
+                onSubmit={claimUsername}
+                submitting={claiming}
+                errorMsg={claimError}
+                onRegisterGoogle={linkGoogleAccount}
+                onSignInGoogle={signInWithGoogleAccount}
+                linkGoogleIdentityExists={linkGoogleIdentityExists}
+                linkGoogleError={linkGoogleError}
+            />
+        );
     }
 
     return (
@@ -102,11 +137,17 @@ const LadyRunStandalone = () => {
                 chapas={profile.chapas ?? 0}
                 tavernCoins={profile.tavern_coins ?? 0}
                 huesin={profile.huesin ?? 0}
+                googleLinked={googleLinked}
+                onLinkGoogle={linkGoogleAccount}
+                onSignInGoogle={signInWithGoogleAccount}
+                linkGoogleIdentityExists={linkGoogleIdentityExists}
+                linkGoogleError={linkGoogleError}
                 tutStep={ladyRunTutStep}
                 onTutAdvance={advanceLadyRunTutorial}
             />
             <RunnerScreen
                 belowHud
+                username={profile.username}
                 avatarDogId={profile.avatar_dog_id}
                 onEquipAvatar={async (dogId) => {
                     const ok = await equipAvatar(dogId);
@@ -119,13 +160,11 @@ const LadyRunStandalone = () => {
                 onBuyFrame={async (frame) => {
                     const owned = gameState.ladyRunUnlockedFrames ?? [];
                     if (owned.includes(frame.id)) return true;
-                    const ok = await spendCurrency(frame.itemId);
+                    // El desbloqueo se guarda en la MISMA operacion que el pago (ver
+                    // 022_progress_sync.sql) - asi no se puede pagar sin recibir nada, ni escribirse
+                    // el desbloqueo sin pagar (spend_currency comprueba el precio en el servidor).
+                    const ok = await spendCurrency(frame.itemId, { ladyRunUnlockedFrames: [...owned, frame.id] });
                     if (!ok) return false;
-                    setGameState(prev => {
-                        const cur = prev.ladyRunUnlockedFrames ?? [];
-                        if (cur.includes(frame.id)) return prev;
-                        return { ...prev, ladyRunUnlockedFrames: [...cur, frame.id] };
-                    });
                     equipAvatarFrame(frame.id);
                     return true;
                 }}
@@ -150,14 +189,7 @@ const LadyRunStandalone = () => {
                 onUnlockDog={(dogId) => {
                     const current = gameState.ladyRunUnlockedDogs ?? [];
                     if (current.includes(dogId)) return;
-                    spendCurrency('unlock_dog').then(ok => {
-                        if (!ok) return;
-                        setGameState(prev => {
-                            const cur = prev.ladyRunUnlockedDogs ?? [];
-                            if (cur.includes(dogId)) return prev;
-                            return { ...prev, ladyRunUnlockedDogs: [...cur, dogId] };
-                        });
-                    });
+                    spendCurrency('unlock_dog', { ladyRunUnlockedDogs: [...current, dogId] });
                 }}
                 pendingHeartsBonus={gameState.ladyRunPendingHearts ?? 0}
                 onConsumePendingHearts={() => setGameState(prev => ({ ...prev, ladyRunPendingHearts: 0 }))}
@@ -180,24 +212,17 @@ const LadyRunStandalone = () => {
                 onBuyItem={async (itemId, price) => {
                     if (itemId === 'corazon_magico' && (gameState.ladyRunMagicHearts ?? 0) >= 2) return;
                     if (itemId === 'corazon_verde' && (gameState.ladyRunGreenHearts ?? 0) >= 5) return;
+                    const patch = {};
+                    if (itemId === 'corazon_extra') patch.ladyRunPendingHearts = (gameState.ladyRunPendingHearts ?? 0) + 1;
+                    if (itemId === 'corazon_magico') patch.ladyRunMagicHearts = (gameState.ladyRunMagicHearts ?? 0) + 1;
+                    if (itemId === 'corazon_verde') patch.ladyRunGreenHearts = (gameState.ladyRunGreenHearts ?? 0) + 1;
+                    if (Object.keys(patch).length === 0) return;
                     if (price > 0) {
-                        const ok = await spendCurrency(itemId);
+                        const ok = await spendCurrency(itemId, patch);
                         if (!ok) return;
+                    } else {
+                        setGameState(prev => ({ ...prev, ...patch }));
                     }
-                    setGameState(prev => {
-                        if (itemId === 'corazon_extra') {
-                            return { ...prev, ladyRunPendingHearts: (prev.ladyRunPendingHearts ?? 0) + 1 };
-                        }
-                        if (itemId === 'corazon_magico') {
-                            if ((prev.ladyRunMagicHearts ?? 0) >= 2) return prev;
-                            return { ...prev, ladyRunMagicHearts: (prev.ladyRunMagicHearts ?? 0) + 1 };
-                        }
-                        if (itemId === 'corazon_verde') {
-                            if ((prev.ladyRunGreenHearts ?? 0) >= 5) return prev;
-                            return { ...prev, ladyRunGreenHearts: (prev.ladyRunGreenHearts ?? 0) + 1 };
-                        }
-                        return prev;
-                    });
                 }}
                 fullLootRunsByDifficulty={(() => {
                     const key = getDailyRotationKey(gameState.debugDayOffset ?? 0);
@@ -237,20 +262,15 @@ const LadyRunStandalone = () => {
                 onBuySkin={async (dogId, skinId, tier, rarity) => {
                     const owned = gameState.ladyRunOwnedSkins?.[dogId] ?? [];
                     if (owned.includes(skinId)) return true;
-                    const ok = await spendCurrency(tier === 'ultimate' ? 'skin_ultimate' : `skin_${rarity ?? 'rare'}`);
-                    if (!ok) return false;
                     const wasFirstSkin = owned.length === 0;
-                    setGameState(prev => {
-                        const cur = prev.ladyRunOwnedSkins?.[dogId] ?? [];
-                        if (cur.includes(skinId)) return prev;
-                        return {
-                            ...prev,
-                            ladyRunOwnedSkins: { ...(prev.ladyRunOwnedSkins ?? {}), [dogId]: [...cur, skinId] },
-                            ladyRunEquippedSkinByDog: wasFirstSkin
-                                ? { ...(prev.ladyRunEquippedSkinByDog ?? {}), [dogId]: skinId }
-                                : prev.ladyRunEquippedSkinByDog,
-                        };
-                    });
+                    const patch = {
+                        ladyRunOwnedSkins: { ...(gameState.ladyRunOwnedSkins ?? {}), [dogId]: [...owned, skinId] },
+                    };
+                    if (wasFirstSkin) {
+                        patch.ladyRunEquippedSkinByDog = { ...(gameState.ladyRunEquippedSkinByDog ?? {}), [dogId]: skinId };
+                    }
+                    const ok = await spendCurrency(tier === 'ultimate' ? 'skin_ultimate' : `skin_${rarity ?? 'rare'}`, patch);
+                    if (!ok) return false;
                     if (wasFirstSkin && dogId === profile.avatar_dog_id) equipAvatarSkin(skinId);
                     return true;
                 }}

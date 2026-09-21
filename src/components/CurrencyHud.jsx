@@ -11,7 +11,10 @@ import '../styles/components/CurrencyHud.css';
  * acceso embebido de Lady Run, que no tienen el HUD grande de Pata y Pico. Sin oro: en Lady Run
  * no se gana ni se usa.
  */
-const CurrencyHud = ({ chapas = 0, tavernCoins = 0, huesin = 0, tutStep = null, onTutAdvance }) => {
+const CurrencyHud = ({
+    chapas = 0, tavernCoins = 0, huesin = 0, tutStep = null, onTutAdvance,
+    googleLinked = false, onLinkGoogle, onSignInGoogle, linkGoogleIdentityExists = false, linkGoogleError = null,
+}) => {
     const tutActiveOnHud = tutStep === 'hud_chapas' || tutStep === 'hud_taberna' || tutStep === 'hud_huesin';
 
     return (
@@ -37,7 +40,13 @@ const CurrencyHud = ({ chapas = 0, tavernCoins = 0, huesin = 0, tutStep = null, 
                 <img src={huesinCoin} alt="Huesín" />
                 <span>{formatNumber(huesin)}</span>
             </div>
-            <LadyRunSoundSettings />
+            <LadyRunSoundSettings
+                googleLinked={googleLinked}
+                onLinkGoogle={onLinkGoogle}
+                onSignInGoogle={onSignInGoogle}
+                linkGoogleIdentityExists={linkGoogleIdentityExists}
+                linkGoogleError={linkGoogleError}
+            />
 
             {tutStep === 'hud_chapas' && (
                 <LadyRunTutorialCallout

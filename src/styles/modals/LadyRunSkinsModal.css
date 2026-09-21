@@ -129,7 +129,7 @@
 }
 
 .lady-run-frame-equip-item {
-    justify-self: center;
+    justify-self: start;
     border: none;
     background: none;
     padding: 4px;

@@ -12,10 +12,6 @@ import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/
 import '../../styles/modals/LadyRunAvatarModal.css';
 import '../../styles/modals/LadyRunSkinsModal.css';
 
-// Grupos del picker de marcos, en el orden en que se muestran (ver ladyRunAvatarFramesCatalog.js
-// para el precio/gratis de cada uno).
-const FRAME_GROUP_ORDER = ['marco-base', 'marco-fondo'];
-
 // Cada marco tiene su precio en UNA sola moneda (chapas los base, monedas los animados) - ver
 // ladyRunAvatarFramesCatalog.js. Resuelve icono + numero segun cual de las 3 venga rellena.
 const framePriceIconAndValue = (price) => {
@@ -28,7 +24,7 @@ const framePriceIconAndValue = (price) => {
 // desbloqueados para elegir uno nuevo (se guarda en profiles.avatar_dog_id, ver
 // supabase/sql/004_profiles_avatar.sql). Mismo avatar que luego se ve en el Ranking.
 export default function LadyRunAvatarModal({
-    onClose, currentAvatarDogId, avatarOptions, onEquip, frameId, onEquipFrame,
+    onClose, username = '', currentAvatarDogId, avatarOptions, onEquip, frameId, onEquipFrame,
     ownedSkins = {}, equippedSkinByDog = {}, onEquipSkin,
     unlockedFrames = [], onBuyFrame,
     chapas = 0, tavernCoins = 0, huesin = 0,
@@ -39,6 +35,7 @@ export default function LadyRunAvatarModal({
     // Pantalla "Perfil": 3 pestañas compartiendo el mismo preview de arriba. Estadisticas se queda
     // bloqueada (sin contenido) por ahora, ver FEATURES.md.
     const [activeTab, setActiveTab] = useState('avatar'); // 'avatar' | 'marcos' | 'estadisticas'
+    const [marcosSubTab, setMarcosSubTab] = useState('marco-base'); // 'marco-base' | 'marco-fondo'
     const [variantsDogId, setVariantsDogId] = useState(null);
     // Preview grande al tocar un marco (bloqueado o no), igual que el flujo de compra de Skins:
     // se ve el marco con tu avatar actual dentro, y el boton de abajo compra o equipa segun toque.
@@ -103,7 +100,7 @@ export default function LadyRunAvatarModal({
     return (
         <div className="lady-run-shop-backdrop" onClick={handleAvatarClose}>
             <div className="lady-run-shop-panel lady-run-avatar-panel" onClick={e => e.stopPropagation()}>
-                <p className="runner-overlay-title">Perfil</p>
+                <p className="runner-overlay-title">{username || 'Perfil'}</p>
 
                 <div className="lady-run-avatar-preview">
                     {currentFrame && <img src={currentFrame.img} alt="" className="lady-run-avatar-preview-frame" />}
@@ -187,31 +184,32 @@ export default function LadyRunAvatarModal({
                                 onAction={onTutAdvance}
                             />
                         )}
-                        {FRAME_GROUP_ORDER.map(folder => {
-                            const framesInGroup = AVATAR_FRAMES.filter(frame => frame.folder === folder);
-                            if (framesInGroup.length === 0) return null;
-                            return (
-                                <div key={folder}>
-                                    <span className="lady-run-skins-section-title lady-run-frame-section-title">{framesInGroup[0].groupLabel}</span>
-                                    <div className="lady-run-skin-equip-grid">
-                                        {framesInGroup.map(frame => {
-                                            const unlocked = isFrameUnlocked(frame);
-                                            return (
-                                                <button
-                                                    key={frame.id}
-                                                    className={`lady-run-skin-equip-item lady-run-frame-equip-item${frame.id === currentFrame?.id ? ' lady-run-skin-equip-item-active' : ''}`}
-                                                    onClick={() => openFramePreview(frame)}
-                                                >
-                                                    {!unlocked && <img src={lockIcon} alt="Bloqueado" className="lady-run-skin-card-lock" />}
-                                                    <img src={frame.img} alt={frame.name} className="lady-run-skin-equip-img lady-run-frame-equip-img" />
-                                                    <span className="lady-run-skin-equip-name">{frame.name}</span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        <div className="runner-difficulty-select lady-run-marco-subtabs">
+                            <button
+                                className={`runner-difficulty-btn lady-run-marco-subtab-btn${marcosSubTab === 'marco-base' ? ' runner-difficulty-active' : ''}`}
+                                onClick={() => setMarcosSubTab('marco-base')}
+                            >Base</button>
+                            <button
+                                className={`runner-difficulty-btn lady-run-marco-subtab-btn${marcosSubTab === 'marco-fondo' ? ' runner-difficulty-active' : ''}`}
+                                onClick={() => setMarcosSubTab('marco-fondo')}
+                            >Animados</button>
+                        </div>
+                        <div className="lady-run-skin-equip-grid">
+                            {AVATAR_FRAMES.filter(frame => frame.folder === marcosSubTab).map(frame => {
+                                const unlocked = isFrameUnlocked(frame);
+                                return (
+                                    <button
+                                        key={frame.id}
+                                        className={`lady-run-skin-equip-item lady-run-frame-equip-item${frame.id === currentFrame?.id ? ' lady-run-skin-equip-item-active' : ''}`}
+                                        onClick={() => openFramePreview(frame)}
+                                    >
+                                        {!unlocked && <img src={lockIcon} alt="Bloqueado" className="lady-run-skin-card-lock" />}
+                                        <img src={frame.img} alt={frame.name} className="lady-run-skin-equip-img lady-run-frame-equip-img" />
+                                        <span className="lady-run-skin-equip-name">{frame.name}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </>
                 )}
                 </div>

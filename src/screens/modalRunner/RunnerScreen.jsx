@@ -745,6 +745,7 @@ export default function RunnerScreen({
     onConsumeGreenHeart,
     dailyFreeClaimedAt = {},
     onClaimDailyFree,
+    username = '',
     ladyRunTutStep = null,
     setLadyRunTutStep,
     advanceLadyRunTutorial,
@@ -4071,6 +4072,7 @@ export default function RunnerScreen({
                 {avatarOpen && (
                     <LadyRunAvatarModal
                         onClose={() => setAvatarOpen(false)}
+                        username={username}
                         currentAvatarDogId={avatarDogId}
                         avatarOptions={AVATAR_OPTIONS}
                         onEquip={(dogId) => onEquipAvatar?.(dogId)}
