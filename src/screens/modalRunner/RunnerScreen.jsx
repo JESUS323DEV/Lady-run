@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Trophy, Flame, Zap, Droplets, Mountain, Moon, Skull, Shirt, Pause, Play } from 'lucide-react';
+import { X, Flame, Zap, Droplets, Mountain, Moon, Shirt, Pause, Play } from 'lucide-react';
 import backIcon from '../../assets/ui/icons-hud/hud-principal/back.webp';
 import lockIcon from '../../assets/ui/icons-hud/hud-modals/rewards/icon-rewards/lock.webp';
 import prologoScene1 from '../../assets/ui/icons-hud/hud-modals/game-run/assets-historia/prologo-part-1/escenas/escena-1/lore-lady-prologo-part1.webp';
@@ -3128,7 +3128,11 @@ export default function RunnerScreen({
 
     return (
         <div className={`runner-backdrop${belowHud ? ' runner-backdrop-below-hud' : ''}`} onClick={phase !== 'playing' ? onClose : undefined}>
-            <div className={`runner-screen${phase === 'playing' || phase === 'gameover' ? ' runner-screen-centered' : ''}`} onClick={e => e.stopPropagation()}>
+            <div
+                className={`runner-screen${phase === 'playing' || phase === 'gameover' ? ' runner-screen-centered' : ''}${phase === 'playing' && isLibre ? ' runner-screen-scene-bg' : ''}`}
+                style={phase === 'playing' && isLibre ? { backgroundImage: `url(${LIBRE_SCENE_STATIC_IMGS[libreSceneKey]})` } : undefined}
+                onClick={e => e.stopPropagation()}
+            >
                 {phase !== 'playing' && onClose && (
                     <button className="lady-run-close-btn" onClick={onClose}><X /></button>
                 )}
@@ -3175,10 +3179,11 @@ export default function RunnerScreen({
 
                 {(phase === 'playing' || (phase === 'gameover' && isLibre && goStage >= 2)) && (() => {
                     const isNewRecord = phase === 'gameover' && runMetersEarned >= runBestMeters;
+                    const shownMeters = phase === 'playing' ? liveMeters : runMetersEarned;
                     return (
                         <div className={`runner-live-meters${phase === 'gameover' ? ' runner-live-meters-centered' : ''}${isNewRecord ? ' runner-live-meters-new-record' : ''}`}>
                             <div className="runner-live-meters-row">
-                                <span className="runner-live-meters-value">{phase === 'playing' ? liveMeters : runMetersEarned}<span className="runner-live-meters-unit">m</span></span>
+                                <span className={`runner-live-meters-value${shownMeters >= 10000 ? ' runner-live-meters-value-long' : ''}`}>{shownMeters}<span className="runner-live-meters-unit">m</span></span>
                                 <span className="runner-live-meters-best">récord {runBestMeters}m</span>
                             </div>
                             {isNewRecord && <span className="runner-live-meters-new-label">¡Nuevo récord!</span>}
@@ -3902,15 +3907,10 @@ export default function RunnerScreen({
 
                 {phase === 'playing' && (
                     <div className="runner-hud">
-                        <button className="runner-scores-btn" onClick={() => setScoresOpen(true)}><Trophy size={18} /></button>
                         {/* TEMPORAL: boton de pausa manual para probar en vivo, quitar luego. */}
                         <button className="runner-scores-btn" onClick={() => setPaused(p => !p)}>
                             {paused ? <Play size={18} /> : <Pause size={18} />}
                         </button>
-                        {phase === 'playing' && <span className="runner-hud-tier">T{speedTierDisplay}</span>}
-                        {phase === 'playing' && runMode === 'arcade' && (
-                            <span className="runner-hud-rivals"><Skull size={13} />{rivalsDefeated}</span>
-                        )}
                     </div>
                 )}
 
