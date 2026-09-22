@@ -99,7 +99,16 @@ const LadyRunSoundSettings = ({
                                         </>
                                     )}
                                     {linkGoogleError && <p className="ladyrun-settings-account-error">{linkGoogleError}</p>}
-                                    <button className="ladyrun-settings-account-btn ladyrun-settings-account-btn-secondary" onClick={onSignOut}>Cerrar sesión</button>
+                                    {/* Solo con Google vinculada: cerrar sesion de un invitado sin vincular borra su
+                                        progreso para siempre, no hay contraseña ni Google con que volver a entrar despues. */}
+                                    {googleLinked && (
+                                        <button
+                                            className="ladyrun-settings-account-btn ladyrun-settings-account-btn-secondary"
+                                            onClick={() => {
+                                                if (window.confirm('Vas a cerrar sesión. Se desconectará esta cuenta de este dispositivo y volverás a la pantalla de invitado. Para volver a entrar necesitarás iniciar sesión otra vez con esta misma cuenta de Google. ¿Continuar?')) onSignOut?.();
+                                            }}
+                                        >Cerrar sesión</button>
+                                    )}
                                 </div>
                             </div>
 
