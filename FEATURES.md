@@ -33,6 +33,11 @@ Lista de ideas/features en marcha o por hacer. Se va actualizando según avanzam
 
 - Pendiente ajustar: `DOG_SIZE_TIER` en `RunnerScreen.jsx` (linea ~407) - cada perro tiene un porte (small/medium/large) que define su tamaño visual real (48/56/64px) y un margen extra de colision en Modo Libre (0/3/6px, mayor cuanto mas grande el perro). Sigue activo, se usa en la colision de verdad (linea ~2337), pero nunca se ha repasado si esos valores estan bien equilibrados entre perros.
 
+## Pantalla de carga
+
+- [x] (2026-09-22) `usePreloadImages`/`prefetchImages` fuerzan `image.decode()` ademas de la descarga, y los obstaculos de Mina/Ciudad se movieron a la precarga bloqueante (antes solo en la de Historia, de fondo) - arregla obstaculos que "saltaban" a mitad de pantalla en las primeras partidas de una sesion nueva (bug real, confirmado en movil de produccion).
+- Pendiente: con mas imagenes ahora en el grupo bloqueante, la pantalla de carga inicial tarda un poco mas - vale la pena curar visualmente esa pantalla (spinner/animacion propia en vez de lo generico actual), ya que el usuario va a pasar mas tiempo mirandola.
+
 ## Skins
 
 - [x] (2026-09-15) Tienda de Skins desbloqueada (card que antes estaba en "Próximamente"), catálogo generado solo leyendo `src/assets/ui/dog-skins` (`ladyRunSkinsCatalog.js`) - meter un archivo nuevo ahí ya aparece en la tienda, no hace falta tocar código. Preview grande al tocar una skin con marco por rareza, partículas y animación de compra (fundido + giro), inspirado en la tienda de Pata y Pico. Sin la fase de "el perro corriendo" del original (de momento).
