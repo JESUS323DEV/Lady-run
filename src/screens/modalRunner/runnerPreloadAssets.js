@@ -153,6 +153,13 @@ export const RUNNER_CORE_PRELOAD_IMAGES = [
     munaGameOver, druhGameOver, gordoGameOver, ladyGameOver, nupitoGameOver, tukaGameOver1, zeusGameOver1, tokyoGameOver1,
     trophyGold, trophySilver, trophyBronze,
     obstaculo3, obstaculo4, obstaculo6, obstaculoArmadillo, obstaculoAereo2, obstaculoAereo3,
+    // Obstaculos de Mina/Ciudad: aunque tambien salen en Historia (bloqueada), son bioma real de
+    // Modo Libre - antes vivian solo en RUNNER_HISTORIA_PRELOAD_IMAGES (precarga de fondo, sin
+    // bloquear), asi que si se elegia Mina/Ciudad y se jugaba rapido, la primera vez que salia cada
+    // imagen podia no estar lista del todo (causaba un "salto" visual del obstaculo, ver commit que
+    // añade esto). Movidos aqui para que esten garantizados antes de poder jugar, como el resto.
+    obstaculo2, obstaculoRata, obstaculoTopo1, obstaculoGato1,
+    obstaculoAereo, obstaculoAereoCuevas, obstaculoAereoCuevas2,
     runnerFondo1, runnerFondoRunBosque, runnerFondoRunCiudad, runnerFondoRunDesierto, runnerFondoRunMinas, runnerFondoRunPradera, runnerFondoRunHielo,
     libreStaticBosque, libreStaticCiudad, libreStaticDesierto, libreStaticMinas, libreStaticPradera, libreStaticHielo,
 ];
@@ -160,8 +167,6 @@ export const RUNNER_CORE_PRELOAD_IMAGES = [
 // Historia (capitulos, boss, sabotaje por elemento): bloqueado ahora mismo, no hace falta para
 // jugar. Se precarga en segundo plano sin bloquear la pantalla de carga, por si se desbloquea.
 export const RUNNER_HISTORIA_PRELOAD_IMAGES = [
-    obstaculo2, obstaculoRata, obstaculoTopo1, obstaculoGato1,
-    obstaculoAereo, obstaculoAereoCuevas, obstaculoAereoCuevas2,
     fuegoObstacle, electricoObstacle, aguaObstacle, tierraObstacle, oscuroObstacle, attackAgua, attackElectrico, attackBatsBoss,
     batBoss, minaBoss1, minaBoss2, spider001, spider002, spiderBossFinal,
     escenarioMina1, escenarioMina2, escenarioMina3, escenarioCiudad1, escenarioCiudad2, escenarioCiudad3,
