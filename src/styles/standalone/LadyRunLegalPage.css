@@ -1,5 +1,9 @@
+/* html/body tienen overflow:hidden a nivel global (pensado para el juego, que gestiona su propio
+   scroll interno) - esta pantalla no es el juego, gestiona su propio scroll aqui mismo en vez de
+   depender del body, o el contenido largo (como esta politica) no se podria leer entero en movil. */
 .lady-run-legal-screen {
-    min-height: 100vh;
+    height: 100vh;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
