@@ -95,6 +95,7 @@ Divagaciones sin decidir, no hay compromiso de hacerlas, solo quedan apuntadas p
 ## PWA / Instalable
 
 - Pendiente (2026-09-17): convertir Lady Run en webapp instalable (Add to Home Screen en Android/iOS), para que el jugador tenga un icono propio en vez de tener que buscar el link cada vez. Necesita `manifest.json` + icono cuadrado + meta tags en `index.html`. Decidido de momento SIN Service Worker (un SW mal llevado es la causa típica de que una PWA se quede pillada en una version vieja, justo el problema que ya cuesta evitar con `useNewVersionAvailable.js` - sin SW, en Android hay que darle a mano a "Añadir a pantalla de inicio" desde el menú en vez de salir un banner automático de instalar, pero se sigue pudiendo confiar en el sistema de deteccion de updates que ya existe).
+- **Objetivo v0.2 (2026-09-22):** una vez hecho lo anterior (PWA instalable de verdad), empaquetarlo como **TWA (Trusted Web Activity)** para publicarlo en Google Play - envuelve la PWA ya existente en una cascara minima de Android, sin reescribir nada. Necesita ademas: verificacion de dominio (Digital Asset Links), cumplir las normas de calidad de Google Play para apps "envoltorio de web", y el empaquetado en si (Bubblewrap o PWABuilder). No es coger la web tal cual, depende de que el punto de arriba (PWA/manifest) este hecho primero.
 
 ## SEO / Analytics
 

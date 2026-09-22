@@ -6,7 +6,7 @@ import { getDailyRotationKey } from '../../game/utils/dateRotation.js';
 import CurrencyHud from '../../components/CurrencyHud.jsx';
 import { useLadyRunTutorial } from '../../game/hooks/useLadyRunTutorial.js';
 import { useLadyRunProfile } from '../../game/hooks/useLadyRunProfile.js';
-import { usePreloadImages, prefetchImages } from '../../game/hooks/usePreloadImages.js';
+import { usePreloadImages, prefetchImages, preloadImages } from '../../game/hooks/usePreloadImages.js';
 import { RUNNER_CORE_PRELOAD_IMAGES, RUNNER_HISTORIA_PRELOAD_IMAGES } from '../modalRunner/runnerPreloadAssets.js';
 import { AVATAR_FRAMES } from '../modalRunner/ladyRunAvatarFramesCatalog.js';
 import { SKIN_CATALOG } from '../modalRunner/ladyRunSkinsCatalog.js';
@@ -85,21 +85,28 @@ const LadyRunStandalone = () => {
     // El marco y las skins equipadas salen de carpetas leidas por import.meta.glob (ver
     // ladyRunAvatarFramesCatalog.js/ladyRunSkinsCatalog.js), no pasan por RUNNER_CORE_PRELOAD_IMAGES.
     // Se precarga solo lo que el jugador tiene puesto ahora mismo (no el catalogo entero) en cuanto
-    // se conoce su perfil, para que no parpadee en el HUD/pista.
+    // se conoce su perfil. El marco se queda como precarga de fondo (no bloquea, pesa poco y no es
+    // el sprite que se ve corriendo en pista); las skins SI bloquean la pantalla de carga (igual que
+    // los obstaculos, ver runnerPreloadAssets.js) porque son el sprite del perro corriendo/saltando
+    // de verdad, y un tironcito de decodificacion ahi se nota mucho mas jugando.
+    const [equippedSkinLoaded, setEquippedSkinLoaded] = useState(false);
     useEffect(() => {
         if (!loaded || !profile) return;
         const frame = AVATAR_FRAMES.find(f => f.id === profile.avatar_frame_id) ?? AVATAR_FRAMES[0];
+        prefetchImages([frame?.img].filter(Boolean));
+
         const equippedSkinUrls = Object.entries(gameState.ladyRunEquippedSkinByDog ?? {}).flatMap(([dogId, skinId]) => {
             const dogCatalog = SKIN_CATALOG[dogId];
             const skin = dogCatalog?.ultimate?.id === skinId ? dogCatalog.ultimate : dogCatalog?.normal.find(s => s.id === skinId);
             if (!skin) return [];
             return [skin.img, skin.runImg, skin.jumpImg];
-        });
-        prefetchImages([frame?.img, ...equippedSkinUrls].filter(Boolean));
+        }).filter(Boolean);
+        if (equippedSkinUrls.length === 0) { setEquippedSkinLoaded(true); return; }
+        preloadImages(equippedSkinUrls).then(() => setEquippedSkinLoaded(true));
         // eslint-disable-next-line react-hooks/exhaustive-deps -- solo hace falta disparar esto una vez que el perfil ya cargo, no en cada cambio de gameState
     }, [loaded, profile]);
 
-    if (!loaded || profileLoading) {
+    if (!loaded || profileLoading || (profile && !equippedSkinLoaded)) {
         return (
             <div className="lady-run-loading-screen">
                 <div className="lady-run-loading-spinner" />
