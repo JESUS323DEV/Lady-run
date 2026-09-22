@@ -1,0 +1,60 @@
+.lady-run-legal-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 20px 40px;
+    background: #14100c;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.lady-run-legal-logo {
+    width: 110px;
+    height: auto;
+    object-fit: contain;
+    margin-bottom: 12px;
+}
+
+.lady-run-legal-title {
+    color: #ffd740;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.lady-run-legal-content {
+    width: 100%;
+    max-width: 640px;
+}
+
+.lady-run-legal-content h2 {
+    color: #ffd740;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-top: 22px;
+    margin-bottom: 8px;
+}
+
+.lady-run-legal-content p,
+.lady-run-legal-content li {
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.lady-run-legal-content ul {
+    padding-left: 20px;
+    margin: 8px 0;
+}
+
+.lady-run-legal-content a {
+    color: #ffd740;
+}
+
+.lady-run-legal-back {
+    margin-top: 32px;
+    color: #ffd740;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: underline;
+}

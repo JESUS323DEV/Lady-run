@@ -13,7 +13,7 @@ import '../styles/components/CurrencyHud.css';
  */
 const CurrencyHud = ({
     chapas = 0, tavernCoins = 0, huesin = 0, tutStep = null, onTutAdvance,
-    googleLinked = false, onLinkGoogle, onSignInGoogle, linkGoogleIdentityExists = false, linkGoogleError = null,
+    googleLinked = false, onLinkGoogle, onSignInGoogle, onSignOut, linkGoogleIdentityExists = false, linkGoogleError = null,
 }) => {
     const tutActiveOnHud = tutStep === 'hud_chapas' || tutStep === 'hud_taberna' || tutStep === 'hud_huesin';
 
@@ -44,6 +44,7 @@ const CurrencyHud = ({
                 googleLinked={googleLinked}
                 onLinkGoogle={onLinkGoogle}
                 onSignInGoogle={onSignInGoogle}
+                onSignOut={onSignOut}
                 linkGoogleIdentityExists={linkGoogleIdentityExists}
                 linkGoogleError={linkGoogleError}
             />

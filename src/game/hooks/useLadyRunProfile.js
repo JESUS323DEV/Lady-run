@@ -212,10 +212,18 @@ export const useLadyRunProfile = () => {
         if (error) setLinkGoogleError(error.message);
     }, []);
 
+    // Cierra la sesion actual y recarga - al recargar, useLadyRunProfile no encuentra sesion y crea
+    // una cuenta anonima nueva y vacia (mismo init de siempre), asi que esto equivale a "salir" y
+    // dejar el dispositivo listo para otra cuenta (por ejemplo, iniciar sesion con otra Google).
+    const signOut = useCallback(async () => {
+        await supabase.auth.signOut();
+        window.location.reload();
+    }, []);
+
     return {
         loading, initError, profile, claiming, claimError, claimUsername,
         equipAvatar, equipAvatarFrame, equipAvatarSkin, earnCurrency, spendCurrency, updateProgress,
-        googleLinked, linkGoogleAccount, signInWithGoogleAccount,
+        googleLinked, linkGoogleAccount, signInWithGoogleAccount, signOut,
         linkGoogleIdentityExists, linkGoogleError,
     };
 };

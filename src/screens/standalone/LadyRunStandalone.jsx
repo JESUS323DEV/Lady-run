@@ -43,7 +43,7 @@ const LadyRunStandalone = () => {
     const {
         loading: profileLoading, initError: profileInitError, profile, claiming, claimError, claimUsername,
         equipAvatar, equipAvatarFrame, equipAvatarSkin, earnCurrency, spendCurrency, updateProgress,
-        googleLinked, linkGoogleAccount, signInWithGoogleAccount, linkGoogleIdentityExists, linkGoogleError,
+        googleLinked, linkGoogleAccount, signInWithGoogleAccount, signOut, linkGoogleIdentityExists, linkGoogleError,
     } = useLadyRunProfile();
     // gameState/setGameState mantienen la misma forma que antes (objeto plano + updater funcional
     // "prev => ({...prev, x: y})") para no tener que tocar cada sitio que ya los usaba asi - lo unico
@@ -140,6 +140,7 @@ const LadyRunStandalone = () => {
                 googleLinked={googleLinked}
                 onLinkGoogle={linkGoogleAccount}
                 onSignInGoogle={signInWithGoogleAccount}
+                onSignOut={signOut}
                 linkGoogleIdentityExists={linkGoogleIdentityExists}
                 linkGoogleError={linkGoogleError}
                 tutStep={ladyRunTutStep}

@@ -11,7 +11,7 @@ import '../styles/components/LadyRunSoundSettings.css';
  * ya que es el unico panel de "ajustes de cuenta" que existe en Lady Run.
  */
 const LadyRunSoundSettings = ({
-    googleLinked = false, onLinkGoogle, onSignInGoogle, linkGoogleIdentityExists = false, linkGoogleError = null,
+    googleLinked = false, onLinkGoogle, onSignInGoogle, onSignOut, linkGoogleIdentityExists = false, linkGoogleError = null,
 }) => {
     const [open, setOpen] = useState(false);
     const [musicVolume, setMusicVolume] = useState(() => {
@@ -47,55 +47,67 @@ const LadyRunSoundSettings = ({
                             <button className="ladyrun-settings-close" onClick={() => setOpen(false)}><X size={18} /></button>
                         </div>
                         <div className="ladyrun-settings-list">
-                            <div className="ladyrun-settings-item">
-                                <span className="ladyrun-settings-item-icon"><Volume2 size={18} /></span>
-                                <span className="ladyrun-settings-item-label">Música</span>
-                            </div>
-                            <div className="ladyrun-settings-volume-row">
-                                <input
-                                    type="range"
-                                    min={0}
-                                    max={0.5}
-                                    step={0.01}
-                                    value={musicVolume}
-                                    onChange={e => handleMusicVolume(parseFloat(e.target.value))}
-                                    className="ladyrun-volume-slider"
-                                />
-                            </div>
-                            <div className="ladyrun-settings-item">
-                                <span className="ladyrun-settings-item-icon"><Volume2 size={18} /></span>
-                                <span className="ladyrun-settings-item-label">Efectos</span>
-                            </div>
-                            <div className="ladyrun-settings-volume-row">
-                                <input
-                                    type="range"
-                                    min={0}
-                                    max={1}
-                                    step={0.01}
-                                    value={sfxVolume}
-                                    onChange={e => handleSfxVolume(parseFloat(e.target.value))}
-                                    className="ladyrun-volume-slider"
-                                />
+                            <div className="ladyrun-settings-group">
+                                <div className="ladyrun-settings-item">
+                                    <span className="ladyrun-settings-item-icon"><Volume2 size={18} /></span>
+                                    <span className="ladyrun-settings-item-label">Música</span>
+                                </div>
+                                <div className="ladyrun-settings-volume-row">
+                                    <input
+                                        type="range"
+                                        min={0}
+                                        max={0.5}
+                                        step={0.01}
+                                        value={musicVolume}
+                                        onChange={e => handleMusicVolume(parseFloat(e.target.value))}
+                                        className="ladyrun-volume-slider"
+                                    />
+                                </div>
+                                <div className="ladyrun-settings-item">
+                                    <span className="ladyrun-settings-item-icon"><Volume2 size={18} /></span>
+                                    <span className="ladyrun-settings-item-label">Efectos</span>
+                                </div>
+                                <div className="ladyrun-settings-volume-row">
+                                    <input
+                                        type="range"
+                                        min={0}
+                                        max={1}
+                                        step={0.01}
+                                        value={sfxVolume}
+                                        onChange={e => handleSfxVolume(parseFloat(e.target.value))}
+                                        className="ladyrun-volume-slider"
+                                    />
+                                </div>
                             </div>
 
-                            <div className="ladyrun-settings-item">
-                                <span className="ladyrun-settings-item-icon"><User size={18} /></span>
-                                <span className="ladyrun-settings-item-label">Cuenta</span>
+                            <div className="ladyrun-settings-group">
+                                <div className="ladyrun-settings-item">
+                                    <span className="ladyrun-settings-item-icon"><User size={18} /></span>
+                                    <span className="ladyrun-settings-item-label">Cuenta</span>
+                                </div>
+                                <div className="ladyrun-settings-account-row">
+                                    {googleLinked ? (
+                                        <span className="ladyrun-settings-account-linked">Vinculada con Google</span>
+                                    ) : (
+                                        <>
+                                            <p className="ladyrun-settings-account-hint">Ahora mismo juegas como invitado: tu progreso vive solo en este navegador.</p>
+                                            <button className="ladyrun-settings-account-btn" onClick={onLinkGoogle}>Vincula tu cuenta con Google</button>
+                                            <button className="ladyrun-settings-account-btn ladyrun-settings-account-btn-secondary" onClick={onSignInGoogle}>Ya tengo cuenta, iniciar sesión</button>
+                                            {linkGoogleIdentityExists && (
+                                                <p className="ladyrun-settings-account-hint">Esa cuenta de Google ya está registrada. Usa "Ya tengo cuenta, iniciar sesión".</p>
+                                            )}
+                                        </>
+                                    )}
+                                    {linkGoogleError && <p className="ladyrun-settings-account-error">{linkGoogleError}</p>}
+                                    <button className="ladyrun-settings-account-btn ladyrun-settings-account-btn-secondary" onClick={onSignOut}>Cerrar sesión</button>
+                                </div>
                             </div>
-                            <div className="ladyrun-settings-account-row">
-                                {googleLinked ? (
-                                    <span className="ladyrun-settings-account-linked">Vinculada con Google</span>
-                                ) : (
-                                    <>
-                                        <p className="ladyrun-settings-account-hint">Ahora mismo juegas como invitado: tu progreso vive solo en este navegador.</p>
-                                        <button className="ladyrun-settings-account-btn" onClick={onLinkGoogle}>Registrarme con Google</button>
-                                        <button className="ladyrun-settings-account-btn ladyrun-settings-account-btn-secondary" onClick={onSignInGoogle}>Ya tengo cuenta, iniciar sesión</button>
-                                        {linkGoogleIdentityExists && (
-                                            <p className="ladyrun-settings-account-hint">Esa cuenta de Google ya está registrada. Usa "Ya tengo cuenta, iniciar sesión".</p>
-                                        )}
-                                    </>
-                                )}
-                                {linkGoogleError && <p className="ladyrun-settings-account-error">{linkGoogleError}</p>}
+
+                            <div className="ladyrun-settings-group">
+                                <div className="ladyrun-settings-legal-row">
+                                    <a href="/privacidad" target="_blank" rel="noopener noreferrer">Política de privacidad</a>
+                                    <a href="/terminos" target="_blank" rel="noopener noreferrer">Condiciones del servicio</a>
+                                </div>
                             </div>
                         </div>
                     </div>
