@@ -530,7 +530,8 @@ const GO_POINTS_DELAY_MS = 500;
 const GO_RECORD_DELAY_MS = 450;
 const GO_REWARDS_DELAY_MS = 450;
 const GO_REWARD_GROW_MS = 260;   // la moneda crece mientras "comprueba" si tiene algo
-const GO_REWARD_TICK_MS = 130;   // intervalo entre cada +1 del contador
+const GO_REWARD_TICK_MS = 130;   // intervalo entre cada +1 del contador, para los primeros 3
+const GO_REWARD_TICK_FAST_MS = 40; // a partir del 4o +1, mas rapido para no hacerse eterno con cantidades grandes
 const GO_REWARD_HOLD_MS = 350;   // pausa tras terminar de contar antes de pasar a la siguiente
 
 const BOSS_MAX_HP = 40;
@@ -3044,7 +3045,7 @@ export default function RunnerScreen({
                     if (cancelled) return;
                     n += 1;
                     setCount(n);
-                    await wait(GO_REWARD_TICK_MS);
+                    await wait(n <= 3 ? GO_REWARD_TICK_MS : GO_REWARD_TICK_FAST_MS);
                 }
                 await wait(GO_REWARD_HOLD_MS);
             }
