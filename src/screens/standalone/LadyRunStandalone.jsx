@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import RunnerScreen from '../modalRunner/RunnerScreen.jsx';
 import LadyRunLanding from './LadyRunLanding.jsx';
 import LadyRunUsernameScreen from './LadyRunUsernameScreen.jsx';
@@ -56,14 +56,18 @@ const LadyRunStandalone = () => {
         loaded && !showLanding,
     );
 
-    // Migracion de una sola vez: si un jugador ya tenia progreso guardado en localStorage de antes
-    // de este cambio (ver 022_progress_sync.sql) y su profiles.progress en la nube llega vacio, se
-    // sube tal cual ese progreso local - asi no se pierde nada al pasar a guardarlo en Supabase.
-    // Una vez migrado, localStorage deja de leerse: Supabase pasa a ser la unica fuente de verdad.
-    const migratedRef = useRef(false);
+    // Migracion de una sola vez POR NAVEGADOR (no por cuenta): si un jugador ya tenia progreso
+    // guardado en localStorage de antes de este cambio (ver 022_progress_sync.sql) y su
+    // profiles.progress en la nube llega vacio, se sube tal cual ese progreso local - asi no se
+    // pierde nada al pasar a guardarlo en Supabase. El flag MIGRATED_KEY se guarda en localStorage
+    // (no en un ref, que se resetea en cada recarga) para que esto no vuelva a dispararse nunca mas
+    // en este navegador - sin el flag persistente, CUALQUIER cuenta nueva creada despues en el mismo
+    // navegador heredaba restos de localStorage de una partida vieja ya abandonada (bug real
+    // encontrado 2026-09-22: cuentas nuevas salian con marcos/skins sueltos que no deberian tener).
+    const MIGRATED_KEY = 'ladyRunGameMigrated';
     useEffect(() => {
-        if (!profile || migratedRef.current) return;
-        migratedRef.current = true;
+        if (!profile || localStorage.getItem(MIGRATED_KEY) === '1') return;
+        localStorage.setItem(MIGRATED_KEY, '1');
         if (profile.progress && Object.keys(profile.progress).length > 0) return;
         const legacy = loadLegacyLocalState();
         if (Object.keys(legacy).length === 0) return;
