@@ -105,8 +105,8 @@ const LadyRunSoundSettings = ({
 
                             <div className="ladyrun-settings-group">
                                 <div className="ladyrun-settings-legal-row">
-                                    <a href="/privacidad" target="_blank" rel="noopener noreferrer">Política de privacidad</a>
-                                    <a href="/terminos" target="_blank" rel="noopener noreferrer">Condiciones del servicio</a>
+                                    <a href="/privacidad">Política de privacidad</a>
+                                    <a href="/terminos">Condiciones del servicio</a>
                                 </div>
                             </div>
                         </div>

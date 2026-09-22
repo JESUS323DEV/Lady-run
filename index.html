@@ -49,12 +49,30 @@
     "inLanguage": "es"
   }
   </script>
+
+  <!-- El h1/p con clase seo-fallback (linea de abajo) es solo para buscadores (SEO), no para que lo
+       vea nadie - se ve una fraccion de segundo antes de que React lo sustituya por el juego de
+       verdad. Se oculta visualmente (tecnica estandar, el contenido sigue en el DOM para los
+       crawlers) para que ese instante sea solo fondo oscuro solido, sin texto parpadeando. OJO: esto
+       tiene que apuntar a una clase propia, NUNCA a "#root h1, #root p" a secas - toda la app de
+       React se monta dentro de #root, así que un selector por tag ahi oculta tambien los h1/p reales
+       del juego (paso de verdad, ver FEATURES.md o el commit que lo arreglo). -->
+  <style>
+    body { background: #14100c; }
+    .seo-fallback {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+    }
+  </style>
 </head>
 
 <body>
   <div id="root">
-    <h1>Lady Run</h1>
-    <p>Lady Run es un runner online protagonizado por perros: corre por distintos escenarios, supera obstáculos, consigue recompensas y compite en el ranking.</p>
+    <h1 class="seo-fallback">Lady Run</h1>
+    <p class="seo-fallback">Lady Run es un runner online protagonizado por perros: corre por distintos escenarios, supera obstáculos, consigue recompensas y compite en el ranking.</p>
   </div>
   <noscript>
     <p>Lady Run es un runner online protagonizado por perros: corre por distintos escenarios, supera obstáculos, consigue recompensas y compite en el ranking. Activa JavaScript para jugar.</p>
