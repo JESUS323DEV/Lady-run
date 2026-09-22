@@ -93,7 +93,9 @@ Divagaciones sin decidir, no hay compromiso de hacerlas, solo quedan apuntadas p
 
 ## SEO / Analytics
 
-- Hecho (2026-09-18): meta tags basicos, Open Graph, Twitter Card, JSON-LD, robots.txt, favicon, contenido crawleable de respaldo (`index.html`).
-- Pendiente: dar de alta el sitio en Google Search Console (`ladyrun.jesusdev.es`) y meter el meta tag de verificacion que da Google - lo tiene que crear el usuario, no se puede hacer desde aqui.
+- Hecho (2026-09-18): meta tags basicos, Open Graph, Twitter Card, JSON-LD, robots.txt, favicon, contenido crawleable de respaldo (`index.html`, oculto visualmente con la clase `seo-fallback` para que no se vea el flash al cargar, ver `feedback_css_selector_generico_root`).
+- [x] Sitio dado de alta y verificado en Google Search Console (`ladyrun.jesusdev.es`), meta tag de verificacion puesto en `index.html`.
+- [x] Google Analytics (GA4) integrado - `src/lib/loadGoogleAnalytics.js`, solo se carga si el jugador acepta el aviso de cookies (`CookieConsentBanner.jsx`).
 - Pendiente: revisar en Netlify que no sirva la web duplicada en `www.ladyrun.jesusdev.es` ademas de `ladyrun.jesusdev.es` (contenido duplicado).
-- Pendiente: Analytics (Google Analytics GA4 u otro) para Lady Run - el usuario no tiene ninguna cuenta creada todavia para este proyecto (la de su portfolio jesusdev.es es aparte, no vale para esto). Cuando quiera, decidir proveedor (GA4 vs alternativa tipo Plausible) y crear la cuenta antes de integrar el codigo.
+- Pendiente: no existe `sitemap.xml` (ni `robots.txt` referencia ninguno). Para una sola pagina real (`/privacidad` y `/terminos` no necesitan indexarse) el impacto es bajo, pero es lo unico que falta del checklist tecnico estandar de SEO.
+- **Nivel actual (verificado 2026-09-22, no volver a preguntar sin comprobar primero si cambio):** SEO tecnico solido para una landing de una sola pagina - meta tags, OG, Twitter Card, JSON-LD, canonical, robots.txt, favicon, Search Console verificado, Analytics activo, contenido de respaldo crawleable. Solo faltan el sitemap y el tema del `www` duplicado, ambos de impacto bajo.
