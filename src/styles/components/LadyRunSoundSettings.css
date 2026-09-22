@@ -52,6 +52,16 @@
     padding: 0.5rem 0;
 }
 
+.ladyrun-settings-group {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ladyrun-settings-group:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
 .ladyrun-settings-item {
     display: flex;
     align-items: center;
@@ -95,9 +105,14 @@
 }
 
 .ladyrun-settings-account-linked {
-    color: #8fd97a;
-    font-size: 0.8rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(19, 88, 0, 0.4);
+    background: rgba(242, 255, 239, 0.089);
+    color: #f8f8f8;
     font-weight: 700;
+    font-size: 0.8rem;
+    text-align: center;
 }
 
 .ladyrun-settings-account-hint {
@@ -126,6 +141,20 @@
 .ladyrun-settings-account-error {
     color: #ff6b6b;
     font-size: 0.7rem;
+}
+
+.ladyrun-settings-legal-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 14px;
+    padding: 0.75rem 1.2rem 0.2rem;
+}
+
+.ladyrun-settings-legal-row a {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.65rem;
+    text-decoration: underline;
 }
 
 .ladyrun-sound-btn {
