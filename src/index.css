@@ -87,6 +87,13 @@ html {
     -webkit-text-size-adjust: 100%;
 }
 
+/* Quita el resaltado azul/gris que el navegador pone solo al tocar un boton en movil (Android sobre
+   todo), y el contorno de foco por defecto de todos los elementos interactivos del juego. */
+button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
 /* Mejor scroll (opcional pero agradable) */
 body {
     scroll-behavior: smooth;
