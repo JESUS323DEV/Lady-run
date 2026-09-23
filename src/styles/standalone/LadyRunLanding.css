@@ -47,3 +47,14 @@
 .lady-run-landing-play-btn:hover {
     filter: brightness(1.15);
 }
+
+.lady-run-landing-play-btn-secondary {
+    margin-top: -16px;
+    padding: 0.4rem 1.5rem;
+    font-size: 0.75rem;
+    color: rgba(255, 215, 64, 0.75);
+}
+
+.lady-run-landing-play-btn-secondary::before {
+    opacity: 0.6;
+}

@@ -82,7 +82,7 @@ export const useLadyRunProfile = () => {
         setClaimError(null);
         const { data, error } = await supabase
             .from('profiles')
-            .insert({ id: session.user.id, username })
+            .insert({ id: session.user.id, username, avatar_dog_id: 'lady', avatar_frame_id: 'marco-avatar-1' })
             .select('id, username, avatar_dog_id, avatar_frame_id, avatar_skin_id, chapas, tavern_coins, huesin, progress')
             .single();
         setClaiming(false);

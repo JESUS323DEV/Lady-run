@@ -12,7 +12,7 @@ const LOGO_SWAP_DELAY_MS = 4000;
 // nunca avanza sola: solo el boton "Jugar" lleva al juego de verdad. Si hay una build nueva
 // desplegada mientras se ve esta pantalla, el mismo boton pasa a "Actualizar" (recarga) en vez de
 // "Jugar", y vuelve a ser "Jugar" normal en cuanto se recarga con la version nueva.
-const LadyRunLanding = ({ onPlay }) => {
+const LadyRunLanding = ({ onPlay, onPlayTutorial }) => {
     const [showLoop, setShowLoop] = useState(false);
     const updateAvailable = useNewVersionAvailable();
 
@@ -30,6 +30,16 @@ const LadyRunLanding = ({ onPlay }) => {
             >
                 {updateAvailable ? 'Actualizar' : 'Jugar'}
             </button>
+            {/* Elegir entrar directo o con el tutorial guiado: solo se ofrece hasta que el tutorial
+                se completa una vez de verdad (ver LadyRunStandalone.jsx), no es un flag de "ya elegiste". */}
+            {onPlayTutorial && !updateAvailable && (
+                <button
+                    className="lady-run-landing-play-btn lady-run-landing-play-btn-secondary"
+                    onClick={() => { playLadyRunSfx('buttonMode'); onPlayTutorial(); }}
+                >
+                    Jugar tutorial
+                </button>
+            )}
         </div>
     );
 };
