@@ -38,6 +38,8 @@ import tukaIcon    from '../../assets/ui/icons-pets/mineros/tuka-icon.webp';
 import zeusIcon    from '../../assets/ui/icons-pets/mineros/zeus-icon.webp';
 import druhIcon    from '../../assets/ui/icons-pets/mineros/druh-icon.webp';
 import dayoIcon    from '../../assets/ui/icons-pets/mineros/dayo-icon.webp';
+import katrinaIcon from '../../assets/ui/icons-pets/mineros/katrina-icon.webp';
+import princeIcon  from '../../assets/ui/icons-pets/mineros/prince-icon.webp';
 
 import obstaculo2 from '../../assets/ui/icons-hud/hud-modals/game-run/obstaculos/terrestres/mina/obstaculo2.webp';
 import obstaculoRata from '../../assets/ui/icons-hud/hud-modals/game-run/obstaculos/terrestres/mina/obstaculo-rata.webp';
@@ -132,6 +134,29 @@ import trophyGold from '../../assets/ui/icons-hud/hud-modals/rankings/copa-oro.w
 import trophySilver from '../../assets/ui/icons-hud/hud-modals/rankings/copa-plata.webp';
 import trophyBronze from '../../assets/ui/icons-hud/hud-modals/rankings/copa-bronze.webp';
 
+// Textura de boton reutilizada en TODOS los botones del juego (Jugar, Empezar, Confirmar...) via CSS
+// background, no <img> - nunca pasaba por la precarga aunque sea el primer boton que ve cualquiera.
+import btnVacio from '../../assets/ui/icons-hud/hud-modals/modal-invocacion/vacio.webp';
+
+// Fondo del modal de Tienda + icono de diamante + corazon rojo (el magico/verde ya estaban), todos
+// via CSS background o <img> suelto, fuera de la precarga hasta ahora.
+import shopBg from '../../assets/backgrounds/bg-modal-raids/bg-raids-passive/raids-passive-bg.png';
+import shopDiamond from '../../assets/ui/icons-hud/hud-modals/modal-comerciante/icons-comerciante/diamond.webp';
+import redHeartIcon from '../../assets/ui/icons-hud/hud-modals/game-run/icons/hud/icons-life/life-dog/vida-base-2.webp';
+
+// Bordes de rareza de Skins (legendaria/epica/rara/ultimate) y del selector de perro, via CSS
+// background ::before, fuera de la precarga hasta ahora.
+import marcoLegend from '../../assets/ui/marco-frames/marco-legend.webp';
+import marcoEpic from '../../assets/ui/marco-frames/marco-epic.webp';
+import marcoRare from '../../assets/ui/marco-frames/marco-rare.webp';
+import marcoSkinUltimate from '../../assets/ui/marco-frames/marco-skin-ultimate.webp';
+import combatLegend from '../../assets/ui/icons-enemy/marco-slot-combat/combat-legend.webp';
+import combatEpic from '../../assets/ui/icons-enemy/marco-slot-combat/combat-epic.webp';
+import combatRare from '../../assets/ui/icons-enemy/marco-slot-combat/combat-rare.webp';
+
+import { AVATAR_FRAMES_PRELOAD_IMAGES } from './ladyRunAvatarFramesCatalog.js';
+import { SKIN_CATALOG_PRELOAD_IMAGES } from './ladyRunSkinsCatalog.js';
+
 // Nucleo: lo que hace falta para la pantalla de seleccion y Modo Libre (unico modo jugable ahora
 // mismo, Historia/Tienda estan bloqueados). Esto es lo que bloquea la pantalla de carga inicial.
 export const RUNNER_CORE_PRELOAD_IMAGES = [
@@ -146,7 +171,7 @@ export const RUNNER_CORE_PRELOAD_IMAGES = [
     zeusRun1, zeusJump,
     druhRun1, druhJump,
     dayoRun1, dayoJump,
-    ladyIcon, gordoIcon, munaIcon, nupitoIcon, smokeIcon, tokyoIcon, tukaIcon, zeusIcon, druhIcon, dayoIcon,
+    ladyIcon, gordoIcon, munaIcon, nupitoIcon, smokeIcon, tokyoIcon, tukaIcon, zeusIcon, druhIcon, dayoIcon, katrinaIcon, princeIcon,
     lockIcon, backIcon, tavernCoinIcon, chapaIcon, huesinIcon, jumpBtnIcon1, jumpBtnIcon2, boneIcon,
     pawFill0, pawFill1, pawFill2, pawFill3, pawFill4, pawFill5,
     lifeHeart0, lifeHeart1, lifeHeart2, lifeHeart3, lifeHeart4, magicHeartIcon, greenHeartIcon,
@@ -162,6 +187,9 @@ export const RUNNER_CORE_PRELOAD_IMAGES = [
     obstaculoAereo, obstaculoAereoCuevas, obstaculoAereoCuevas2,
     runnerFondo1, runnerFondoRunBosque, runnerFondoRunCiudad, runnerFondoRunDesierto, runnerFondoRunMinas, runnerFondoRunPradera, runnerFondoRunHielo,
     libreStaticBosque, libreStaticCiudad, libreStaticDesierto, libreStaticMinas, libreStaticPradera, libreStaticHielo,
+    btnVacio, shopBg, shopDiamond, redHeartIcon,
+    marcoLegend, marcoEpic, marcoRare, marcoSkinUltimate, combatLegend, combatEpic, combatRare,
+    ...AVATAR_FRAMES_PRELOAD_IMAGES, ...SKIN_CATALOG_PRELOAD_IMAGES,
 ];
 
 // Historia (capitulos, boss, sabotaje por elemento): bloqueado ahora mismo, no hace falta para
