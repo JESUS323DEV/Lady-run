@@ -63,3 +63,6 @@ export const AVATAR_FRAMES = Object.entries(byFolder).flatMap(([folder, frames])
             };
         });
 });
+
+// Todas las imagenes del catalogo, para precarga (ver runnerPreloadAssets.js).
+export const AVATAR_FRAMES_PRELOAD_IMAGES = AVATAR_FRAMES.map(frame => frame.img);

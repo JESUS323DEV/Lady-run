@@ -105,3 +105,11 @@ for (const dogId of Object.keys(catalog)) {
 }
 
 export const SKIN_CATALOG = catalog;
+
+// Todas las miniaturas + runImg/jumpImg del catalogo, para precarga (ver runnerPreloadAssets.js). NO
+// incluye purchaseRunImg (animacion de compra, carpeta dog-skins-run-card, mucho mas pesada) - esa se
+// queda cargando bajo demanda solo cuando se compra de verdad, no en la carga inicial.
+export const SKIN_CATALOG_PRELOAD_IMAGES = Object.values(catalog).flatMap(entry => [
+    ...entry.normal.flatMap(s => [s.img, s.runImg, s.jumpImg]),
+    entry.ultimate?.img, entry.ultimate?.img2,
+]).filter(Boolean);
