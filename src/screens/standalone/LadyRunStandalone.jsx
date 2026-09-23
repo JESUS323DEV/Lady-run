@@ -39,6 +39,12 @@ const loadLegacyLocalState = () => {
  */
 const LadyRunStandalone = () => {
     const [showLanding, setShowLanding] = useState(true);
+    // Elegir "Jugar" (sin tutorial) o "Jugar tutorial" se ofrece cada vez que se carga la app mientras
+    // el tutorial principal no se haya completado NUNCA de verdad (no es un flag de "ya elegiste": si
+    // hoy le das a "Jugar" y vuelves mañana sin haberlo completado, te lo vuelve a preguntar). Solo
+    // dura la sesion (useState, no se guarda), por eso el tutorial arranca solo si activeTutorialChoice
+    // es 'tutorial'.
+    const [tutorialEntryChoice, setTutorialEntryChoice] = useState(null); // null | 'skip' | 'tutorial'
     const loaded = usePreloadImages(RUNNER_CORE_PRELOAD_IMAGES);
     const {
         loading: profileLoading, initError: profileInitError, profile, claiming, claimError, claimUsername,
@@ -50,10 +56,11 @@ const LadyRunStandalone = () => {
     // que cambia es que ahora leen/escriben profiles.progress en vez de localStorage.
     const gameState = profile?.progress ?? {};
     const setGameState = updateProgress;
+    const ladyRunTutorialCompleted = gameState.ladyRunTutorial?.completed ?? false;
     const { tutStep: ladyRunTutStep, setTutStep: setLadyRunTutStep, advanceTutorial: advanceLadyRunTutorial } = useLadyRunTutorial(
-        gameState.ladyRunTutorial?.completed ?? false,
+        ladyRunTutorialCompleted,
         () => setGameState(prev => ({ ...prev, ladyRunTutorial: { completed: true } })),
-        loaded && !showLanding,
+        loaded && !showLanding && (ladyRunTutorialCompleted || tutorialEntryChoice === 'tutorial'),
     );
 
     // Migracion de una sola vez POR NAVEGADOR (no por cuenta): si un jugador ya tenia progreso
@@ -124,8 +131,15 @@ const LadyRunStandalone = () => {
         );
     }
 
+    // Una sola pantalla de aterrizaje, no dos seguidas: si el tutorial principal ya no esta pendiente
+    // (completado, o esta sesion ya eligio "Jugar"/"Jugar tutorial"), solo se ofrece "Jugar" normal.
     if (showLanding) {
-        return <LadyRunLanding onPlay={() => setShowLanding(false)} />;
+        return (
+            <LadyRunLanding
+                onPlay={() => { setShowLanding(false); if (!ladyRunTutorialCompleted) setTutorialEntryChoice('skip'); }}
+                onPlayTutorial={!ladyRunTutorialCompleted ? () => { setShowLanding(false); setTutorialEntryChoice('tutorial'); } : undefined}
+            />
+        );
     }
 
     if (!profile) {
