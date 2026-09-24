@@ -751,6 +751,17 @@
     height: 220px;
 }
 
+/* Solo Eventos y solo en pantallas bajitas (moviles, ver el mismo breakpoint que
+   .runner-action-row-eventos): tarjetas mas bajas y el fondo recortado por abajo en vez de
+   centrado, para perder cielo/montanas en vez de suelo/personaje. En desktop (ventana alta) no
+   hace falta ganar espacio, se quedan con el tamaño normal (220px) de los demas modos. */
+@media (max-height: 750px) {
+    .runner-track-eventos {
+        height: 180px;
+        background-position: center bottom;
+    }
+}
+
 .runner-track-player.runner-track-blank {
     position: absolute;
     inset: 0;
@@ -1140,6 +1151,12 @@
     z-index: 21;
 }
 
+/* Solo el mapa de nodos de Eventos, no toca las demas pantallas que comparten
+   .lady-run-prologo-test-btn (Historia). */
+.runner-start-btn.lady-run-eventos-map-btn {
+    bottom: 10px;
+}
+
 .lady-run-prologo-lore {
     position: absolute;
     left: 20px;
@@ -1260,6 +1277,28 @@
 .lady-run-path-node-lock {
     width: 18px;
     height: 18px;
+}
+
+/* Cara del rival fijo de cada nodo de Eventos (ver EVENTOS_NODE_RIVAL_DOG), llenando el circulo.
+   Se ve tambien en nodos bloqueados (para saber contra quien te toca antes de desbloquearlo), pero
+   apagada, con el candado como insignia encima (ver .lady-run-path-node-lock-overlay). */
+.lady-run-path-node-dog {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.lady-run-path-node-locked .lady-run-path-node-dog {
+    filter: grayscale(100%) brightness(0.45);
+}
+
+.lady-run-path-node-lock-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
 }
 
 /* Nodo de Eventos ya reclamado (recompensa cobrada): se puede seguir jugando, pero distinto del
@@ -1713,6 +1752,24 @@
     gap: 14px;
 }
 
+/* Solo Eventos y solo en pantallas bajitas de verdad (moviles): empuja los botones hacia abajo
+   usando el hueco libre que dejan las tarjetas mas bajas (.runner-track-eventos). En una ventana de
+   escritorio alta, el mismo margin-top:auto dejaria un hueco enorme en medio, asi que ahi se queda
+   con el espaciado normal (gap de .runner-action-row) en vez de este empuje. */
+@media (max-height: 750px) {
+    .runner-action-row-eventos {
+        margin-top: auto;
+    }
+}
+
+/* Desktop (ventana alta): sin el empuje total de arriba, pero un poco mas separados de la barra de
+   carrera que el gap normal, para no quedar pegados justo debajo de golpe. */
+@media (min-height: 751px) {
+    .runner-action-row-eventos {
+        margin-top: 48px;
+    }
+}
+
 .runner-loot-limit-text {
     margin-top: 6px;
     color: rgba(255, 255, 255, 0.5);
@@ -1741,6 +1798,33 @@
 }
 
 .runner-jump-hub .runner-magic-heart-sat .runner-power-btn-charges {
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: none;
+    color: #ffd740;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.9);
+}
+
+/* Sabotaje de Eventos: mismo hueco que el corazon magico (.runner-magic-heart-sat) pero espejado al
+   lado izquierdo del boton de saltar, para que los 2 convivan sin pisarse en ese modo. */
+.runner-jump-hub .runner-eventos-sabotage-sat {
+    position: absolute;
+    top: 20px;
+    left: -61px;
+    transform: translateY(-50%);
+    width: 65px;
+    height: 65px;
+    border: none;
+    background: none;
+}
+
+.runner-jump-hub .runner-eventos-sabotage-sat .runner-power-btn-img {
+    width: 90px;
+    height: 90px;
+}
+
+.runner-jump-hub .runner-eventos-sabotage-sat .runner-power-btn-charges {
     width: auto;
     height: auto;
     border-radius: 0;
