@@ -325,7 +325,7 @@ const HISTORIA_MENU_BG_DURATIONS_MS = [12000, 6000, 8000]; // historia1 -> histo
 // Coordenadas de cada huella DENTRO de la imagen original de map-bosque.webp (941x1672 px reales).
 // Nodo 1 = Pradera (Libre), 2 = Bosque1, 3 = Bosque2, 4 = Bosque1 (repite), 5 = Boss (Bosque de Libre).
 const CHAPTER1_PATH_NODES = [
-    { num: 1, px: 490, py: 1454 },
+    { num: 1, px: 490, py: 1430 },
     { num: 2, px: 590, py: 1055 },
     { num: 3, px: 457, py: 646 },
     { num: 4, px: 601, py: 430 },
@@ -354,9 +354,21 @@ const EVENTOS_PATH_NODES = CHAPTER1_PATH_NODES.slice(0, 4);
 // Metros repartidos con progresion (mas cortos/faciles al principio) sobre ~1900m, la mejor marca
 // real del usuario jugando Modo Libre en facil.
 const EVENTOS_NODE_META_M = [300, 450, 550, 600];
-const EVENTOS_NODE_DIFFICULTY = ['facil', 'facil', 'medio', 'medio']; // el nodo 5 (boss, sin hacer aun) sera el dificil
-// Rival fijo por nodo (en vez de al azar, ver resetGame): progresion de rareza rara->legendaria a
-// juego con la dificultad. No puedes elegir este perro como el tuyo en ese nodo (ver runner-dog-select).
+// Selector de dificultad del evento entero (no por nodo individual, ver eventosDifficultyTier):
+// cada tier tiene su propia dificultad y rival por nodo, y su propio progreso guardado (ver
+// EVENTOS_NODE_RIVAL_DOG_BY_TIER y el prop eventosNodesDone/eventosClaimedNodes, ahora objetos
+// {facil,medio,dificil} en vez de un numero/array suelto). El nodo 5 (boss, sin hacer aun) queda
+// fuera de esta tabla.
+const EVENTOS_DIFFICULTY_TIERS = ['facil', 'medio', 'dificil'];
+const EVENTOS_NODE_DIFFICULTY_BY_TIER = {
+    facil: ['facil', 'facil', 'medio', 'medio'],
+    medio: ['facil', 'medio', 'medio', 'medio'],
+    dificil: ['medio', 'dificil', 'dificil', 'dificil'],
+};
+// Rival fijo por nodo (en vez de al azar, ver resetGame): el mismo perro en las 3 dificultades,
+// solo cambia el color del circulo del nodo segun eventosDifficultyTier (ver
+// .lady-run-path-node-tier-medio/-dificil en el CSS). No puedes elegir este perro como el tuyo en
+// ese nodo (ver runner-dog-select).
 const EVENTOS_NODE_RIVAL_DOG = ['gordo', 'zeus', 'muna', 'tuka'];
 
 // Recompensas por tramo de cada nodo de Eventos (independientes de RUN_MILESTONE_REWARDS de Modo
@@ -740,9 +752,9 @@ export default function RunnerScreen({
     onEquipFrame,
     unlockedFrames = [],
     onBuyFrame,
-    eventosNodesDone = 0,
+    eventosNodesDone = {},
     onAdvanceEventosNode,
-    eventosClaimedNodes = [],
+    eventosClaimedNodes = {},
     onClaimEventosNode,
     magicHearts = 0,
     onUseMagicHeart,
@@ -990,18 +1002,23 @@ export default function RunnerScreen({
     const [historiaCustomScene, setHistoriaCustomScene] = useState(null); // null | 'bosque1' | 'bosque2', fondo propio (no de Libre) para los nodos 1-4 del Capitulo 1
     const [historiaActiveNodeIndex, setHistoriaActiveNodeIndex] = useState(null); // 0-4, que nodo del Capitulo 1 se esta jugando (para saber que hace "Empezar")
     const [historiaMenuBgStep, setHistoriaMenuBgStep] = useState(0); // 0/1/2 = historia/historia2/historia3, en bucle
-    const [eventosEventId, setEventosEventId] = useState(null); // null = pantalla de seleccion de evento, 'bosque' = evento Bosque (mapa de nodos)
+    const [eventosEventId, setEventosEventId] = useState(null); // null solo antes de entrar; el btn "Jugar" del menu principal lo pone en 'bosque' directamente (unico evento hecho, sin pantalla de seleccion)
     const [eventosActiveNodeIndex, setEventosActiveNodeIndex] = useState(null); // null = mapa, 0-3 = nodo elegido/jugando
+    const [eventosDifficultyTier, setEventosDifficultyTier] = useState('facil'); // facil/medio/dificil, ver EVENTOS_NODE_DIFFICULTY_BY_TIER - cada uno con su propio progreso y rivales
     // eventosNodesDone/eventosClaimedNodes vienen de fuera (gameState persistido, ver
-    // LadyRunStandalone.jsx) para que el progreso y las recompensas ya reclamadas sobrevivan a
-    // recargar la pagina. onAdvanceEventosNodeRef/onClaimEventosNodeRef son el espejo de siempre
-    // para poder llamarlas desde el bucle principal sin meterlas en su dependency array.
+    // LadyRunStandalone.jsx) ya como objetos {facil,medio,dificil} para que el progreso y las
+    // recompensas ya reclamadas sobrevivan a recargar la pagina, por separado en cada dificultad.
+    // onAdvanceEventosNodeRef/onClaimEventosNodeRef son el espejo de siempre para poder llamarlas
+    // desde el bucle principal sin meterlas en su dependency array; eventosDifficultyTierRef igual,
+    // para que sepan en que tier guardar sin depender del estado directamente.
     const onAdvanceEventosNodeRef = useRef(onAdvanceEventosNode);
     onAdvanceEventosNodeRef.current = onAdvanceEventosNode;
     const onClaimEventosNodeRef = useRef(onClaimEventosNode);
     onClaimEventosNodeRef.current = onClaimEventosNode;
-    const eventosClaimedNodesRef = useRef(eventosClaimedNodes);
-    eventosClaimedNodesRef.current = eventosClaimedNodes;
+    const eventosDifficultyTierRef = useRef(eventosDifficultyTier);
+    eventosDifficultyTierRef.current = eventosDifficultyTier;
+    const eventosClaimedNodesRef = useRef(eventosClaimedNodes[eventosDifficultyTier] ?? []);
+    eventosClaimedNodesRef.current = eventosClaimedNodes[eventosDifficultyTier] ?? [];
 
     // Fondo del menu de Historia: ciclo historia1 -> historia2 -> historia3 (vuelve al punto de
     // partida) -> historia1... en bucle mientras se este en el menu. Sin evento nativo para saber
@@ -1451,7 +1468,7 @@ export default function RunnerScreen({
         setRunCoinsEarned(totalCoins);
         setRunHuesinEarned(totalHuesin);
         setRunChapasEarned(totalChapas);
-        onClaimEventosNodeRef.current?.(nodeIndex);
+        onClaimEventosNodeRef.current?.(eventosDifficultyTierRef.current, nodeIndex);
     }, []);
     const claimEventosNodeRewardRef = useRef(claimEventosNodeReward);
     claimEventosNodeRewardRef.current = claimEventosNodeReward;
@@ -1696,7 +1713,7 @@ export default function RunnerScreen({
     // progreso propio (eventosNodesDone), nunca toca historiaStep/prologoScenariosDone.
     const startEventosNodeRun = useCallback((nodeIndex) => {
         const config = CHAPTER1_NODE_RUN_CONFIG[nodeIndex];
-        setDifficulty(EVENTOS_NODE_DIFFICULTY[nodeIndex] ?? 'facil');
+        setDifficulty(EVENTOS_NODE_DIFFICULTY_BY_TIER[eventosDifficultyTier][nodeIndex] ?? 'facil');
         setSelectedBiomeId(null);
         setPrologoRunScene(null);
         setHistoriaCustomScene(config.custom);
@@ -1710,7 +1727,7 @@ export default function RunnerScreen({
         const rivalDogId = EVENTOS_NODE_RIVAL_DOG[nodeIndex];
         setCpuDogId(rivalDogId);
         setSelectedDogId(current => (current === rivalDogId ? (UNLOCKED_DOG_IDS.find(id => id !== rivalDogId) ?? current) : current));
-    }, [resetGame]);
+    }, [resetGame, eventosDifficultyTier]);
 
     // Volver de una carrera de nodo de Eventos al mapa de Eventos.
     const backToEventosMap = useCallback(() => {
@@ -2051,7 +2068,7 @@ export default function RunnerScreen({
 
             // Modo Libre: 1 tavern coin cada TAVERN_COIN_TIER_INTERVAL tramos, toda la partida. Igual que
             // el corazon, no se genera suelto: se marca pendiente y se engancha al proximo obstaculo real.
-            if (arcadeSubMode === 'libre' && tierNumber >= nextTavernCoinAtTierRef.current) {
+            if ((arcadeSubMode === 'libre' || runMode === 'eventos') && tierNumber >= nextTavernCoinAtTierRef.current) {
                 nextTavernCoinAtTierRef.current += TAVERN_COIN_TIER_INTERVAL;
                 pendingTavernCoinRef.current = true;
             }
@@ -2065,7 +2082,7 @@ export default function RunnerScreen({
 
             // El regalo de chapas se repite en las 3 dificultades: cada 10 tramos en Facil, cada 5 en
             // Medio/Dificil, durante toda la partida (no solo al principio).
-            if (arcadeSubMode === 'libre' && tierNumber >= nextChapaBonusTierRef.current) {
+            if ((arcadeSubMode === 'libre' || runMode === 'eventos') && tierNumber >= nextChapaBonusTierRef.current) {
                 nextChapaBonusTierRef.current += getChapaBonusIntervalTier(difficulty);
                 firstGroundBonusGivenRef.current = false;
                 firstAerialBonusGivenRef.current = false;
@@ -2320,7 +2337,7 @@ export default function RunnerScreen({
                 let groupCount = 1;
                 list = [...list, makeObstacle(trackWidth)];
                 groundObstacleCountRef.current += 1;
-                if (arcadeSubMode === 'libre' && !aerial && !firstGroundBonusGivenRef.current && chapasSpawnedCountRef.current < chapaSpawnCapRef.current) {
+                if ((arcadeSubMode === 'libre' || runMode === 'eventos') && !aerial && !firstGroundBonusGivenRef.current && chapasSpawnedCountRef.current < chapaSpawnCapRef.current) {
                     firstGroundBonusGivenRef.current = true;
                     chapasSpawnedCountRef.current += 1;
                     // Regalo unico de chapas en el 1er terrestre de la partida: nace un poco antes que el
@@ -2343,7 +2360,7 @@ export default function RunnerScreen({
                     });
                     groupCount += 1;
                 }
-                if (arcadeSubMode === 'libre' && aerial && !firstAerialBonusGivenRef.current && chapasSpawnedCountRef.current < chapaSpawnCapRef.current) {
+                if ((arcadeSubMode === 'libre' || runMode === 'eventos') && aerial && !firstAerialBonusGivenRef.current && chapasSpawnedCountRef.current < chapaSpawnCapRef.current) {
                     firstAerialBonusGivenRef.current = true;
                     chapasSpawnedCountRef.current += 1;
                     // Regalo unico de chapas en el 1er aereo de la partida, abajo (se coge sin saltar).
@@ -2389,7 +2406,7 @@ export default function RunnerScreen({
                         || ((difficulty === 'medio' || difficulty === 'dificil') && !fourthBonusGivenRef.current)
                         || (difficulty === 'dificil' && !fifthBonusGivenRef.current))
                     && chapasSpawnedCountRef.current < chapaSpawnCapRef.current;
-                if (arcadeSubMode === 'libre' && firstGroundBonusGivenRef.current && firstAerialBonusGivenRef.current && chapaBonusPending) {
+                if ((arcadeSubMode === 'libre' || runMode === 'eventos') && firstGroundBonusGivenRef.current && firstAerialBonusGivenRef.current && chapaBonusPending) {
                     chapaExtraSpawnsRef.current += 1;
                     if (chapaExtraSpawnsRef.current === 2 && !thirdBonusGivenRef.current) {
                         thirdBonusGivenRef.current = true;
@@ -2513,7 +2530,7 @@ export default function RunnerScreen({
                         if (pendingPowerForPlayerRef.current === 0) setPlayerPowerPending(false);
                     }
                 }
-                if (arcadeSubMode === 'libre' && pendingTavernCoinRef.current) {
+                if ((arcadeSubMode === 'libre' || runMode === 'eventos') && pendingTavernCoinRef.current) {
                     pendingTavernCoinRef.current = false;
                     // 1 en Facil, 2 en Medio, 3 en Dificil. En partida reducida, 0 o 1 al azar en vez de eso
                     // (no hay tirada de valor: la que sale, si sale, vale su valor completo).
@@ -2783,7 +2800,7 @@ export default function RunnerScreen({
                 });
                 if (!endingRef.current && eventosPlayerDistanceRef.current >= metaPx) {
                     endingRef.current = true;
-                    onAdvanceEventosNodeRef.current?.(eventosActiveNodeIndex);
+                    onAdvanceEventosNodeRef.current?.(eventosDifficultyTierRef.current, eventosActiveNodeIndex);
                     claimEventosNodeRewardRef.current?.(eventosActiveNodeIndex);
                     setTimeout(() => { setWon(true); setPhase('gameover'); }, GAME_END_DELAY_MS);
                 } else if (!endingRef.current && !cpuDefeatedRef.current && eventosCpuDistanceRef.current >= metaPx) {
@@ -2972,7 +2989,7 @@ export default function RunnerScreen({
                         cpuDefeatedRef.current = true;
                         if (!endingRef.current) {
                             endingRef.current = true;
-                            onAdvanceEventosNodeRef.current?.(eventosActiveNodeIndex);
+                            onAdvanceEventosNodeRef.current?.(eventosDifficultyTierRef.current, eventosActiveNodeIndex);
                             claimEventosNodeRewardRef.current?.(eventosActiveNodeIndex);
                             setTimeout(() => { setWon(true); setPhase('gameover'); }, GAME_END_DELAY_MS);
                         }
@@ -3790,13 +3807,13 @@ export default function RunnerScreen({
 
                 {phase === 'ready' && !runMode && (
                     <div className="runner-mode-cards-extra">
-                        <div className="runner-mode-card-locked runner-mode-card-static-hielo">
-                            <button
-                                className="runner-mode-btn"
-                                onClick={() => { playLadyRunSfx('buttonMode'); setRunMode('eventos'); }}
-                            >
-                                <span className="runner-mode-btn-title">Eventos</span>
+                        <div className="runner-mode-card-locked runner-mode-card-static-bosque">
+                            <span className="runner-mode-btn-title lady-run-eventos-menu-label">Eventos</span>
+                            <button className="runner-start-btn runner-start-btn-compact" disabled>
+                                Jugar
+                                <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
                             </button>
+                            <span className="runner-mode-card-tag">Próximamente</span>
                         </div>
                         <div className="runner-mode-card-locked runner-mode-card-static-desierto">
                             <button className="runner-mode-btn runner-mode-btn-locked" disabled>
@@ -4251,43 +4268,6 @@ export default function RunnerScreen({
                         })}
                     </div>
                 )}
-                {phase === 'ready' && runMode === 'eventos' && eventosEventId === null && (
-                    <div className="lady-run-prologo-test">
-                        <p className="runner-overlay-title">Eventos</p>
-                        <div className="lady-run-eventos-select-list">
-                            <div className="runner-mode-card-active runner-mode-card-static-bosque">
-                                <button className="runner-mode-btn" onClick={() => setEventosEventId('bosque')}>
-                                    <span className="runner-mode-btn-title">Bosque</span>
-                                </button>
-                            </div>
-                            <div className="runner-mode-card-locked runner-mode-card-static-ciudad">
-                                <button className="runner-mode-btn runner-mode-btn-locked" disabled>
-                                    <span className="runner-mode-btn-title">Ciudad</span>
-                                    <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
-                                </button>
-                                <span className="runner-mode-card-tag">Próximamente</span>
-                            </div>
-                            <div className="runner-mode-card-locked runner-mode-card-static-minas">
-                                <button className="runner-mode-btn runner-mode-btn-locked" disabled>
-                                    <span className="runner-mode-btn-title">Mina</span>
-                                    <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
-                                </button>
-                                <span className="runner-mode-card-tag">Próximamente</span>
-                            </div>
-                            <div className="runner-mode-card-locked runner-mode-card-static-desierto">
-                                <button className="runner-mode-btn runner-mode-btn-locked" disabled>
-                                    <span className="runner-mode-btn-title">Desierto</span>
-                                    <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
-                                </button>
-                                <span className="runner-mode-card-tag">Próximamente</span>
-                            </div>
-                        </div>
-                        <button
-                            className="runner-start-btn runner-start-btn-secondary runner-start-btn-compact lady-run-prologo-test-btn"
-                            onClick={() => { playLadyRunSfx('backButton'); backToSelect(); }}
-                        >Volver</button>
-                    </div>
-                )}
                 {phase === 'ready' && runMode === 'eventos' && eventosEventId === 'bosque' && eventosActiveNodeIndex === null && (
                     <div className="lady-run-prologo-test">
                         <img
@@ -4298,21 +4278,33 @@ export default function RunnerScreen({
                             onLoad={recalcChapterNodePositions}
                         />
                         <div className="lady-run-chapter-overlay" />
+                        <div className="runner-difficulty-select lady-run-eventos-map-difficulty">
+                            {EVENTOS_DIFFICULTY_TIERS.map(tier => (
+                                <button
+                                    key={tier}
+                                    className={`runner-difficulty-btn${eventosDifficultyTier === tier ? ' runner-difficulty-active' : ''}`}
+                                    onClick={() => { if (tier !== eventosDifficultyTier) { playLadyRunSfx('difficulty'); setEventosDifficultyTier(tier); } }}
+                                >
+                                    {CPU_DIFFICULTY_PRESETS[tier].label}
+                                </button>
+                            ))}
+                        </div>
                         {EVENTOS_PATH_NODES.map((node, i) => {
                             const pos = chapterNodePositions[i];
-                            const done = eventosNodesDone >= i;
-                            const claimed = eventosClaimedNodes.includes(i);
+                            const done = (eventosNodesDone[eventosDifficultyTier] ?? 0) >= i;
+                            const claimed = (eventosClaimedNodes[eventosDifficultyTier] ?? []).includes(i);
+                            const rivalId = EVENTOS_NODE_RIVAL_DOG[i];
                             return (
                                 <button
                                     key={node.num}
-                                    className={`lady-run-path-node${!done ? ' lady-run-path-node-locked' : ''}${done && claimed ? ' lady-run-path-node-claimed' : ''}`}
+                                    className={`lady-run-path-node lady-run-path-node-tier-${eventosDifficultyTier}${!done ? ' lady-run-path-node-locked' : ''}${done && claimed ? ' lady-run-path-node-claimed' : ''}`}
                                     style={pos ? { left: `${pos.left}px`, top: `${pos.top}px` } : undefined}
                                     disabled={!done}
                                     onClick={() => setEventosActiveNodeIndex(i)}
                                 >
                                     <img
-                                        src={DOG_ICONS[EVENTOS_NODE_RIVAL_DOG[i]]}
-                                        alt={DogsConfig[EVENTOS_NODE_RIVAL_DOG[i]]?.name ?? ''}
+                                        src={DOG_ICONS[rivalId]}
+                                        alt={DogsConfig[rivalId]?.name ?? ''}
                                         className="lady-run-path-node-dog"
                                     />
                                     {!done && <img src={lockIcon} alt="Bloqueado" className="lady-run-path-node-lock lady-run-path-node-lock-overlay" />}
@@ -4321,7 +4313,7 @@ export default function RunnerScreen({
                         })}
                         <button
                             className="runner-start-btn runner-start-btn-secondary runner-start-btn-compact lady-run-prologo-test-btn"
-                            onClick={() => { playLadyRunSfx('backButton'); setEventosEventId(null); }}
+                            onClick={() => { playLadyRunSfx('backButton'); backToSelect(); }}
                         >Volver</button>
                     </div>
                 )}

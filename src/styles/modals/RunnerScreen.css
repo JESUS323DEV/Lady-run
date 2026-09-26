@@ -394,6 +394,12 @@
     font-size: 0.75rem;
 }
 
+.runner-mode-btn-title.lady-run-eventos-menu-label {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+}
+
 .runner-mode-card-tag {
     position: relative;
     color: rgba(255, 255, 255, 0.5);
@@ -824,25 +830,6 @@
     font-size: 0.85rem;
 }
 
-.lady-run-eventos-select-list {
-    position: absolute;
-    left: 50%;
-    top: 70px;
-    transform: translateX(-50%);
-    z-index: 21;
-    width: calc(100% - 20px);
-    max-width: 420px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.lady-run-eventos-select-list .runner-mode-card-active,
-.lady-run-eventos-select-list .runner-mode-card-locked {
-    flex: none;
-    height: 110px;
-}
-
 .runner-boss {
     position: absolute;
     bottom: 20px;
@@ -1146,15 +1133,9 @@
 .runner-start-btn.lady-run-prologo-test-btn {
     position: absolute;
     left: 50%;
-    bottom: 32px;
+    bottom: 2px;
     transform: translateX(-50%);
     z-index: 21;
-}
-
-/* Solo el mapa de nodos de Eventos, no toca las demas pantallas que comparten
-   .lady-run-prologo-test-btn (Historia). */
-.runner-start-btn.lady-run-eventos-map-btn {
-    bottom: 10px;
 }
 
 .lady-run-prologo-lore {
@@ -1170,6 +1151,14 @@
     line-height: 1.5;
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 0, 0, 0.6);
     pointer-events: none;
+}
+
+.lady-run-eventos-map-difficulty {
+    position: absolute;
+    left: 50%;
+    top: 16px;
+    transform: translateX(-50%);
+    z-index: 21;
 }
 
 .lady-run-prologo-test .runner-overlay-title {
@@ -1264,6 +1253,18 @@
     justify-content: center;
     cursor: pointer;
     box-shadow: 0 0 10px rgba(255, 215, 64, 0.6);
+}
+
+/* Color del circulo segun la dificultad elegida en el mapa de Eventos (ver eventosDifficultyTier) -
+   facil se queda con el dorado por defecto de arriba, esto solo pisa medio/dificil. */
+.lady-run-path-node-tier-medio {
+    border-color: #ff9800;
+    box-shadow: 0 0 10px rgba(255, 152, 0, 0.6);
+}
+
+.lady-run-path-node-tier-dificil {
+    border-color: #e53935;
+    box-shadow: 0 0 10px rgba(229, 57, 53, 0.6);
 }
 
 .lady-run-path-node-locked {

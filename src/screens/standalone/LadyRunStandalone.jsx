@@ -194,16 +194,25 @@ const LadyRunStandalone = () => {
                     equipAvatarFrame(frame.id);
                     return true;
                 }}
-                eventosNodesDone={gameState.ladyRunEventosNodesDone ?? 0}
-                onAdvanceEventosNode={(nodeIndex) => setGameState(prev => ({
+                eventosNodesDone={gameState.ladyRunEventosNodesDone ?? {}}
+                onAdvanceEventosNode={(tier, nodeIndex) => setGameState(prev => ({
                     ...prev,
-                    ladyRunEventosNodesDone: Math.max(prev.ladyRunEventosNodesDone ?? 0, nodeIndex + 1),
+                    ladyRunEventosNodesDone: {
+                        ...prev.ladyRunEventosNodesDone,
+                        [tier]: Math.max(prev.ladyRunEventosNodesDone?.[tier] ?? 0, nodeIndex + 1),
+                    },
                 }))}
-                eventosClaimedNodes={gameState.ladyRunEventosClaimedNodes ?? []}
-                onClaimEventosNode={(nodeIndex) => setGameState(prev => {
-                    const cur = prev.ladyRunEventosClaimedNodes ?? [];
+                eventosClaimedNodes={gameState.ladyRunEventosClaimedNodes ?? {}}
+                onClaimEventosNode={(tier, nodeIndex) => setGameState(prev => {
+                    const cur = prev.ladyRunEventosClaimedNodes?.[tier] ?? [];
                     if (cur.includes(nodeIndex)) return prev;
-                    return { ...prev, ladyRunEventosClaimedNodes: [...cur, nodeIndex] };
+                    return {
+                        ...prev,
+                        ladyRunEventosClaimedNodes: {
+                            ...prev.ladyRunEventosClaimedNodes,
+                            [tier]: [...cur, nodeIndex],
+                        },
+                    };
                 })}
                 onEarnTavernCoins={(amount) => earnCurrency({ tavernCoins: amount })}
                 onEarnChapas={(amount) => earnCurrency({ chapas: amount })}
