@@ -392,7 +392,7 @@ const LIBRE_TUT_STEP_ORDER = ['vidas', 'vidas_verdes', 'botin', 'perros', 'dific
 const SHOP_REMINDER_TIPS = [
     'No olvides pasar por la Tienda antes de tu próxima carrera.',
     'Usa tus monedas para comprar corazones y escudos en la Tienda.',
-    'Los corazones extra te dan más margen de error. Cómpralos en la Tienda.',
+    'Un corazón extra puede ser la diferencia entre perder y batir tu récord.',
     'El corazón mágico te hace invencible un instante. Consíguelo en la Tienda.',
     '¿Sabías que puedes comprar accesorios para tu perro en la Tienda?',
     'Cuantas más monedas gastes en la Tienda, más fácil será tu próxima carrera.',
@@ -976,8 +976,8 @@ export default function RunnerScreen({
     const [bossWindupDurationMs, setBossWindupDurationMs] = useState(BOSS_WINDUP_MS);
     const [scoresOpen, setScoresOpen] = useState(false);
     const [shopOpen, setShopOpen] = useState(false);
-    // Indice del consejo de SHOP_REMINDER_TIPS que se ve ahora mismo en game over (Modo Libre), rota
-    // solo cada 2.5s mientras esa pantalla este activa, ver useEffect de arranque mas abajo.
+    // Indice del consejo de SHOP_REMINDER_TIPS que se ve en game over (Modo Libre): uno al azar por
+    // pantalla, fijo mientras esa pantalla siga abierta (ver useEffect de arranque mas abajo).
     const [shopTipIndex, setShopTipIndex] = useState(() => Math.floor(Math.random() * SHOP_REMINDER_TIPS.length));
     // Brillo de "te llega el dinero" del boton Tienda (independiente del brillo de "hay algo gratis"
     // por cooldown): no es un recalculo constante, es por item. Cada vez que entras a la Tienda se
@@ -986,19 +986,16 @@ export default function RunnerScreen({
     // recargar/volver a abrir el juego, no hace falta persistirlo.
     const [seenAffordableShopItems, setSeenAffordableShopItems] = useState([]);
 
-    // Rota el consejo de la Tienda en game over (Modo Libre) cada 2.5s, sin repetir el mismo dos
-    // veces seguidas, mientras esa pantalla siga activa.
+    // Elige un consejo al azar cada vez que se entra en game over (Modo Libre), sin repetir el mismo
+    // que la vez anterior. Ya no rota mientras la pantalla esta abierta, se queda fijo.
     useEffect(() => {
-        if (!(phase === 'gameover' && arcadeSubMode === 'libre')) return undefined;
-        const id = setInterval(() => {
-            setShopTipIndex(prev => {
-                if (SHOP_REMINDER_TIPS.length <= 1) return prev;
-                let next = prev;
-                while (next === prev) next = Math.floor(Math.random() * SHOP_REMINDER_TIPS.length);
-                return next;
-            });
-        }, 5000);
-        return () => clearInterval(id);
+        if (!(phase === 'gameover' && arcadeSubMode === 'libre')) return;
+        setShopTipIndex(prev => {
+            if (SHOP_REMINDER_TIPS.length <= 1) return prev;
+            let next = prev;
+            while (next === prev) next = Math.floor(Math.random() * SHOP_REMINDER_TIPS.length);
+            return next;
+        });
     }, [phase, arcadeSubMode]);
     const [rankingOpen, setRankingOpen] = useState(false);
     const [avatarOpen, setAvatarOpen] = useState(false);
@@ -3858,11 +3855,11 @@ export default function RunnerScreen({
                 {phase === 'ready' && !runMode && (
                     <div className="runner-mode-cards-extra">
                         <div className="runner-mode-card-locked runner-mode-card-static-bosque">
-                            <span className="runner-mode-btn-title lady-run-eventos-menu-label">Eventos</span>
-                            <button
-                                className="runner-start-btn runner-start-btn-compact"
-                                onClick={() => { playLadyRunSfx('buttonMode'); setRunMode('eventos'); setEventosEventId('bosque'); }}
-                            >Jugar</button>
+                            <button className="runner-mode-btn runner-mode-btn-locked" disabled>
+                                <span className="runner-mode-btn-title">Eventos</span>
+                                <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
+                            </button>
+                            <span className="runner-mode-card-tag">Próximamente</span>
                         </div>
                         <div className="runner-mode-card-locked runner-mode-card-static-desierto">
                             <button className="runner-mode-btn runner-mode-btn-locked" disabled>
