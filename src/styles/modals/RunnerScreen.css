@@ -1753,6 +1753,22 @@
     gap: 14px;
 }
 
+.runner-action-row-column {
+    flex-direction: column;
+    gap: 8px;
+}
+
+.runner-shop-tip-text {
+    position: relative;
+    z-index: 1;
+    margin-top: 10px;
+    padding: 0 20px;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.72rem;
+    text-align: center;
+    line-height: 1.4;
+}
+
 /* Solo Eventos y solo en pantallas bajitas de verdad (moviles): empuja los botones hacia abajo
    usando el hueco libre que dejan las tarjetas mas bajas (.runner-track-eventos). En una ventana de
    escritorio alta, el mismo margin-top:auto dejaria un hueco enorme en medio, asi que ahi se queda
@@ -1773,7 +1789,7 @@
 
 .runner-loot-limit-text {
     margin-top: 6px;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.85);
     font-size: 0.7rem;
     text-align: center;
 }

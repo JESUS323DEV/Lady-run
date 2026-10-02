@@ -384,6 +384,20 @@ const EVENTOS_NODE_REWARDS = [
 // Orden del Tutorial 2 (Modo Libre, pantalla de elegir perro). Ver useEffect de arranque mas abajo.
 const LIBRE_TUT_STEP_ORDER = ['vidas', 'vidas_verdes', 'botin', 'perros', 'dificultad', 'empezar'];
 
+// Consejos que rotan en la pantalla de game over de Modo Libre, todos empujando a la Tienda (ver
+// feedback real de jugadores: se olvidan de que existe, no es que la ignoren a proposito).
+const SHOP_REMINDER_TIPS = [
+    'No olvides pasar por la Tienda antes de tu próxima carrera.',
+    'Usa tus monedas para comprar corazones y escudos en la Tienda.',
+    'Los corazones extra te dan más margen de error. Cómpralos en la Tienda.',
+    'El corazón mágico te hace invencible un instante. Consíguelo en la Tienda.',
+    '¿Sabías que puedes comprar accesorios para tu perro en la Tienda?',
+    'Cuantas más monedas gastes en la Tienda, más fácil será tu próxima carrera.',
+    'No dejes tus monedas sin usar, la Tienda te está esperando.',
+    'Antes de darle a Reintentar, échale un vistazo a la Tienda.',
+    'Los escudos aguantan un golpe por ti. Cómpralos en la Tienda antes de correr.',
+];
+
 // Orden del Tutorial 3 (Modo Libre, en plena carrera): arranca justo al terminar el 3-2-1 de la
 // PRIMERA carrera real (justo tras completar el Tutorial 2), congelando la partida (paused=true) en
 // vez de arrancar, ver startCountdown mas abajo.
@@ -960,12 +974,30 @@ export default function RunnerScreen({
     const [bossWindupDurationMs, setBossWindupDurationMs] = useState(BOSS_WINDUP_MS);
     const [scoresOpen, setScoresOpen] = useState(false);
     const [shopOpen, setShopOpen] = useState(false);
+    // Indice del consejo de SHOP_REMINDER_TIPS que se ve ahora mismo en game over (Modo Libre), rota
+    // solo cada 2.5s mientras esa pantalla este activa, ver useEffect de arranque mas abajo.
+    const [shopTipIndex, setShopTipIndex] = useState(() => Math.floor(Math.random() * SHOP_REMINDER_TIPS.length));
     // Brillo de "te llega el dinero" del boton Tienda (independiente del brillo de "hay algo gratis"
     // por cooldown): no es un recalculo constante, es por item. Cada vez que entras a la Tienda se
     // "marcan como vistos" los items que YA eran comprables en ese momento; solo vuelve a brillar si
     // un item DISTINTO se vuelve comprable despues de esa visita. Se resetea solo (empieza vacio) al
     // recargar/volver a abrir el juego, no hace falta persistirlo.
     const [seenAffordableShopItems, setSeenAffordableShopItems] = useState([]);
+
+    // Rota el consejo de la Tienda en game over (Modo Libre) cada 2.5s, sin repetir el mismo dos
+    // veces seguidas, mientras esa pantalla siga activa.
+    useEffect(() => {
+        if (!(phase === 'gameover' && arcadeSubMode === 'libre')) return undefined;
+        const id = setInterval(() => {
+            setShopTipIndex(prev => {
+                if (SHOP_REMINDER_TIPS.length <= 1) return prev;
+                let next = prev;
+                while (next === prev) next = Math.floor(Math.random() * SHOP_REMINDER_TIPS.length);
+                return next;
+            });
+        }, 4000);
+        return () => clearInterval(id);
+    }, [phase, arcadeSubMode]);
     const [rankingOpen, setRankingOpen] = useState(false);
     const [avatarOpen, setAvatarOpen] = useState(false);
     const [skinsOpen, setSkinsOpen] = useState(false);
@@ -3031,6 +3063,22 @@ export default function RunnerScreen({
     // comportan igual aqui, solo Historia mantiene el precio (fuera de prologoDogPick, que es su
     // propio caso especial siempre-Lady).
     const freeDogSelect = runMode === 'arcade' || runMode === 'eventos';
+    // Brillo del boton Tienda (menu principal Y game over, ver mas abajo): brilla cuando algun
+    // corazon (extra/magico/escudo) ya cumplio las 24h y se puede volver a coger gratis - mismo
+    // cooldown que LadyRunShopModal.jsx - o cuando hay algun item NUEVO que se ha vuelto comprable
+    // desde la ultima vez que se entro a la Tienda (ver seenAffordableShopItems).
+    const SHOP_DAILY_FREE_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+    const hasFreeShopItem = ['corazon_extra', 'corazon_magico', 'corazon_verde'].some(id => {
+        const last = dailyFreeClaimedAt[id];
+        return !last || (Date.now() - last) >= SHOP_DAILY_FREE_COOLDOWN_MS;
+    });
+    const affordableShopItems = [
+        chapas >= 10 ? 'corazon_extra' : null,
+        tavernCoins >= 15 && magicHearts < MAGIC_HEART_MAX ? 'corazon_magico' : null,
+        chapas >= 15 && greenHearts < GREEN_HEART_MAX ? 'corazon_verde' : null,
+    ].filter(Boolean);
+    const hasNewAffordableShopItem = affordableShopItems.some(id => !seenAffordableShopItems.includes(id));
+    const shopButtonGlows = hasFreeShopItem || hasNewAffordableShopItem;
     const biomeSceneClass = (arcadeSubMode === 'biome' || runMode === 'historia') && selectedBiomeId
         ? ` runner-track-scene-${selectedBiomeId}-${sceneIndex + 1}`
         : arcadeSubMode === 'libre'
@@ -3752,27 +3800,10 @@ export default function RunnerScreen({
                     )}
                 </div>
 
-                {phase === 'ready' && !runMode && (() => {
-                    // Brilla el boton de Tienda cuando algun corazon (extra/magico/escudo) ya cumplio
-                    // las 24h y se puede volver a coger gratis - mismo cooldown que LadyRunShopModal.jsx.
-                    const SHOP_DAILY_FREE_COOLDOWN_MS = 24 * 60 * 60 * 1000;
-                    const hasFreeShopItem = ['corazon_extra', 'corazon_magico', 'corazon_verde'].some(id => {
-                        const last = dailyFreeClaimedAt[id];
-                        return !last || (Date.now() - last) >= SHOP_DAILY_FREE_COOLDOWN_MS;
-                    });
-                    // Brillo aparte por "te llega el dinero" (mismos precios que LadyRunShopModal.jsx):
-                    // no se recalcula sin mas, solo avisa de items NUEVOS que se vuelven comprables
-                    // despues de la ultima vez que entraste a la Tienda (ver seenAffordableShopItems).
-                    const affordableShopItems = [
-                        chapas >= 10 ? 'corazon_extra' : null,
-                        tavernCoins >= 15 && magicHearts < MAGIC_HEART_MAX ? 'corazon_magico' : null,
-                        chapas >= 15 && greenHearts < GREEN_HEART_MAX ? 'corazon_verde' : null,
-                    ].filter(Boolean);
-                    const hasNewAffordableShopItem = affordableShopItems.some(id => !seenAffordableShopItems.includes(id));
-                    return (
+                {phase === 'ready' && !runMode && (
                     <div className={`runner-mode-card-shop runner-mode-card-static-pradera${ladyRunTutStep === 'tienda' ? ' lady-run-tut-highlight' : ''}`}>
                         <button
-                            className={`runner-mode-btn${ladyRunTutStep === 'tienda' ? ' lady-run-tut-tienda-btn-highlight' : ''}${(hasFreeShopItem || hasNewAffordableShopItem) && ladyRunTutStep !== 'tienda' ? ' runner-difficulty-bonus-glow' : ''}`}
+                            className={`runner-mode-btn${ladyRunTutStep === 'tienda' ? ' lady-run-tut-tienda-btn-highlight' : ''}${shopButtonGlows && ladyRunTutStep !== 'tienda' ? ' runner-difficulty-bonus-glow' : ''}`}
                             data-tutorial="lady-run-tut-tienda"
                             onClick={() => {
                                 playLadyRunSfx('buttonMode');
@@ -3794,8 +3825,7 @@ export default function RunnerScreen({
                             <span className="runner-mode-btn-title">Skins</span>
                         </button>
                     </div>
-                    );
-                })()}
+                )}
 
                 {ladyRunTutStep === 'tienda' && (
                     <LadyRunTutorialCallout
@@ -3841,7 +3871,7 @@ export default function RunnerScreen({
 
                 {phase === 'gameover' && (
                     <>
-                        <div className="runner-action-row">
+                        <div className="runner-action-row runner-action-row-column">
                             <button
                                 className="runner-start-btn runner-start-btn-compact"
                                 disabled={runTutRanThisSessionRef.current}
@@ -3853,6 +3883,12 @@ export default function RunnerScreen({
                                     else resetGame();
                                 }}
                             >Reintentar</button>
+                            {arcadeSubMode === 'libre' && (
+                                <button
+                                    className={`runner-start-btn runner-start-btn-compact${shopButtonGlows ? ' runner-difficulty-bonus-glow' : ''}`}
+                                    onClick={() => { playLadyRunSfx('buttonMode'); setShopOpen(true); setSeenAffordableShopItems(affordableShopItems); }}
+                                >Tienda</button>
+                            )}
                             {(!runTutRanThisSessionRef.current || runTutEpilogue === 'ranking') && (
                                 <button
                                     className="runner-start-btn runner-start-btn-secondary runner-start-btn-compact"
@@ -3861,9 +3897,7 @@ export default function RunnerScreen({
                             )}
                         </div>
                         {arcadeSubMode === 'libre' && (
-                            <p className="runner-loot-limit-text">
-                                {lootRunsLeftToday > 0 ? `${lootRunsLeftToday}/${MAX_FULL_LOOT_RUNS_PER_DAY} Botín extra` : `0/${MAX_FULL_LOOT_RUNS_PER_DAY}`}
-                            </p>
+                            <p className="runner-shop-tip-text">{SHOP_REMINDER_TIPS[shopTipIndex]}</p>
                         )}
                     </>
                 )}
