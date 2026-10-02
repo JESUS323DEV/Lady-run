@@ -297,8 +297,8 @@
     flex: none;
 }
 
-/* Barra de carrera de Eventos: 2 huellas (tuya/CPU) sobre la misma linea, posicionadas por .style.left
-   a mano cada tick (ver eventosPlayerMarkerElRef/eventosCpuMarkerElRef en RunnerScreen.jsx), no via
+/* Barra de carrera de Eventos: huella del jugador sobre la linea, posicionada por .style.left
+   a mano cada tick (ver eventosPlayerMarkerElRef en RunnerScreen.jsx), no via
    React state - la transition de aqui es lo que suaviza el movimiento entre ticks. */
 .runner-eventos-race-bar {
     position: relative;
@@ -332,11 +332,6 @@
 .runner-eventos-race-marker-player {
     background: #6bd66b;
     z-index: 2;
-}
-
-.runner-eventos-race-marker-cpu {
-    background: #ff6b6b;
-    z-index: 1;
 }
 
 /* Marca fija de tramo (2-3 por nodo, ver EVENTOS_NODE_REWARDS): hueca hasta que tu huella la cruza,
@@ -742,30 +737,8 @@
     height: 220px;
 }
 
-/* Eventos: el CPU se queda a 0 corazones antes de que tu llegues a la meta - sigue en pantalla pero
-   se apaga (fuera de la carrera), tu carril y la carrera en si continuan igual. */
-.runner-track-cpu-defeated {
-    filter: grayscale(100%) brightness(0.6);
-    background-image: url('../../assets/ui/icons-hud/hud-modals/game-run/fondo-1.webp');
-}
-
-.runner-dog-defeated-hidden {
-    display: none;
-}
-
 .runner-track-player {
     height: 220px;
-}
-
-/* Solo Eventos y solo en pantallas bajitas (moviles, ver el mismo breakpoint que
-   .runner-action-row-eventos): tarjetas mas bajas y el fondo recortado por abajo en vez de
-   centrado, para perder cielo/montanas en vez de suelo/personaje. En desktop (ventana alta) no
-   hace falta ganar espacio, se quedan con el tamaño normal (220px) de los demas modos. */
-@media (max-height: 750px) {
-    .runner-track-eventos {
-        height: 180px;
-        background-position: center bottom;
-    }
 }
 
 .runner-track-player.runner-track-blank {
@@ -963,6 +936,17 @@
 @keyframes runner-magic-glow-pulse {
     0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px rgba(255, 215, 64, 0.5)); }
     50%      { opacity: 0.15; filter: drop-shadow(0 0 14px rgba(255, 215, 64, 0.95)); }
+}
+
+/* Murcielago de Eventos: la posicion "left" se actualiza a mano cada tick (ver eventosBossElRef en
+   RunnerScreen.jsx), no via React state, igual que .runner-dog. */
+.runner-eventos-boss {
+    position: absolute;
+    bottom: 12px;
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6));
 }
 
 .runner-obstacle {
@@ -1779,24 +1763,6 @@
     font-size: 0.72rem;
     text-align: center;
     line-height: 1.4;
-}
-
-/* Solo Eventos y solo en pantallas bajitas de verdad (moviles): empuja los botones hacia abajo
-   usando el hueco libre que dejan las tarjetas mas bajas (.runner-track-eventos). En una ventana de
-   escritorio alta, el mismo margin-top:auto dejaria un hueco enorme en medio, asi que ahi se queda
-   con el espaciado normal (gap de .runner-action-row) en vez de este empuje. */
-@media (max-height: 750px) {
-    .runner-action-row-eventos {
-        margin-top: auto;
-    }
-}
-
-/* Desktop (ventana alta): sin el empuje total de arriba, pero un poco mas separados de la barra de
-   carrera que el gap normal, para no quedar pegados justo debajo de golpe. */
-@media (min-height: 751px) {
-    .runner-action-row-eventos {
-        margin-top: 48px;
-    }
 }
 
 .runner-loot-limit-text {

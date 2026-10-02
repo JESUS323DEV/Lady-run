@@ -348,12 +348,21 @@ const CHAPTER1_NODE_RUN_CONFIG = [
 // comparte nada con prologoScenariosDone.
 const EVENTOS_PATH_NODES = CHAPTER1_PATH_NODES.slice(0, 4);
 
-// Cada nodo de Eventos es una carrera a meta fija (no "primero que reduce al otro a 0 vidas" como el
-// combate normal): tu y el CPU aceleran hacia esta distancia con el mismo reloj, y quien llegue
-// primero con >0 corazones gana - ver el bloque "Eventos: carrera a meta" en el bucle principal.
-// Metros repartidos con progresion (mas cortos/faciles al principio) sobre ~1900m, la mejor marca
-// real del usuario jugando Modo Libre en facil.
+// Cada nodo de Eventos es llegar a esta distancia antes de que el murcielago (ver EVENTOS_BOSS_IMG)
+// te alcance - ver el bloque "Eventos: huida del murcielago" en el bucle principal. Metros repartidos
+// con progresion (mas cortos/faciles al principio) sobre ~1900m, la mejor marca real del usuario
+// jugando Modo Libre en facil.
 const EVENTOS_NODE_META_M = [300, 450, 550, 600];
+// Hueco inicial (px) con el murcielago: solo baja mientras estas invulnerable (golpe normal o corazon
+// magico), a razon de currentSpeed*dt, igual que antes avanzaba el CPU mientras tu distancia se
+// congelaba. Primera pasada sin ajustar con el juego real: HIT_INVULN_MS=900ms a velocidad media
+// (~350px/s) pierde ~315px por golpe, asi que esto aguanta unos 3 golpes seguidos antes de perder.
+const EVENTOS_BOSS_GAP_INITIAL_PX = 1000;
+// Posicion en pantalla del murcielago (px a la derecha de DOG_X, por donde entran los obstaculos):
+// lejos con el hueco lleno, pegado casi encima con el hueco a 0. Numeros a ojo, sin verlo renderizado
+// todavia, se ajustan en cuanto se pruebe en el juego real.
+const EVENTOS_BOSS_TRAIL_MAX_PX = 160;
+const EVENTOS_BOSS_TRAIL_MIN_PX = 20;
 // Selector de dificultad del evento entero (no por nodo individual, ver eventosDifficultyTier):
 // cada tier tiene su propia dificultad y rival por nodo, y su propio progreso guardado (ver
 // EVENTOS_NODE_RIVAL_DOG_BY_TIER y el prop eventosNodesDone/eventosClaimedNodes, ahora objetos
@@ -365,12 +374,6 @@ const EVENTOS_NODE_DIFFICULTY_BY_TIER = {
     medio: ['facil', 'medio', 'medio', 'medio'],
     dificil: ['medio', 'dificil', 'dificil', 'dificil'],
 };
-// Rival fijo por nodo (en vez de al azar, ver resetGame): el mismo perro en las 3 dificultades,
-// solo cambia el color del circulo del nodo segun eventosDifficultyTier (ver
-// .lady-run-path-node-tier-medio/-dificil en el CSS). No puedes elegir este perro como el tuyo en
-// ese nodo (ver runner-dog-select).
-const EVENTOS_NODE_RIVAL_DOG = ['gordo', 'zeus', 'muna', 'tuka'];
-
 // Recompensas por tramo de cada nodo de Eventos (independientes de RUN_MILESTONE_REWARDS de Modo
 // Libre): solo se pagan si llegas a la meta del nodo, y solo la primera vez que lo completas (ver
 // claimEventosNodeReward). "m" es la distancia del tramo dentro del nodo, no acumulada entre nodos.
@@ -940,24 +943,22 @@ export default function RunnerScreen({
     const runTrackCoinsCollectedRef = useRef(0); // coins cogidas en pista, se pagan al perder
     const runChapasCollectedRef = useRef(0); // chapas cogidas en pista, se pagan al perder
     const runDistanceRef = useRef(0); // distancia acumulada esta run (px), solo cosmetico para el resumen final
-    // Eventos: distancia propia de cada uno hacia la meta del nodo (px), independiente de
-    // runDistanceRef. Se congela para uno mientras esta en su ratito de invulnerabilidad tras un
-    // golpe, asi el otro le saca ventaja de verdad (ver bucle principal).
+    // Eventos: distancia propia hacia la meta del nodo (px), independiente de runDistanceRef. Se
+    // congela mientras estas invulnerable tras un golpe (ver bucle principal, "huida del murcielago").
     const eventosPlayerDistanceRef = useRef(0);
-    const eventosCpuDistanceRef = useRef(0);
-    // true en cuanto el CPU se queda a 0 corazones en un nodo de Eventos: deja de competir (ya no
-    // choca ni avanza, su card se pone gris via cpuLives<=0), pero la carrera sigue, el jugador
-    // igualmente tiene que llegar el a la meta.
-    const cpuDefeatedRef = useRef(false);
+    // Hueco (px) con el murcielago que te persigue - ver EVENTOS_BOSS_GAP_INITIAL_PX. Solo baja
+    // mientras estas invulnerable, pierdes si llega a 0.
+    const eventosBossGapRef = useRef(EVENTOS_BOSS_GAP_INITIAL_PX);
     // Sabotaje de Eventos (ver startEventosNodeRun): version simplificada de momento, un sprite de
-    // poder al azar (de los 5 que ya existen para Historia) fijo para TODA la run, usado igual para
-    // tu sabotaje y el de la CPU - no depende del elemento de ningun perro. Pendiente de definir en
-    // FEATURES.md si mas adelante esto se conecta a una tienda de skins de poder o algo comprable.
+    // poder al azar (de los 5 que ya existen para Historia) fijo para TODA la run. Pendiente de
+    // definir en FEATURES.md si mas adelante esto se conecta a una tienda de skins de poder o algo
+    // comprable.
     const eventosPowerElementRef = useRef(null);
-    // Marcadores DOM de la barra de carrera de Eventos (huella tuya/del CPU), movidos a mano con
-    // .style.left cada tick (igual que runFlagElRef en Modo Libre), sin pasar por React state.
+    // Marcadores DOM de la barra de carrera de Eventos (tu huella + marcas de tramo) y del murcielago
+    // en pista, movidos a mano con .style.left cada tick (igual que runFlagElRef en Modo Libre), sin
+    // pasar por React state.
     const eventosPlayerMarkerElRef = useRef(null);
-    const eventosCpuMarkerElRef = useRef(null);
+    const eventosBossElRef = useRef(null);
     // Marcas fijas de tramo (2-3 por nodo, ver EVENTOS_NODE_REWARDS) en la barra de carrera: se
     // activan (clase CSS) en cuanto tu huella las cruza, sin pasar por React state.
     const eventosTramoMarkerElsRef = useRef([]);
@@ -1751,7 +1752,7 @@ export default function RunnerScreen({
         }
     }, [historiaActiveNodeIndex, startHistoriaNodeRun, startPrologoRun]);
 
-    // Nodos de Eventos: carrera a meta fija contra el CPU (ver EVENTOS_NODE_META_M en el bucle
+    // Nodos de Eventos: huir del murcielago hasta la meta (ver EVENTOS_NODE_META_M en el bucle
     // principal), reusa el fondo/mecanismo de los nodos de Historia pero separado del todo -
     // progreso propio (eventosNodesDone), nunca toca historiaStep/prologoScenariosDone.
     const startEventosNodeRun = useCallback((nodeIndex) => {
@@ -1761,15 +1762,9 @@ export default function RunnerScreen({
         setPrologoRunScene(null);
         setHistoriaCustomScene(config.custom);
         eventosPlayerDistanceRef.current = 0;
-        eventosCpuDistanceRef.current = 0;
-        cpuDefeatedRef.current = false;
+        eventosBossGapRef.current = EVENTOS_BOSS_GAP_INITIAL_PX;
         eventosPowerElementRef.current = ELEMENT_POWER_KEYS[Math.floor(Math.random() * ELEMENT_POWER_KEYS.length)];
         resetGame(config.libreScene ?? undefined);
-        // Rival fijo de este nodo (pisa el random que pone resetGame), y si coincidia con tu propio
-        // perro elegido, se cambia sola a otro para no dejarte sin perro seleccionable.
-        const rivalDogId = EVENTOS_NODE_RIVAL_DOG[nodeIndex];
-        setCpuDogId(rivalDogId);
-        setSelectedDogId(current => (current === rivalDogId ? (UNLOCKED_DOG_IDS.find(id => id !== rivalDogId) ?? current) : current));
     }, [resetGame, eventosDifficultyTier]);
 
     // Volver de una carrera de nodo de Eventos al mapa de Eventos.
@@ -2814,10 +2809,11 @@ export default function RunnerScreen({
                 }
             }
 
-            // Colision CPU (en Eventos, no si ya esta derrotado: ver cpuDefeatedRef mas abajo)
+            // Colision CPU: ya no aplica en Eventos (sin perro rival, ver "huida del murcielago" abajo),
+            // sigue igual para Historia/Arcade.
             let cpuLifeLost = false;
             const cpuInvulnNow = now < cpuInvulnUntilRef.current;
-            if (stage === 'cpu' && !cpuDefeatedRef.current) {
+            if (stage === 'cpu' && runMode !== 'eventos') {
                 if (!cpuInvulnNow) {
                     for (const o of list) {
                         if (o.cpuHit || o.lane === 'player') continue;
@@ -2833,19 +2829,24 @@ export default function RunnerScreen({
                 }
             }
 
-            // Eventos: carrera a meta fija, en paralelo al combate normal. Cada uno acumula su propia
-            // distancia con la misma velocidad de siempre, congelada mientras esta en su ratito de
-            // invulnerabilidad (invuln/cpuInvulnNow, definidos arriba) - asi el golpe SI le hace perder
-            // terreno de verdad, sin restar metros con numero fijo. Gana quien llegue antes a la meta.
+            // Eventos: huida del murcielago. Tu distancia avanza igual que siempre, congelada mientras
+            // estas invulnerable (golpe normal o corazon magico) - el murcielago no se congela nunca,
+            // asi que ese tiempo parado es justo lo que te hace perder hueco con el (eventosBossGapRef).
+            // Si vas limpio, el hueco se queda igual. Pierdes si llega a 0, ganas llegando a la meta.
             if (runMode === 'eventos' && eventosActiveNodeIndex !== null) {
-                if (!invuln) eventosPlayerDistanceRef.current += currentSpeed * dt;
-                if (!cpuInvulnNow && !cpuDefeatedRef.current) eventosCpuDistanceRef.current += currentSpeed * dt;
+                if (!invuln) {
+                    eventosPlayerDistanceRef.current += currentSpeed * dt;
+                } else {
+                    eventosBossGapRef.current -= currentSpeed * dt;
+                }
                 const metaPx = EVENTOS_NODE_META_M[eventosActiveNodeIndex] * METERS_PER_PX;
                 if (eventosPlayerMarkerElRef.current) {
                     eventosPlayerMarkerElRef.current.style.left = `${Math.min(100, (eventosPlayerDistanceRef.current / metaPx) * 100)}%`;
                 }
-                if (eventosCpuMarkerElRef.current) {
-                    eventosCpuMarkerElRef.current.style.left = `${Math.min(100, (eventosCpuDistanceRef.current / metaPx) * 100)}%`;
+                if (eventosBossElRef.current) {
+                    const gapRatio = Math.max(0, Math.min(1, eventosBossGapRef.current / EVENTOS_BOSS_GAP_INITIAL_PX));
+                    const trail = EVENTOS_BOSS_TRAIL_MIN_PX + (EVENTOS_BOSS_TRAIL_MAX_PX - EVENTOS_BOSS_TRAIL_MIN_PX) * gapRatio;
+                    eventosBossElRef.current.style.left = `${DOG_X + trail}px`;
                 }
                 (EVENTOS_NODE_REWARDS[eventosActiveNodeIndex] ?? []).forEach((stop, i) => {
                     const el = eventosTramoMarkerElsRef.current[i];
@@ -2856,7 +2857,7 @@ export default function RunnerScreen({
                     onAdvanceEventosNodeRef.current?.(eventosDifficultyTierRef.current, eventosActiveNodeIndex);
                     claimEventosNodeRewardRef.current?.(eventosActiveNodeIndex);
                     setTimeout(() => { setWon(true); setPhase('gameover'); }, GAME_END_DELAY_MS);
-                } else if (!endingRef.current && !cpuDefeatedRef.current && eventosCpuDistanceRef.current >= metaPx) {
+                } else if (!endingRef.current && eventosBossGapRef.current <= 0) {
                     endingRef.current = true;
                     setTimeout(() => { setWon(false); setPhase('gameover'); playLadyRunSfx('loseGame'); }, GAME_END_DELAY_MS);
                 }
@@ -3036,19 +3037,6 @@ export default function RunnerScreen({
                             return next;
                         }
                         setStage('boss');
-                        return next;
-                    }
-                    if (runMode === 'eventos') {
-                        // Derrotar al CPU (0 corazones) es ahora victoria inmediata, sin necesidad de llegar
-                        // a la meta - mismo pago de recompensa que al llegar (ver "Eventos: carrera a meta").
-                        // Si nadie cae, sigue ganando quien llegue primero a la meta (plan B, sin cambios).
-                        cpuDefeatedRef.current = true;
-                        if (!endingRef.current) {
-                            endingRef.current = true;
-                            onAdvanceEventosNodeRef.current?.(eventosDifficultyTierRef.current, eventosActiveNodeIndex);
-                            claimEventosNodeRewardRef.current?.(eventosActiveNodeIndex);
-                            setTimeout(() => { setWon(true); setPhase('gameover'); }, GAME_END_DELAY_MS);
-                        }
                         return next;
                     }
                     // Arcade infinito: en vez de terminar la partida, aparece otro rival
@@ -3332,9 +3320,9 @@ export default function RunnerScreen({
                     );
                 })()}
 
-                <div className={`runner-tracks${isLibre ? ' runner-tracks-solo' : ''}${menuBlank ? ' runner-tracks-blank' : ''}`}>
-                    {phase !== 'ready' && !isLibre && (
-                        <div className={`runner-track runner-track-cpu${runMode === 'eventos' ? ' runner-track-eventos' : ''}${phase === 'gameover' ? ' runner-track-static' : ''}${biomeSceneClass}${cpuPowerPending ? ' runner-track-power-pending' : ''}${stage === 'boss' ? ' runner-track-boss' : ''}${runMode === 'eventos' && cpuLives <= 0 ? ' runner-track-cpu-defeated' : ''}`}>
+                <div className={`runner-tracks${(isLibre || runMode === 'eventos') ? ' runner-tracks-solo' : ''}${menuBlank ? ' runner-tracks-blank' : ''}`}>
+                    {phase !== 'ready' && !isLibre && runMode !== 'eventos' && (
+                        <div className={`runner-track runner-track-cpu${phase === 'gameover' ? ' runner-track-static' : ''}${biomeSceneClass}${cpuPowerPending ? ' runner-track-power-pending' : ''}${stage === 'boss' ? ' runner-track-boss' : ''}`}>
                             <div className="runner-ground" />
                             {phase === 'playing' && stage === 'cpu' && <div className={skyOverlayClass} />}
 
@@ -3348,9 +3336,9 @@ export default function RunnerScreen({
                                         ref={cpuDogElRef}
                                         src={cpuDogImg}
                                         alt={DogsConfig[cpuDogId]?.name ?? cpuDogId}
-                                        className={`runner-dog${cpuHitFlash ? ' runner-dog-hit' : ''}${runMode === 'eventos' && cpuLives <= 0 ? ' runner-dog-defeated-hidden' : ''}`}
+                                        className={`runner-dog${cpuHitFlash ? ' runner-dog-hit' : ''}`}
                                     />
-                                    {!(runMode === 'eventos' && cpuLives <= 0) && obstacles.filter(o => o.lane !== 'player').map(o => (
+                                    {obstacles.filter(o => o.lane !== 'player').map(o => (
                                         <img
                                             key={o.id}
                                             ref={el => setCpuObstacleEl(o.id, el)}
@@ -3365,7 +3353,7 @@ export default function RunnerScreen({
                     )}
 
                     <div
-                        className={`runner-track runner-track-player${runMode === 'eventos' ? ' runner-track-eventos' : ''}${isLibre ? ' runner-track-player-solo' : ''}${phase === 'gameover' ? ' runner-track-static' : ''}${biomeSceneClass}${playerPowerPending ? ' runner-track-power-pending' : ''}${menuBlank ? ' runner-track-blank' : ''}`}
+                        className={`runner-track runner-track-player${(isLibre || runMode === 'eventos') ? ' runner-track-player-solo' : ''}${phase === 'gameover' ? ' runner-track-static' : ''}${biomeSceneClass}${playerPowerPending ? ' runner-track-power-pending' : ''}${menuBlank ? ' runner-track-blank' : ''}`}
                         style={isLibre && phase === 'gameover' ? { backgroundImage: `url(${LIBRE_SCENE_STATIC_IMGS[libreSceneKey]})` } : undefined}
                         ref={trackRef}
                     >
@@ -3451,6 +3439,15 @@ export default function RunnerScreen({
                                 alt="Boss"
                                 className={`runner-boss${bossHitFlash ? ' runner-boss-hit' : ''}${bossWindingUp ? ' runner-boss-windup' : ''}`}
                                 style={bossWindingUp ? { filter: `drop-shadow(0 0 18px ${ELEMENT_ICON[CHAPTER_BOSS_ELEMENT[selectedBiomeId]]?.color})`, animationDuration: `${bossWindupDurationMs}ms` } : undefined}
+                            />
+                        )}
+
+                        {runMode === 'eventos' && eventosActiveNodeIndex !== null && (
+                            <img
+                                ref={eventosBossElRef}
+                                src={minaBoss1}
+                                alt="Murciélago"
+                                className="runner-eventos-boss"
                             />
                         )}
 
@@ -3756,7 +3753,6 @@ export default function RunnerScreen({
                                 />
                             ))}
                             <div ref={eventosPlayerMarkerElRef} className="runner-eventos-race-marker runner-eventos-race-marker-player" />
-                            <div ref={eventosCpuMarkerElRef} className="runner-eventos-race-marker runner-eventos-race-marker-cpu" />
                         </div>
                     )}
 
@@ -3863,11 +3859,10 @@ export default function RunnerScreen({
                     <div className="runner-mode-cards-extra">
                         <div className="runner-mode-card-locked runner-mode-card-static-bosque">
                             <span className="runner-mode-btn-title lady-run-eventos-menu-label">Eventos</span>
-                            <button className="runner-start-btn runner-start-btn-compact" disabled>
-                                Jugar
-                                <img src={lockIcon} alt="Bloqueado" className="runner-mode-btn-lock" />
-                            </button>
-                            <span className="runner-mode-card-tag">Próximamente</span>
+                            <button
+                                className="runner-start-btn runner-start-btn-compact"
+                                onClick={() => { playLadyRunSfx('buttonMode'); setRunMode('eventos'); setEventosEventId('bosque'); }}
+                            >Jugar</button>
                         </div>
                         <div className="runner-mode-card-locked runner-mode-card-static-desierto">
                             <button className="runner-mode-btn runner-mode-btn-locked" disabled>
@@ -3927,7 +3922,7 @@ export default function RunnerScreen({
                 )}
 
                 {phase === 'playing' && (
-                    <div className={`runner-action-row${runMode === 'eventos' ? ' runner-action-row-eventos' : ''}`}>
+                    <div className="runner-action-row">
                         <div className="runner-jump-hub">
                             {runMode === 'eventos' && (
                                 <button
@@ -4041,9 +4036,6 @@ export default function RunnerScreen({
                             // Nota: arcadeSubMode todavia es null aqui (solo se pone 'libre' al pulsar Empezar,
                             // despues de elegir perro), por eso se mira freeDogSelect y no arcadeSubMode.
                             const needsUnlock = prologoDogPick ? id !== 'lady' : (!freeDogSelect && PAID_DOG_IDS.includes(id) && !unlockedDogIds.includes(id));
-                            // Eventos: el rival fijo de este nodo no se puede elegir como tu propio perro
-                            // (ver EVENTOS_NODE_RIVAL_DOG), bloqueado sin precio/compra de por medio.
-                            const isEventosRival = runMode === 'eventos' && eventosActiveNodeIndex !== null && EVENTOS_NODE_RIVAL_DOG[eventosActiveNodeIndex] === id;
                             const canAfford = !prologoDogPick && huesin >= DOG_UNLOCK_PRICE.huesin && tavernCoins >= DOG_UNLOCK_PRICE.tavernCoins;
                             // Mientras el Tutorial 2 esta en el paso 'perros' y todavia no has elegido ninguno
                             // de verdad, se oculta la marca de "activo" aunque ya haya uno random por dentro.
@@ -4056,15 +4048,14 @@ export default function RunnerScreen({
                             return (
                                 <div key={id} className="runner-dog-select-col">
                                     <button
-                                        className={`runner-dog-select-btn dog-rarity-${DogsConfig[id]?.rarity} runner-dog-select-elembg-${DogsConfig[id]?.element}${selectedDogId === id && !hideActiveForTutorial ? ' runner-dog-select-active' : ''}${needsUnlock || isEventosRival ? ' runner-dog-select-locked' : ''}`}
+                                        className={`runner-dog-select-btn dog-rarity-${DogsConfig[id]?.rarity} runner-dog-select-elembg-${DogsConfig[id]?.element}${selectedDogId === id && !hideActiveForTutorial ? ' runner-dog-select-active' : ''}${needsUnlock ? ' runner-dog-select-locked' : ''}`}
                                         onClick={() => {
-                                            if (isEventosRival) return;
                                             if (needsUnlock) { if (canAfford) onUnlockDog?.(id); return; }
                                             playLadyRunSfx('doubleJump');
                                             setSelectedDogId(id);
                                             if (libreTutStep === 'perros') setLibreTutDogPicked(true);
                                         }}
-                                        disabled={isEventosRival || (needsUnlock && (prologoDogPick || !canAfford))}
+                                        disabled={needsUnlock && (prologoDogPick || !canAfford)}
                                     >
                                         <img src={equippedSkinForCard?.img ?? DOG_ICONS[id]} alt={DogsConfig[id]?.name ?? id} className="runner-dog-select-icon" />
                                         {needsUnlock && !prologoDogPick && (
@@ -4075,7 +4066,7 @@ export default function RunnerScreen({
                                                 <span className={tavernCoins >= DOG_UNLOCK_PRICE.tavernCoins ? '' : 'runner-dog-select-price-short'}>{DOG_UNLOCK_PRICE.tavernCoins}</span>
                                             </span>
                                         )}
-                                        {needsUnlock || isEventosRival ? (
+                                        {needsUnlock ? (
                                             <img src={lockIcon} alt="Bloqueado" className="runner-dog-select-lock" />
                                         ) : elementInfo && !freeDogSelect && (
                                             <span className={`runner-dog-select-element runner-dog-select-element-${DogsConfig[id]?.element}`}>
@@ -4084,7 +4075,7 @@ export default function RunnerScreen({
                                         )}
                                     </button>
                                     <span className="runner-dog-select-name">{DogsConfig[id]?.name ?? id}</span>
-                                    {!needsUnlock && !isEventosRival && (
+                                    {!needsUnlock && (
                                         <button
                                             className={`runner-dog-select-skin-btn${(ownedSkins[id] ?? []).length === 0 ? ' runner-dog-select-skin-btn-empty' : ''}`}
                                             disabled={(ownedSkins[id] ?? []).length === 0 || libreTutStep === 'perros'}
@@ -4351,7 +4342,6 @@ export default function RunnerScreen({
                             const pos = chapterNodePositions[i];
                             const done = (eventosNodesDone[eventosDifficultyTier] ?? 0) >= i;
                             const claimed = (eventosClaimedNodes[eventosDifficultyTier] ?? []).includes(i);
-                            const rivalId = EVENTOS_NODE_RIVAL_DOG[i];
                             return (
                                 <button
                                     key={node.num}
@@ -4361,8 +4351,8 @@ export default function RunnerScreen({
                                     onClick={() => setEventosActiveNodeIndex(i)}
                                 >
                                     <img
-                                        src={DOG_ICONS[rivalId]}
-                                        alt={DogsConfig[rivalId]?.name ?? ''}
+                                        src={minaBoss1}
+                                        alt="Murciélago"
                                         className="lady-run-path-node-dog"
                                     />
                                     {!done && <img src={lockIcon} alt="Bloqueado" className="lady-run-path-node-lock lady-run-path-node-lock-overlay" />}
