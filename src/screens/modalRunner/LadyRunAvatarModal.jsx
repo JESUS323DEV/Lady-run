@@ -80,6 +80,7 @@ export default function LadyRunAvatarModal({
             setFramePreview(null);
             return;
         }
+        if (framePreview.purchasable === false) return;
         setFrameBuyError(false);
         setFrameBuying(true);
         const ok = await onBuyFrame?.(framePreview);
@@ -223,7 +224,8 @@ export default function LadyRunAvatarModal({
 
                 {framePreview && (() => {
                     const unlocked = isFrameUnlocked(framePreview);
-                    const canAfford = unlocked || canAffordFrame(framePreview);
+                    const purchasable = framePreview.purchasable !== false;
+                    const canAfford = unlocked || (purchasable && canAffordFrame(framePreview));
                     const isEquipped = framePreview.id === currentFrame?.id;
                     const isBottom = framePreview.folder === 'marco-fondo';
                     return (
@@ -255,10 +257,10 @@ export default function LadyRunAvatarModal({
 
                                 <button
                                     className={`runner-start-btn runner-start-btn-compact lady-run-skin-preview-buy-btn${isEquipped ? ' lady-run-skin-preview-owned' : ''}`}
-                                    disabled={isEquipped || frameBuying || !canAfford}
+                                    disabled={isEquipped || frameBuying || !unlocked && (!purchasable || !canAfford)}
                                     onClick={handleFrameAction}
                                 >
-                                    {isEquipped ? 'Equipado' : !unlocked ? (() => {
+                                    {isEquipped ? 'Equipado' : !unlocked ? (!purchasable ? 'Solo en Eventos' : (() => {
                                         const [priceIcon, priceValue] = framePriceIconAndValue(framePreview.price);
                                         return (
                                             <>
@@ -266,7 +268,7 @@ export default function LadyRunAvatarModal({
                                                 {priceValue}
                                             </>
                                         );
-                                    })() : 'Equipar'}
+                                    })()) : 'Equipar'}
                                 </button>
                                 {frameBuyError && <p className="lady-run-skin-preview-error">No se pudo comprar, inténtalo de nuevo.</p>}
                             </div>

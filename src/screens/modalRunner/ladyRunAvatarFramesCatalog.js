@@ -7,22 +7,20 @@ const frameModules = import.meta.glob('../../assets/ui/marcos-avatar/*/*.webp', 
 
 // Grupos activos, cada uno con su titulo de seccion en el picker y el prefijo de nombre (el archivo
 // no trae copy definitivo todavia, ver FEATURES.md). itemId es el que se manda a spend_currency
-// (precios ver 016_marcos_precios_v2.sql). Marco base: mismo precio para las 3 variantes de pago
-// (Marco-4/5/6), Marco-1/2/3 gratis. Marco Animado: precio individual por variante (no hay un unico
-// precio de grupo), ver MARCO_FONDO_PRICE_BY_VARIANT.
+// (precios ver 016_marcos_precios_v2.sql). Marco base: mismo precio para las variantes de pago,
+// Marco-1/2/3 gratis - sin cambios.
 const FRAME_GROUPS = {
     'marco-base': { label: 'Marco base', namePrefix: 'Marco', itemId: 'marco_base', freeCount: 3, price: { chapas: 50 } },
     'marco-fondo': { label: 'Marco Animado', namePrefix: 'Fondo', freeCount: 0 },
 };
 
-// Precio + item_id propio por variante de Fondo, porque cada uno cuesta distinto y spend_currency
-// cobra un precio fijo por item_id (no lee lo que calcule el cliente).
-const MARCO_FONDO_PRICE_BY_VARIANT = {
-    1: { tavernCoins: 20, itemId: 'marco_fondo_1' },
-    2: { tavernCoins: 100, itemId: 'marco_fondo_2' },
-    3: { tavernCoins: 40, itemId: 'marco_fondo_3' },
-    4: { tavernCoins: 100, itemId: 'marco_fondo_4' },
-};
+// Marco Animado: solo Fondo-1 se puede comprar en tienda, a MARCO_FONDO_PRICE monedas. Fondo-2 en
+// adelante (y cualquier marco nuevo que se meta sin tocar este archivo) se queda sin purchasable:
+// no sale boton de compra, solo se consigue como recompensa de Eventos (que nodo/orden da cada uno
+// todavia sin definir). spend_currency rechaza explicitamente cualquier marco_fondo_N por encima de
+// MARCO_FONDO_PURCHASABLE_MAX, ver 024_marco_fondo_solo_1_a_3.sql.
+const MARCO_FONDO_PURCHASABLE_MAX = 1;
+const MARCO_FONDO_PRICE = 100;
 
 // El nombre del archivo no tiene un orden fiable como string (marco-avatar-1-2 ordena antes que
 // marco-avatar-1 porque '-' < '.'), asi que el numero de variante se saca del sufijo "-N" del
@@ -44,13 +42,14 @@ for (const [path, img] of Object.entries(frameModules)) {
 
 export const AVATAR_FRAMES = Object.entries(byFolder).flatMap(([folder, frames]) => {
     const group = FRAME_GROUPS[folder];
+    const isMarcoFondo = folder === 'marco-fondo';
     return frames
         .sort((a, b) => a.n - b.n)
         .map(frame => {
             const free = frame.n <= group.freeCount;
-            const variantPrice = folder === 'marco-fondo' ? MARCO_FONDO_PRICE_BY_VARIANT[frame.n] : null;
-            const price = variantPrice ? { tavernCoins: variantPrice.tavernCoins } : group.price;
-            const itemId = variantPrice ? variantPrice.itemId : group.itemId;
+            const purchasable = isMarcoFondo ? frame.n <= MARCO_FONDO_PURCHASABLE_MAX : true;
+            const price = isMarcoFondo ? { tavernCoins: MARCO_FONDO_PRICE } : group.price;
+            const itemId = isMarcoFondo ? `marco_fondo_${frame.n}` : group.itemId;
             return {
                 id: frame.fileName,
                 name: `${group.namePrefix}-${frame.n}`,
@@ -58,6 +57,7 @@ export const AVATAR_FRAMES = Object.entries(byFolder).flatMap(([folder, frames])
                 folder,
                 groupLabel: group.label,
                 free,
+                purchasable,
                 itemId,
                 price: free ? null : price,
             };
