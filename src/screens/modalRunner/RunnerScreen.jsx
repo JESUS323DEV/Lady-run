@@ -968,6 +968,7 @@ export default function RunnerScreen({
     const [attacks, setAttacks] = useState([]); // ataques de fase boss (jugador/boss), separados de los obstaculos de la carrera
     const [frameIdx, setFrameIdx] = useState(0);
     const [hitFlash, setHitFlash] = useState(false);
+    const [magicHeartGlowActive, setMagicHeartGlowActive] = useState(false);
     const [cpuHitFlash, setCpuHitFlash] = useState(false);
     const [bossHitFlash, setBossHitFlash] = useState(false);
     const [bossWindingUp, setBossWindingUp] = useState(false);
@@ -995,7 +996,7 @@ export default function RunnerScreen({
                 while (next === prev) next = Math.floor(Math.random() * SHOP_REMINDER_TIPS.length);
                 return next;
             });
-        }, 4000);
+        }, 5000);
         return () => clearInterval(id);
     }, [phase, arcadeSubMode]);
     const [rankingOpen, setRankingOpen] = useState(false);
@@ -1199,6 +1200,12 @@ export default function RunnerScreen({
     const bossObstacleWaveTimerRef = useRef(BOSS_OBSTACLE_WAVE_MS);
     const spawnTimerRef = useRef(0);
     const invulnUntilRef = useRef(0);
+    // Invulnerabilidad SOLO por corazon magico (manual, recogido en pista, o salvavidas automatico de
+    // la ultima vida) - a proposito separado de invulnUntilRef (que tambien cubre el parpadeo normal
+    // tras un golpe) para poder dar feedback visual solo de esto, sin tocar el golpe normal (ver
+    // magicHeartGlowActive mas abajo, pedido explicito: "el golpe del perro no se toca").
+    const magicHeartActiveUntilRef = useRef(0);
+    const magicHeartGlowShownRef = useRef(false);
     const cpuInvulnUntilRef = useRef(0);
     const scoreAccumRef = useRef(0);
     const scoreShownRef = useRef(0);
@@ -1325,7 +1332,11 @@ export default function RunnerScreen({
         // resta aqui tambien, se queda desincronizado tras usarlo a mano y el salvavidas se activa
         // igual aunque ya no te quede ninguno de verdad.
         magicHeartsRef.current = Math.max(0, magicHeartsRef.current - 1);
-        invulnUntilRef.current = performance.now() + MAGIC_HEART_INVULN_MS;
+        const until = performance.now() + MAGIC_HEART_INVULN_MS;
+        invulnUntilRef.current = until;
+        magicHeartActiveUntilRef.current = until;
+        magicHeartGlowShownRef.current = true;
+        setMagicHeartGlowActive(true);
         playLadyRunSfx('magicHeart');
         onUseMagicHeart?.();
     }, [phase, paused, magicHearts, onUseMagicHeart]);
@@ -2686,6 +2697,9 @@ export default function RunnerScreen({
             }
             if (magicHeartCollected) {
                 invulnUntilRef.current = now + MAGIC_HEART_INVULN_MS;
+                magicHeartActiveUntilRef.current = now + MAGIC_HEART_INVULN_MS;
+                magicHeartGlowShownRef.current = true;
+                setMagicHeartGlowActive(true);
                 playLadyRunSfx('magicHeart');
             }
 
@@ -2759,6 +2773,13 @@ export default function RunnerScreen({
                 ? DOG_TIER_VISUAL_SIZE[dogHitTier] - DOG_TIER_HIT_MARGIN[dogHitTier]
                 : DOG_SIZE;
             const invuln = now < invulnUntilRef.current;
+            // Apaga el brillo del corazon magico en cuanto expira su propio temporizador (no el de
+            // invuln general, que tambien cubre el parpadeo normal tras un golpe) - solo se llama a
+            // setMagicHeartGlowActive en la transicion, no cada frame.
+            if (magicHeartGlowShownRef.current && now >= magicHeartActiveUntilRef.current) {
+                magicHeartGlowShownRef.current = false;
+                setMagicHeartGlowActive(false);
+            }
             let lifeLost = false;
             if (!invuln) {
                 for (const o of list) {
@@ -2960,6 +2981,9 @@ export default function RunnerScreen({
                     // consume solo y te da su invulnerabilidad normal en vez de matarte (no toca setLives).
                     magicHeartsRef.current -= 1;
                     invulnUntilRef.current = now + MAGIC_HEART_INVULN_MS;
+                    magicHeartActiveUntilRef.current = now + MAGIC_HEART_INVULN_MS;
+                    magicHeartGlowShownRef.current = true;
+                    setMagicHeartGlowActive(true);
                     playLadyRunSfx('magicHeart');
                     onUseMagicHeartRef.current?.();
                 } else {
@@ -3074,7 +3098,7 @@ export default function RunnerScreen({
     });
     const affordableShopItems = [
         chapas >= 10 ? 'corazon_extra' : null,
-        tavernCoins >= 15 && magicHearts < MAGIC_HEART_MAX ? 'corazon_magico' : null,
+        tavernCoins >= 5 && magicHearts < MAGIC_HEART_MAX ? 'corazon_magico' : null,
         chapas >= 15 && greenHearts < GREEN_HEART_MAX ? 'corazon_verde' : null,
     ].filter(Boolean);
     const hasNewAffordableShopItem = affordableShopItems.some(id => !seenAffordableShopItems.includes(id));
@@ -3220,6 +3244,30 @@ export default function RunnerScreen({
                 style={(phase === 'playing' || phase === 'gameover') && isLibre ? { backgroundImage: `url(${LIBRE_SCENE_STATIC_IMGS[libreSceneKey]})` } : undefined}
                 onClick={e => e.stopPropagation()}
             >
+                {!shopOpen && !rankingOpen && !avatarOpen && !skinsOpen && (
+                    <button
+                        className={`lady-run-avatar-trigger${ladyRunTutStep === 'avatar_hud' ? ' lady-run-tut-highlight' : ''}${historiaTrailerOpen ? ' lady-run-avatar-trigger-disabled' : ''}`}
+                        data-tutorial="lady-run-tut-avatar-hud"
+                        onClick={() => {
+                            if (historiaTrailerOpen) return;
+                            playLadyRunSfx('buttonMode');
+                            setAvatarOpen(true);
+                            if (ladyRunTutStep === 'avatar_hud') advanceLadyRunTutorial();
+                        }}
+                    >
+                        {(() => {
+                            const frame = AVATAR_FRAMES.find(f => f.id === avatarFrameId) ?? AVATAR_FRAMES[0];
+                            return frame && <img src={frame.img} alt="" className="lady-run-avatar-trigger-frame" />;
+                        })()}
+                        {avatarDogId && DOG_ICONS[avatarDogId] && (() => {
+                            const equippedSkinId = equippedSkinByDog[avatarDogId];
+                            const equippedSkin = equippedSkinId
+                                ? [SKIN_CATALOG[avatarDogId]?.ultimate, ...(SKIN_CATALOG[avatarDogId]?.normal ?? [])].find(s => s?.id === equippedSkinId)
+                                : null;
+                            return <img src={equippedSkin?.img ?? DOG_ICONS[avatarDogId]} alt="" className="lady-run-avatar-trigger-photo" />;
+                        })()}
+                    </button>
+                )}
                 {phase !== 'playing' && onClose && (
                     <button className="lady-run-close-btn" onClick={onClose}><X /></button>
                 )}
@@ -3392,7 +3440,7 @@ export default function RunnerScreen({
                             ref={dogElRef}
                             src={dogImg}
                             alt={DogsConfig[selectedDogId]?.name ?? selectedDogId}
-                            className={`runner-dog${hitFlash ? ' runner-dog-hit' : ''}${phase === 'gameover' && DOG_GAMEOVER_IMG[selectedDogId] ? ' runner-dog-hidden' : ''}`}
+                            className={`runner-dog${hitFlash ? ' runner-dog-hit' : ''}${magicHeartGlowActive ? ' runner-dog-magic-glow' : ''}${phase === 'gameover' && DOG_GAMEOVER_IMG[selectedDogId] ? ' runner-dog-hidden' : ''}`}
                         />
                         )}
 
@@ -3444,30 +3492,6 @@ export default function RunnerScreen({
 
                         {(phase === 'ready' || phase === 'gameover') && (
                         <div className={`runner-overlay${phase === 'gameover' ? ' runner-overlay-gameover' : ''}${menuBlank ? ' runner-overlay-blank' : ''}`}>
-                            {phase === 'ready' && !runMode && !shopOpen && !rankingOpen && !avatarOpen && !skinsOpen && (
-                                <button
-                                    className={`lady-run-avatar-trigger${ladyRunTutStep === 'avatar_hud' ? ' lady-run-tut-highlight' : ''}${historiaTrailerOpen ? ' lady-run-avatar-trigger-disabled' : ''}`}
-                                    data-tutorial="lady-run-tut-avatar-hud"
-                                    onClick={() => {
-                                        if (historiaTrailerOpen) return;
-                                        playLadyRunSfx('buttonMode');
-                                        setAvatarOpen(true);
-                                        if (ladyRunTutStep === 'avatar_hud') advanceLadyRunTutorial();
-                                    }}
-                                >
-                                    {(() => {
-                                        const frame = AVATAR_FRAMES.find(f => f.id === avatarFrameId) ?? AVATAR_FRAMES[0];
-                                        return frame && <img src={frame.img} alt="" className="lady-run-avatar-trigger-frame" />;
-                                    })()}
-                                    {avatarDogId && DOG_ICONS[avatarDogId] && (() => {
-                                        const equippedSkinId = equippedSkinByDog[avatarDogId];
-                                        const equippedSkin = equippedSkinId
-                                            ? [SKIN_CATALOG[avatarDogId]?.ultimate, ...(SKIN_CATALOG[avatarDogId]?.normal ?? [])].find(s => s?.id === equippedSkinId)
-                                            : null;
-                                        return <img src={equippedSkin?.img ?? DOG_ICONS[avatarDogId]} alt="" className="lady-run-avatar-trigger-photo" />;
-                                    })()}
-                                </button>
-                            )}
                             {ladyRunTutStep === 'avatar_hud' && (
                                 <LadyRunTutorialCallout
                                     targetSelector='[data-tutorial="lady-run-tut-avatar-hud"]'

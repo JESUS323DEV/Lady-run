@@ -953,6 +953,18 @@
     50%      { opacity: 0.15; }
 }
 
+/* Feedback visual de que el corazon magico esta activo (pedido real de un jugador sin sonido, antes
+   solo habia un efecto de audio) - parpadeo igual que al golpearse (runner-blink) combinado con un
+   brillo dorado, en una sola animacion porque las dos pisarian la propiedad "animation" por separado. */
+.runner-dog-magic-glow {
+    animation: runner-magic-glow-pulse 0.6s steps(1) infinite;
+}
+
+@keyframes runner-magic-glow-pulse {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px rgba(255, 215, 64, 0.5)); }
+    50%      { opacity: 0.15; filter: drop-shadow(0 0 14px rgba(255, 215, 64, 0.95)); }
+}
+
 .runner-obstacle {
     position: absolute;
     bottom: 12px;
