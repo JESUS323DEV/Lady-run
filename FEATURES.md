@@ -65,6 +65,7 @@ Divagaciones sin decidir, no hay compromiso de hacerlas, solo quedan apuntadas p
 - Pantalla de Recompensas (ya hay una card bloqueada reservada en el menu principal): daria Huesin por cumplir ciertas condiciones/logros, sin definir cuales todavia.
 - Huecos vacios en el bracket rellenados con IA: reusar la logica de rival CPU que ya existe en Historia (boss) para generar una "run" de bot cuando faltan jugadores reales, asi el torneo nunca se queda colgado esperando gente.
 - Version mas simple tipo battle royale (aforo 5/10/15): todos juegan su partida de forma independiente, no compite en tiempo real contra nadie, solo se muestra visualmente quien va perdiendo/cuantos quedan via Supabase Realtime. Mas facil que sincronizar partidas, pero mas dificil de definir bien quien "gana" al final.
+- Sabotaje de Eventos, poderes por skin/tienda: ahora mismo (2026-09-24) el sabotaje de Eventos usa un sprite de poder al azar entre los 5 que ya existian para Historia (fuego/electrico/agua/tierra/oscuro), fijo para toda la run (`eventosPowerElementRef` en `RunnerScreen.jsx`), igual para el jugador y la CPU - no depende de ningun perro ni skin. Mas adelante se podria conectar esto a una tienda de skins de poder (comprables, distintas entre jugadores) o dejar que cada perro tenga el suyo propio, sin decidir nada de eso todavia.
 
 ## Seguridad
 
